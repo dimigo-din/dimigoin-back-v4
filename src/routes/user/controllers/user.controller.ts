@@ -13,20 +13,20 @@ import { UserService } from "../providers";
 export class UserController {
   constructor(private readonly userManageService: UserService) {}
 
-  @ApiOperation({
-    summary: "회원가입",
-    description: "유저 및 로그인 정보 생성",
-  })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: "성공",
-    type: User,
-  })
-  // @UseGuards(CustomJwtAuthGuard)
-  @Post("/register")
-  async register(@Body() data: CreateUserDTO) {
-    return await this.userManageService.createUser(data);
-  }
+  // @ApiOperation({
+  //   summary: "회원가입",
+  //   description: "유저 및 로그인 정보 생성",
+  // })
+  // @ApiResponse({
+  //   status: HttpStatus.OK,
+  //   description: "성공",
+  //   type: User,
+  // })
+  // // @UseGuards(CustomJwtAuthGuard)
+  // @Post("/register")
+  // async register(@Body() data: CreateUserDTO) {
+  //   return await this.userManageService.createUser(data);
+  // }
 
   @ApiOperation({
     summary: "권한 설정",

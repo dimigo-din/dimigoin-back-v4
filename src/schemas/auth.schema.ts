@@ -23,8 +23,8 @@ export class Login {
   @Column("text")
   identifier1: string = null;
 
-  @Column("text")
-  identifier2: string = null;
+  @Column("text", { nullable: true })
+  identifier2: string | null = null;
 }
 
 @Entity()

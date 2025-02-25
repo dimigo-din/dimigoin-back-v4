@@ -14,17 +14,17 @@ export class User {
   @Index()
   email: string;
 
-  @Column("int")
-  grade: number;
+  @Column("int", { nullable: true })
+  grade: number | null;
 
-  @Column("int")
-  number: number;
-
-  @Column()
-  name: string = null;
+  @Column("int", { nullable: true })
+  number: number | null;
 
   @Column()
-  card_barcode: string;
+  name: string;
+
+  @Column("varchar", { nullable: true })
+  card_barcode: string | null;
 
   @Column("varchar", { default: numberPermission(...CommonUserPermission) })
   permission: string;

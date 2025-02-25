@@ -23,16 +23,14 @@ export class UserService {
   }
 
   async createUser(data: CreateUserDTO): Promise<User> {
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(data.password, salt);
-
     const user = new User();
-    await merge(user, data);
+    user.email = data.email;
+    user.name = data.name;
 
     const login = new Login();
-    login.type = "password";
-    login.identifier1 = data.email;
-    login.identifier2 = hashedPassword;
+    login.type = data.loginType;
+    login.identifier1 = data.identifier1;
+    login.identifier2 = data.identifier2;
     login.user = user;
 
     await this.userRepository.save(user);

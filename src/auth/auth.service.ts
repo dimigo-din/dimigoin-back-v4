@@ -1,25 +1,39 @@
 import { HttpException, Injectable } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import { InjectRepository } from "@nestjs/typeorm";
 import * as bcrypt from "bcrypt";
+import { OAuth2Client } from "google-auth-library";
+import { google } from "googleapis";
 import { Repository } from "typeorm";
 import { v4 as uuid } from "uuid";
 
 import { ErrorMsg } from "../common/mapper/error";
 import { UserJWT } from "../common/mapper/types";
+import { UserService } from "../routes/user/providers";
 import { Login, Session, User } from "../schemas";
 
 @Injectable()
 export class AuthService {
+  googleOauthClient: OAuth2Client;
+
   constructor(
     private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
+    private readonly userService: UserService,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     @InjectRepository(Login)
     private readonly loginRepository: Repository<Login>,
     @InjectRepository(Session)
     private readonly sessionRepository: Repository<Session>,
-  ) {}
+  ) {
+    this.googleOauthClient = new google.auth.OAuth2(
+      configService.get<string>("GCP_OAUTH_ID"),
+      configService.get<string>("GCP_OAUTH_SECRET"),
+      `${configService.get<string>("APPLICATION_HOST")}/auth/login/google/callback`,
+    );
+  }
 
   async loginByIdPassword(id: string, password: string) {
     const login = await this.loginRepository.findOne({
@@ -28,6 +42,46 @@ export class AuthService {
     if (!login) throw new HttpException(ErrorMsg.UserIdentifier_NotFound, 403);
     if (!bcrypt.compareSync(password, login.identifier2))
       throw new HttpException(ErrorMsg.UserIdentifier_NotMatched, 403);
+
+    return await this.generateJWTKeyPair(login.user, "30m", "1y");
+  }
+
+  async getGoogleLoginUrl(callback: string): Promise<string> {
+    const scopes: string[] = [
+      "openid",
+      "https://www.googleapis.com/auth/userinfo.email",
+      "https://www.googleapis.com/auth/userinfo.profile",
+    ];
+    return this.googleOauthClient.generateAuthUrl({
+      response_type: "code",
+      access_type: "online",
+      prompt: "consent",
+      scope: scopes,
+      redirect_uri: callback,
+    });
+  }
+
+  async loginByGoogle(code: string) {
+    const tokenRes = await this.googleOauthClient.getToken(code);
+    const ticket = await this.googleOauthClient.verifyIdToken({
+      idToken: tokenRes.tokens.id_token,
+    });
+    const ticketPayload = ticket.getPayload();
+
+    const login = await this.loginRepository.findOne({
+      where: { identifier1: ticketPayload.sub || "" },
+    });
+    if (!login) {
+      const user = await this.userService.createUser({
+        loginType: "google",
+        identifier1: ticketPayload.sub,
+        identifier2: null,
+        email: ticketPayload.email,
+        name: `${ticketPayload.family_name}${ticketPayload.given_name}`,
+      });
+
+      return await this.generateJWTKeyPair(user, "30m", "1y");
+    }
 
     return await this.generateJWTKeyPair(login.user, "30m", "1y");
   }

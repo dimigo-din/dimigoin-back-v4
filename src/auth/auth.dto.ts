@@ -14,6 +14,13 @@ export class PasswordLoginDTO {
   password: string;
 }
 
+export class GoogleLoginDTO {
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  code: string;
+}
+
 export class RefreshTokenDTO {
   @ApiProperty()
   @IsString()

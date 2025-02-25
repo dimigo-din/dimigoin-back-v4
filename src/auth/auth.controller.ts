@@ -1,7 +1,7 @@
-import { Body, Controller, Get, HttpStatus, Post, Req } from "@nestjs/common";
+import { Body, Controller, Get, HttpStatus, Post, Query, Req, Res } from "@nestjs/common";
 import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 
-import { JWTResponse, PasswordLoginDTO, RefreshTokenDTO } from "./auth.dto";
+import { GoogleLoginDTO, JWTResponse, PasswordLoginDTO, RefreshTokenDTO } from "./auth.dto";
 import { AuthService } from "./auth.service";
 import { CustomJwtAuthGuard } from "./guards";
 import { UseGuardsWithSwagger } from "./guards/useGuards";
@@ -32,6 +32,33 @@ export class AuthController {
   @Post("/login/password")
   async passwordLogin(@Body() data: PasswordLoginDTO) {
     return await this.authService.loginByIdPassword(data.email, data.password);
+  }
+
+  @ApiOperation({
+    summary: "로그인 - 구글",
+    description: "구글 OAuth2 로그인 화면으로 리다이렉트하는 엔드포인트입니다.",
+  })
+  @ApiResponse({
+    status: HttpStatus.FOUND,
+  })
+  @Get("/login/google")
+  async googleLogin(@Res() res) {
+    return res.redirect(
+      await this.authService.getGoogleLoginUrl("http://localhost:3001/auth/login/google/callback"),
+    );
+  }
+
+  @ApiOperation({
+    summary: "로그인 콜백 - 구글",
+    description: "구글 로그인 콜백 엔드포인트입니다.",
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: JWTResponse,
+  })
+  @Get("/login/google/callback")
+  async googleLoginCallback(@Query() data: GoogleLoginDTO) {
+    return await this.authService.loginByGoogle(data.code);
   }
 
   @ApiOperation({
