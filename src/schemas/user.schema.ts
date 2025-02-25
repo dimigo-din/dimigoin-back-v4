@@ -12,19 +12,19 @@ export class User {
 
   @Column("varchar", { unique: true })
   @Index()
-  email: string = null;
+  email: string;
+
+  @Column("int")
+  grade: number;
+
+  @Column("int")
+  number: number;
 
   @Column()
   name: string = null;
 
   @Column()
-  nickname: string = null;
-
-  @Column("int", { default: 0 })
-  lvl: number = 0;
-
-  @Column("int", { default: 7500 })
-  rating: number = 7500;
+  card_barcode: string;
 
   @Column("varchar", { default: numberPermission(...CommonUserPermission) })
   permission: string;
