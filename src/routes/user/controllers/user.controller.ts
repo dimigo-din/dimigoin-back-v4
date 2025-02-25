@@ -1,11 +1,12 @@
-import { Body, Controller, HttpStatus, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, HttpStatus, Post } from "@nestjs/common";
 import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 
 import { CustomJwtAuthGuard } from "../../../auth/guards";
 import { PermissionGuard } from "../../../auth/guards/permission.guard";
+import { UseGuardsWithSwagger } from "../../../auth/guards/useGuards";
 import { PermissionEnum } from "../../../common/mapper/permissions";
 import { User } from "../../../schemas";
-import { AddPermissionDTO, CreateUserDTO, RemovePermissionDTO, SetPermissionDTO } from "../dto";
+import { AddPermissionDTO, RemovePermissionDTO, SetPermissionDTO } from "../dto";
 import { UserService } from "../providers";
 
 @ApiTags("User")
@@ -37,7 +38,7 @@ export class UserController {
     description: "성공",
     type: User,
   })
-  @UseGuards(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.MANAGE_PERMISSION]))
+  @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.MANAGE_PERMISSION]))
   @Post("/permission/set")
   async setPermission(@Body() data: SetPermissionDTO) {
     return await this.userManageService.setPermission(data);
@@ -52,7 +53,7 @@ export class UserController {
     description: "성공",
     type: User,
   })
-  @UseGuards(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.MANAGE_PERMISSION]))
+  @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.MANAGE_PERMISSION]))
   @Post("/permission/add")
   async addPermission(@Body() data: AddPermissionDTO) {
     return await this.userManageService.addPermission(data);
@@ -67,7 +68,7 @@ export class UserController {
     description: "성공",
     type: User,
   })
-  @UseGuards(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.MANAGE_PERMISSION]))
+  @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.MANAGE_PERMISSION]))
   @Post("/permission/remove")
   async removePermission(@Body() data: RemovePermissionDTO) {
     return await this.userManageService.removePermission(data);
