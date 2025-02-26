@@ -1,17 +1,37 @@
-import { Injectable } from "@nestjs/common";
+import { forwardRef, HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import * as bcrypt from "bcrypt";
 import merge from "merge-js-class";
 import { Repository } from "typeorm";
 
-import { PermissionType } from "../../../common/mapper/permissions";
-import { numberPermission, parsePermission } from "../../../common/utils/permission.util";
+import { AuthService } from "../../../auth/auth.service";
+import { ErrorMsg } from "../../../common/mapper/error";
+import {
+  CommonUserPermission,
+  NumberedPermissionGroupsEnum,
+  PermissionEnum,
+  PermissionType,
+} from "../../../common/mapper/permissions";
+import { UserJWT } from "../../../common/mapper/types";
+import {
+  hasPermission,
+  numberPermission,
+  parsePermission,
+} from "../../../common/utils/permission.util";
 import { Login, User } from "../../../schemas";
-import { AddPermissionDTO, CreateUserDTO, RemovePermissionDTO, SetPermissionDTO } from "../dto";
+import {
+  AddPermissionDTO,
+  CreateUserDTO,
+  RemovePermissionDTO,
+  SetPermissionDTO,
+  SetUserDetailDTO,
+} from "../dto";
 
 @Injectable()
 export class UserService {
   constructor(
+    @Inject(forwardRef(() => AuthService))
+    private readonly authService: AuthService,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     @InjectRepository(Login)
@@ -20,6 +40,29 @@ export class UserService {
 
   async getUserById(id: string): Promise<User> {
     return await this.userRepository.findOne({ where: { id } });
+  }
+
+  async isSignUpCompleted(id: string): Promise<boolean> {
+    const user = await this.getUserById(id);
+
+    return hasPermission(user.permission, [PermissionEnum.SIGNUP_COMPLETE]);
+  }
+
+  async setUserDetail(user: UserJWT, data: SetUserDetailDTO) {
+    if (await this.isSignUpCompleted(user.id))
+      throw new HttpException(ErrorMsg.ResourceAlreadyExists, HttpStatus.NOT_ACCEPTABLE);
+    const dbUser = await this.getUserById(user.id);
+
+    dbUser.grade = data.grade;
+    dbUser.class = data.class;
+    dbUser.number = data.number;
+
+    await this.userRepository.save(dbUser);
+    await this.addPermission({
+      id: dbUser.id,
+      permissions: ["SIGNUP_COMPLETE"],
+    });
+    await this.authService.logout(user);
   }
 
   async createUser(data: CreateUserDTO): Promise<User> {

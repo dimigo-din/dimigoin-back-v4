@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsArray, IsNotEmpty, IsString } from "class-validator";
+import { IsArray, IsNotEmpty, IsNumber, IsString, Max, Min } from "class-validator";
 
 import { PermissionType } from "../../../common/mapper/permissions";
 import { LoginType } from "../../../common/mapper/types";
@@ -29,6 +29,29 @@ export class CreateUserDTO {
   @IsString()
   @IsNotEmpty()
   name: string;
+}
+
+export class SetUserDetailDTO {
+  @ApiProperty()
+  @IsNumber()
+  @IsNotEmpty()
+  @Min(1)
+  @Max(3)
+  grade: number;
+
+  @ApiProperty()
+  @IsNumber()
+  @IsNotEmpty()
+  @Min(1)
+  @Max(6)
+  class: number;
+
+  @ApiProperty()
+  @IsNumber()
+  @IsNotEmpty()
+  @Min(1)
+  @Max(32)
+  number: number;
 }
 
 export class SetPermissionDTO {

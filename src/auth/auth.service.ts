@@ -1,4 +1,4 @@
-import { HttpException, Injectable } from "@nestjs/common";
+import { forwardRef, HttpException, Inject, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -20,6 +20,7 @@ export class AuthService {
   constructor(
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    @Inject(forwardRef(() => UserService))
     private readonly userService: UserService,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,

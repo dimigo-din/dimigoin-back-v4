@@ -18,6 +18,9 @@ export class User {
   grade: number | null;
 
   @Column("int", { nullable: true })
+  class: number | null;
+
+  @Column("int", { nullable: true })
   number: number | null;
 
   @Column()
