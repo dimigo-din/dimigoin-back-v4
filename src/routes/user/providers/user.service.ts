@@ -87,6 +87,20 @@ export class UserService {
     return await this.userRepository.remove(user);
   }
 
+  async addPasswordLogin(user: string, password: string) {
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    const dbUser = await this.userRepository.findOne({ where: { id: user } });
+    const login = new Login();
+    login.type = "password";
+    login.identifier1 = dbUser.email;
+    login.identifier2 = hashedPassword;
+    login.user = dbUser;
+
+    return await this.loginRepository.save(login);
+  }
+
   // this bunch of code can be shortened.
   // but I left it like this for optimization.
   async setPermission(data: SetPermissionDTO) {

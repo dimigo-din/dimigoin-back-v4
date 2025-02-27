@@ -7,4 +7,6 @@ export const ErrorMsg = {
   Resource_NotFound: "리소스를 찾을 수 없습니다.",
   ResourceAlreadyExists: "리소스가 이미 존재합니다.",
   InvalidParameter: "잘못된 매개변수가 있습니다.",
+  OAuthClient_NotFound: "해당 OAuth Client id에 대한 OAuth Client를 찾을 수 없습니다.",
+  OAuthRedirectUri_MissMatch: "해당 Redirect Uri는 OAuth Client에 등록되어있지 않습니다.",
 };

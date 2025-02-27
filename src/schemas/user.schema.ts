@@ -3,7 +3,7 @@ import { Column, Entity, Index, OneToMany, PrimaryGeneratedColumn } from "typeor
 import { CommonUserPermission } from "../common/mapper/permissions";
 import { numberPermission } from "../common/utils/permission.util";
 
-import { Login, Session } from "./auth.schema";
+import { Login, OAuth_Client, OAuth_Code, Session } from "./auth.schema";
 
 @Entity()
 export class User {
@@ -36,5 +36,11 @@ export class User {
   login: Login[];
 
   @OneToMany(() => Session, (session) => session.user)
-  session: Login[];
+  session: Session[];
+
+  @OneToMany(() => OAuth_Client, (oauth_client) => oauth_client.user)
+  oauth_client: OAuth_Client[];
+
+  @OneToMany(() => OAuth_Code, (oauth_code) => oauth_code.oauth_user)
+  oauth_code: OAuth_Code[];
 }

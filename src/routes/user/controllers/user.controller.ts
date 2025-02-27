@@ -6,7 +6,13 @@ import { PermissionGuard } from "../../../auth/guards/permission.guard";
 import { UseGuardsWithSwagger } from "../../../auth/guards/useGuards";
 import { PermissionEnum } from "../../../common/mapper/permissions";
 import { User } from "../../../schemas";
-import { AddPermissionDTO, RemovePermissionDTO, SetPermissionDTO, SetUserDetailDTO } from "../dto";
+import {
+  AddPasswordLoginDTO,
+  AddPermissionDTO,
+  RemovePermissionDTO,
+  SetPermissionDTO,
+  SetUserDetailDTO,
+} from "../dto";
 import { UserService } from "../providers";
 
 @ApiTags("User")
@@ -33,10 +39,25 @@ export class UserController {
     summary: "유저 세부정보 설정",
     description: "회원가입 후, 학번 등록 프로세스입니다.",
   })
+  @ApiResponse({
+    status: HttpStatus.OK,
+  })
   @UseGuardsWithSwagger(CustomJwtAuthGuard)
   @Post("/signup/complete")
   async setUserDetail(@Req() req, @Body() data: SetUserDetailDTO) {
     return await this.userService.setUserDetail(req.user, data);
+  }
+
+  @ApiOperation({
+    summary: "비밀번호 설정",
+    description: "비밀번호 로그인 방식을 추가합니다.",
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+  })
+  @Post("/login/password")
+  async addPasswordLogin(@Req() req, @Body() data: AddPasswordLoginDTO) {
+    return await this.userService.addPasswordLogin(req.user.id, data.password);
   }
 
   @ApiOperation({

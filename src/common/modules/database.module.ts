@@ -21,7 +21,7 @@ const typeOrmModuleOptions: TypeOrmModuleAsyncOptions = {
       entities: importToArray(entities),
       synchronize: true,
       // logging: true,
-      dropSchema: true,
+      // dropSchema: true,
     };
   },
 };

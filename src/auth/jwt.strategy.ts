@@ -22,6 +22,7 @@ export class CustomJwtStrategy extends PassportStrategy(Strategy, "jwt") {
     });
   }
 
+  // TODO: 너무 느려지면 stateless로 갈거임. 난 세션이 좋아.'
   async validate(payload: any, done: VerifiedCallback): Promise<any> {
     if (!payload.refresh) {
       const session = await this.sessionRepository.findOne({
