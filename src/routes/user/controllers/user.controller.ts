@@ -55,6 +55,7 @@ export class UserController {
   @ApiResponse({
     status: HttpStatus.OK,
   })
+  @UseGuardsWithSwagger(CustomJwtAuthGuard)
   @Post("/login/password")
   async addPasswordLogin(@Req() req, @Body() data: AddPasswordLoginDTO) {
     return await this.userService.addPasswordLogin(req.user.id, data.password);
