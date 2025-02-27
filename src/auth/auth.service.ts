@@ -94,7 +94,7 @@ export class AuthService {
     if (!session)
       throw new HttpException("Session not found. Is this valid jwt refresh token?", 404);
 
-    await this.sessionRepository.delete(session);
+    await this.sessionRepository.remove(session);
 
     const user = await this.userRepository.findOne({
       where: { id: session.user.id },
