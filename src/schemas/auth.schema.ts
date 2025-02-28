@@ -121,7 +121,10 @@ export class OAuth_Client_Redirect {
   @Column()
   redirect_url: string;
 
-  @ManyToOne(() => OAuth_Client, (oauth_client) => oauth_client.redirect)
+  @ManyToOne(() => OAuth_Client, (oauth_client) => oauth_client.redirect, {
+    onDelete: "CASCADE",
+    onUpdate: "CASCADE",
+  })
   oauth_client: OAuth_Client;
 }
 
