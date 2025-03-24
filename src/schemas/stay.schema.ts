@@ -116,7 +116,7 @@ export class Stay {
   })
   stay_apply_period: StayApplyPeriod_Stay[];
 
-  /** if null, stay in class */
+  /** if null, stay in class or something else */
   @JoinColumn()
   @ManyToOne(() => StaySeatPreset, (staySeatPreset) => staySeatPreset.stay_schedule, {
     eager: true,
