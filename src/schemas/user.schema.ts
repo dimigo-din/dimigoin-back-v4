@@ -1,9 +1,10 @@
 import { Column, Entity, Index, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
-import { CommonUserPermission } from "../common/mapper/permissions";
+import { StudentUserPermission } from "../common/mapper/permissions";
 import { numberPermission } from "../common/utils/permission.util";
 
 import { Login, OAuth_Client, OAuth_Code, Session } from "./auth.schema";
+import { StayApply } from "./stay.schema";
 
 @Entity()
 export class User {
@@ -29,7 +30,7 @@ export class User {
   @Column("varchar", { nullable: true })
   card_barcode: string | null;
 
-  @Column("varchar", { default: numberPermission(...CommonUserPermission) })
+  @Column("varchar", { default: numberPermission(...StudentUserPermission) })
   permission: string;
 
   @OneToMany(() => Login, (login) => login.user)
@@ -43,4 +44,7 @@ export class User {
 
   @OneToMany(() => OAuth_Code, (oauth_code) => oauth_code.oauth_user)
   oauth_code: OAuth_Code[];
+
+  @OneToMany(() => StayApply, (stayApply) => stayApply.user)
+  stay_apply: StayApply[];
 }
