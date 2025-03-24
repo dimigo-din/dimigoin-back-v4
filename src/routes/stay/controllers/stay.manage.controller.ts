@@ -1,0 +1,233 @@
+import { Body, Controller, Delete, Get, HttpStatus, Patch, Post, Query } from "@nestjs/common";
+import { ApiOperation, ApiResponse } from "@nestjs/swagger";
+
+import { CustomJwtAuthGuard } from "../../../auth/guards";
+import { PermissionGuard } from "../../../auth/guards/permission.guard";
+import { UseGuardsWithSwagger } from "../../../auth/guards/useGuards";
+import { PermissionEnum } from "../../../common/mapper/permissions";
+import { Stay, StaySchedule, StaySeatPreset } from "../../../schemas";
+import {
+  CreateStayDTO,
+  CreateStayScheduleDTO,
+  CreateStaySeatPresetDTO,
+  StayIdDTO,
+  StayScheduleIdDTO,
+  StaySeatPresetIdDTO,
+  UpdateStayDTO,
+  UpdateStayScheduleDTO,
+  UpdateStaySeatPresetDTO,
+} from "../dto/stay.manage.dto";
+import { StayManageService } from "../providers/stay.manage.service";
+
+@Controller("/manage/stay")
+export class StayManageController {
+  constructor(private readonly stayManageService: StayManageService) {}
+
+  @ApiOperation({
+    summary: "좌석 프리셋 목록",
+    description: "좌석 프리셋의 목록을 불러옵니다.",
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+  })
+  @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.MANAGE_STAY]))
+  @Get("/seat/preset/list")
+  async getStaySeatPresetList() {
+    return await this.stayManageService.getStaySeatPresetList();
+  }
+
+  @ApiOperation({
+    summary: "좌석 프리셋",
+    description: "좌석 프리셋의 세부정보를 가져옵니다",
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: StaySeatPreset,
+  })
+  @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.MANAGE_STAY]))
+  @Get("/seat/preset")
+  async getStaySeatPreset(@Query() data: StaySeatPresetIdDTO) {
+    return await this.stayManageService.getStaySeatPreset(data);
+  }
+
+  @ApiOperation({
+    summary: "좌석 프리셋 생성",
+    description: "잔류시 열람실에서 쓰일 좌석에 대한 프리셋을 생성합니다.",
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: StaySeatPreset,
+  })
+  @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.MANAGE_STAY]))
+  @Post("/seat/preset")
+  async createStaySeatPreset(@Body() data: CreateStaySeatPresetDTO) {
+    return await this.stayManageService.createStaySeatPreset(data);
+  }
+
+  @ApiOperation({
+    summary: "좌석 프리셋 수정",
+    description: "등록된 좌석 프리셋을 수정합니다.",
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: StaySeatPreset,
+  })
+  @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.MANAGE_STAY]))
+  @Patch("/seat/preset")
+  async updateStaySeatPreset(@Body() data: UpdateStaySeatPresetDTO) {
+    return await this.stayManageService.updateStaySeatPreset(data);
+  }
+
+  @ApiOperation({
+    summary: "좌석 프리셋 삭제",
+    description:
+      "등록된 좌석 프리셋을 삭제합니다. 해당 프리셋을 사용하고있는 잔류 일정이나 진행중인 잔류가 있다면 삭제할 수 없습니다.",
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: StaySeatPreset,
+  })
+  @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.MANAGE_STAY]))
+  @Delete("/seat/preset")
+  async deleteStaySeatPreset(@Query() data: StaySeatPresetIdDTO) {
+    return await this.stayManageService.deleteStaySeatPreset(data);
+  }
+
+  @ApiOperation({
+    summary: "잔류 일정 목록",
+    description: "현재 등록되어있는 주기적인 잔류 일정 목록을 가져옵니다.",
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+  })
+  @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.MANAGE_STAY]))
+  @Get("/schedule/list")
+  async getStayScheduleList() {
+    return await this.stayManageService.getStayScheduleList();
+  }
+
+  @ApiOperation({
+    summary: "잔류 일정",
+    description: "현재 등록되어있는 주기적인 잔류 일정을 자세히 가져옵니다.",
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: StaySchedule,
+  })
+  @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.MANAGE_STAY]))
+  @Get("/schedule")
+  async getStaySchedule(@Body() data: StayScheduleIdDTO) {
+    return await this.stayManageService.getStaySchedule(data);
+  }
+
+  @ApiOperation({
+    summary: "잔류 일정 추가",
+    description: "주기적으로 있는 잔류 일정을 추가합니다.",
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: StaySchedule,
+  })
+  @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.MANAGE_STAY]))
+  @Post("/schedule")
+  async createStaySchedule(@Body() data: CreateStayScheduleDTO) {
+    return await this.stayManageService.createStaySchedule(data);
+  }
+
+  @ApiOperation({
+    summary: "잔류 일정 수정",
+    description: "주기적으로 있는 잔류 일정을 수정합니다.",
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: StaySchedule,
+  })
+  @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.MANAGE_STAY]))
+  @Patch("/schedule")
+  async updateStaySchedule(@Body() data: UpdateStayScheduleDTO) {
+    return await this.stayManageService.updateStaySchedule(data);
+  }
+
+  @ApiOperation({
+    summary: "잔류 일정 삭제",
+    description: "주기적으로 있는 잔류 일정을 삭제합니다.",
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: StaySchedule,
+  })
+  @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.MANAGE_STAY]))
+  @Delete("/schedule")
+  async deleteStaySchedule(@Query() data: StayScheduleIdDTO) {
+    return await this.stayManageService.deleteStaySchedule(data);
+  }
+
+  @ApiOperation({
+    summary: "잔류 목록",
+    description: "현재 잔류 목록을 가져옵니다.",
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+  })
+  @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.MANAGE_STAY]))
+  @Get("/list")
+  async getStayList() {
+    return await this.stayManageService.getStayList();
+  }
+
+  @ApiOperation({
+    summary: "잔류",
+    description: "잔류에 대한 디테일한 정보를 가져옵니다.",
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: Stay,
+  })
+  @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.MANAGE_STAY]))
+  @Get("")
+  async getStay(@Body() data: StayIdDTO) {
+    return await this.stayManageService.getStay(data);
+  }
+
+  @ApiOperation({
+    summary: "잔류 생성",
+    description: "일회성 잔류를 생성합니다.",
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: Stay,
+  })
+  @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.MANAGE_STAY]))
+  @Post("")
+  async createStay(@Body() data: CreateStayDTO) {
+    return await this.stayManageService.createStay(data);
+  }
+
+  @ApiOperation({
+    summary: "잔류 수정",
+    description: "현재 진행중인 등록를 수정합니다.",
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: Stay,
+  })
+  @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.MANAGE_STAY]))
+  @Patch("")
+  async updateStay(@Body() data: UpdateStayDTO) {
+    return await this.stayManageService.updateStay(data);
+  }
+
+  @ApiOperation({
+    summary: "잔류 삭제",
+    description: "현재 진행중인 잔류를 삭제합니다.",
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: Stay,
+  })
+  @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.MANAGE_STAY]))
+  @Delete("")
+  async deleteStay(@Query() data: StayIdDTO) {
+    return await this.stayManageService.deleteStay(data);
+  }
+}

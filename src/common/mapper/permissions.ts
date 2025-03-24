@@ -3,13 +3,11 @@ import { numberPermission } from "../utils/permission.util";
 export const UserPermissionValues = [
   "SIGNUP_COMPLETE",
   "MANAGE_OAUTH_CLIENT_SELF",
-  // TODO: fill up here
+  "MANAGE_STAY",
+  "VIEW_STAY",
 ] as const;
 
-export const ManagementPermissionValues = [
-  // TODO: fill up here
-  "MANAGE_PERMISSION",
-] as const;
+export const ManagementPermissionValues = ["MANAGE_PERMISSION"] as const;
 
 // Merge permission values without duplicates
 export const PermissionValues = [
@@ -23,18 +21,16 @@ export const PermissionEnum = Object.fromEntries(
 ) as { [key in PermissionType]: number };
 
 // group of well-used permissions
-export const CommonUserPermission: number[] = [
-  // TODO: fill up here
-];
-export const ManageUserPermission: number[] = [
-  ...CommonUserPermission,
-  // TODO: fill up here
+export const StudentUserPermission: number[] = [PermissionEnum.MANAGE_OAUTH_CLIENT_SELF];
+export const TeacherUserPermission: number[] = [
+  ...StudentUserPermission,
+  PermissionEnum.MANAGE_STAY,
 ];
 export const AdminUserPermission: number[] = Object.values(PermissionEnum);
 
 export const PermissionGroups = {
-  CommonUserPermission,
-  ManageUserPermission,
+  StudentUserPermission,
+  TeacherUserPermission,
   AdminUserPermission,
 };
 export const NumberedPermissionGroupsEnum = Object.fromEntries(

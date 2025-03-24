@@ -1,5 +1,4 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty } from "class-validator";
 import { IsString } from "nestjs-swagger-dto";
 
 export class PasswordLoginDTO {

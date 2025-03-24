@@ -1,17 +1,11 @@
 import { forwardRef, HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import * as bcrypt from "bcrypt";
-import merge from "merge-js-class";
 import { Repository } from "typeorm";
 
 import { AuthService } from "../../../auth/auth.service";
 import { ErrorMsg } from "../../../common/mapper/error";
-import {
-  CommonUserPermission,
-  NumberedPermissionGroupsEnum,
-  PermissionEnum,
-  PermissionType,
-} from "../../../common/mapper/permissions";
+import { PermissionEnum, PermissionType } from "../../../common/mapper/permissions";
 import { UserJWT } from "../../../common/mapper/types";
 import {
   hasPermission,

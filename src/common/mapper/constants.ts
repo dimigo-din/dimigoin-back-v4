@@ -1,4 +1,3 @@
-export const CONSTANT = {
-  access_token_expire: "10m",
-  refresh_token_expire: "1M",
-};
+import { generateRange } from "../utils/staySeat.util";
+
+export const StaySeats = [].concat(generateRange(["A1", "L18"]), generateRange(["M1", "N7"]));
