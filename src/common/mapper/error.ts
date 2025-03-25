@@ -9,4 +9,6 @@ export const ErrorMsg = {
   InvalidParameter: "잘못된 매개변수가 있습니다.",
   OAuthClient_NotFound: "해당 OAuth Client id에 대한 OAuth Client를 찾을 수 없습니다.",
   OAuthRedirectUri_MissMatch: "해당 Redirect Uri는 OAuth Client에 등록되어있지 않습니다.",
+
+  StaySeat_Duplication: "이미 해당 좌석을 선택한 사람이 있습니다.",
 };

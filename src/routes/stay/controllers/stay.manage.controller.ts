@@ -5,8 +5,9 @@ import { CustomJwtAuthGuard } from "../../../auth/guards";
 import { PermissionGuard } from "../../../auth/guards/permission.guard";
 import { UseGuardsWithSwagger } from "../../../auth/guards/useGuards";
 import { PermissionEnum } from "../../../common/mapper/permissions";
-import { Stay, StaySchedule, StaySeatPreset } from "../../../schemas";
+import { Stay, StayApply, StaySchedule, StaySeatPreset } from "../../../schemas";
 import {
+  CreateStayApplyDTO,
   CreateStayDTO,
   CreateStayScheduleDTO,
   CreateStaySeatPresetDTO,
@@ -229,5 +230,19 @@ export class StayManageController {
   @Delete("")
   async deleteStay(@Query() data: StayIdDTO) {
     return await this.stayManageService.deleteStay(data);
+  }
+
+  @ApiOperation({
+    summary: "잔류 신청 등록",
+    description: "학생의 잔류를 신청합니다",
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: StayApply,
+  })
+  @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.MANAGE_STAY]))
+  @Post("/apply")
+  async createStayApply(@Body() data: CreateStayApplyDTO) {
+    return await this.stayManageService.createStayApply(data);
   }
 }

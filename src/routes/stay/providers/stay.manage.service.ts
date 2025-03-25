@@ -6,20 +6,25 @@ import { Repository } from "typeorm";
 import { ErrorMsg } from "../../../common/mapper/error";
 import {
   Stay,
+  StayApply,
   StayApplyPeriod_Stay,
   StayApplyPeriod_StaySchedule,
   StaySchedule,
   StaySeatPreset,
   StaySeatPresetRange,
+  User,
 } from "../../../schemas";
 import {
+  CreateStayApplyDTO,
   CreateStayDTO,
   CreateStayScheduleDTO,
   CreateStaySeatPresetDTO,
+  StayApplyIdDTO,
   DeleteStayDTO,
   StayIdDTO,
   StayScheduleIdDTO,
   StaySeatPresetIdDTO,
+  UpdateStayApplyDTO,
   UpdateStayDTO,
   UpdateStayScheduleDTO,
   UpdateStaySeatPresetDTO,
@@ -28,8 +33,12 @@ import {
 @Injectable()
 export class StayManageService {
   constructor(
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
     @InjectRepository(Stay)
     private readonly stayRepository: Repository<Stay>,
+    @InjectRepository(StayApply)
+    private readonly stayApplyRepository: Repository<StayApply>,
     @InjectRepository(StaySeatPreset)
     private readonly staySeatPresetRepository: Repository<StaySeatPreset>,
     @InjectRepository(StaySeatPresetRange)
@@ -258,10 +267,72 @@ export class StayManageService {
     return await this.stayRepository.remove(stay);
   }
 
-  async applyStay() {}
-
-  @Cron("0 0 * * *")
-  async syncStay() {
-    const schedules = await this.stayScheduleRepository.find();
+  async getStayApplyList() {
+    return (await this.stayApplyRepository.find()).map((e) => {
+      return {
+        id: e.id,
+        user: e.user,
+        stay: e.stay,
+      };
+    });
   }
+
+  async getStayApply(data: StayApplyIdDTO) {
+    return await this.stayApplyRepository.findOne({ where: { id: data.id } });
+  }
+
+  async createStayApply(data: CreateStayApplyDTO) {
+    const target = await this.userRepository.findOne({ where: { id: data.user } });
+    if (!target) throw new HttpException(ErrorMsg.Resource_NotFound, HttpStatus.NOT_FOUND);
+
+    const stay = await this.stayRepository.findOne({ where: { id: data.stay } });
+    if (!stay) throw new HttpException(ErrorMsg.Resource_NotFound, HttpStatus.NOT_FOUND);
+
+    const exists = await this.stayApplyRepository.findOne({
+      where: { stay_seat: data.stay_seat.toLowerCase() },
+    });
+    if (exists) throw new HttpException(ErrorMsg.ResourceAlreadyExists, HttpStatus.BAD_REQUEST);
+
+    // teacher can force stay_seat. so, stay_seat will not be filtered.
+    const stayApply = new StayApply();
+    stayApply.stay_seat = data.stay_seat.toLowerCase();
+    stayApply.user = target;
+    stayApply.stay = stay;
+
+    return await this.stayApplyRepository.save(stayApply);
+  }
+
+  async patchStayApply(data: UpdateStayApplyDTO) {
+    const stayApply = await this.stayApplyRepository.findOne({ where: { id: data.id } });
+    if (!stayApply) throw new HttpException(ErrorMsg.Resource_NotFound, HttpStatus.NOT_FOUND);
+
+    const target = await this.userRepository.findOne({ where: { id: data.user } });
+    if (!target) throw new HttpException(ErrorMsg.Resource_NotFound, HttpStatus.NOT_FOUND);
+
+    const stay = await this.stayRepository.findOne({ where: { id: data.stay } });
+    if (!stay) throw new HttpException(ErrorMsg.Resource_NotFound, HttpStatus.NOT_FOUND);
+
+    const exists = await this.stayApplyRepository.findOne({
+      where: { stay_seat: data.stay_seat.toLowerCase() },
+    });
+    if (exists) throw new HttpException(ErrorMsg.ResourceAlreadyExists, HttpStatus.BAD_REQUEST);
+
+    stayApply.stay_seat = data.stay_seat.toLowerCase();
+    stayApply.user = target;
+    stayApply.stay = stay;
+
+    return await this.stayApplyRepository.save(stayApply);
+  }
+
+  async deleteStayApply(data: StayApplyIdDTO) {
+    const stayApply = await this.stayApplyRepository.findOne({ where: { id: data.id } });
+    if (!stayApply) throw new HttpException(ErrorMsg.Resource_NotFound, HttpStatus.NOT_FOUND);
+
+    return await this.stayApplyRepository.remove(stayApply);
+  }
+
+  // @Cron("0 0 * * *")
+  // async syncStay() {
+  //   const schedules = await this.stayScheduleRepository.find();
+  // }
 }

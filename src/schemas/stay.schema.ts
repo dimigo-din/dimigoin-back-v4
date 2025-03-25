@@ -121,8 +121,13 @@ export class Stay {
   @ManyToOne(() => StaySeatPreset, (staySeatPreset) => staySeatPreset.stay_schedule, {
     eager: true,
     onUpdate: "CASCADE",
+    nullable: true,
   })
   stay_seat_preset: StaySeatPreset;
+
+  @JoinColumn()
+  @OneToMany(() => StayApply, (stay_apply) => stay_apply.stay)
+  stay_apply: StayApply[];
 }
 
 @Entity()
@@ -189,6 +194,14 @@ export class StayApply {
   stay_seat: string;
 
   @JoinColumn()
+  @ManyToOne(() => Stay, (stay) => stay.stay_apply, {
+    eager: true,
+    onDelete: "CASCADE",
+    onUpdate: "CASCADE",
+  })
+  stay: Stay;
+
+  @JoinColumn()
   @OneToMany(() => StayOuting, (stayOuting) => stayOuting.stay_apply, {
     eager: true,
   })
@@ -226,6 +239,7 @@ export class StayOuting {
   @Column()
   to: string;
 
+  /** 자기계발외출 */
   @Column()
   is_self_enlightenment: boolean;
 

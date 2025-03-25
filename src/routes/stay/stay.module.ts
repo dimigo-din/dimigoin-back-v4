@@ -3,13 +3,15 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import importToArray from "import-to-array";
 
 import {
+  User,
   Stay,
   StayApplyPeriod_Stay,
   StayApplyPeriod_StaySchedule,
   StaySchedule,
   StaySeatPreset,
   StaySeatPresetRange,
-} from "../../schemas/stay.schema";
+  StayApply,
+} from "../../schemas";
 
 import * as controllers from "./controllers";
 import * as providers from "./providers";
@@ -17,7 +19,9 @@ import * as providers from "./providers";
 @Module({
   imports: [
     TypeOrmModule.forFeature([
+      User,
       Stay,
+      StayApply,
       StaySeatPreset,
       StaySeatPresetRange,
       StaySchedule,

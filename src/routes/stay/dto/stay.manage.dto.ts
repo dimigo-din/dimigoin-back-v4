@@ -159,3 +159,29 @@ export class DeleteStayDTO {
   @IsString()
   id: string;
 }
+
+export class StayApplyIdDTO {
+  @ApiProperty()
+  @IsString()
+  id: string;
+}
+
+export class CreateStayApplyDTO {
+  @ApiProperty()
+  @IsString()
+  stay: string;
+
+  @ApiProperty()
+  @IsString()
+  user: string;
+
+  @ApiProperty()
+  @IsString()
+  stay_seat: string;
+}
+
+export class UpdateStayApplyDTO extends CreateStayApplyDTO {
+  @ApiProperty()
+  @IsString()
+  id: string;
+}
