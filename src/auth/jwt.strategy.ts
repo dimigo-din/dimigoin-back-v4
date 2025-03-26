@@ -22,9 +22,6 @@ export class CustomJwtStrategy extends PassportStrategy(Strategy, "jwt") {
     });
   }
 
-  // TODO: 너무 느려지면 stateless로 갈거임. 난 세션이 좋아.'
-  // 엄밀히 말하면 세션은 아닌디, 세션 + refresh 가능한 구조로 되어있음.
-  // refresh token이 좀 오래 살아있어서 redis는 사용 안합니다.
   async validate(payload: any, done: VerifiedCallback): Promise<any> {
     if (!payload.refresh) {
       return done(null, payload);
