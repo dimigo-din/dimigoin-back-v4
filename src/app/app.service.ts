@@ -10,7 +10,7 @@ export class AppService {
 
   private DisplayMode = {
     dev: "Development Mode",
-    production: "Production Mode",
+    prod: "Production Mode",
   };
 
   async onModuleInit() {
