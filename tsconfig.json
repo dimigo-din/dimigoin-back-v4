@@ -17,7 +17,8 @@
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
-    "typeRoots": ["./node_modules/@types/**/*"],
+    "types": ["jest", "node"],
+    "typeRoots": ["./node_modules/@types"],
     "lib": [
       "ES2021.String"
     ],

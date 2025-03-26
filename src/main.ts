@@ -1,7 +1,6 @@
 import { ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { NestFactory } from "@nestjs/core";
-import { IoAdapter } from "@nestjs/platform-socket.io";
 import { json } from "express";
 
 import { AppModule } from "./app";
@@ -16,7 +15,6 @@ async function bootstrap() {
   app.enableCors();
   app.use(json({ limit: "5000mb" }));
   app.useGlobalPipes(new ValidationPipe());
-  app.useWebSocketAdapter(new IoAdapter(app));
 
   await CustomSwaggerSetup(app);
 
