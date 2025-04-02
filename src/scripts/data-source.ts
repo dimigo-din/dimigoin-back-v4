@@ -1,6 +1,3 @@
-// data-source.ts
-import * as process from "node:process";
-
 import * as dotenv from "dotenv";
 import { DataSource } from "typeorm";
 
