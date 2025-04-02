@@ -11,9 +11,12 @@ import {
   CreateStayDTO,
   CreateStayScheduleDTO,
   CreateStaySeatPresetDTO,
+  StayApplyIdDTO,
+  StayApplyListResponseDTO,
   StayIdDTO,
   StayScheduleIdDTO,
   StaySeatPresetIdDTO,
+  UpdateStayApplyDTO,
   UpdateStayDTO,
   UpdateStayScheduleDTO,
   UpdateStaySeatPresetDTO,
@@ -117,7 +120,7 @@ export class StayManageController {
   })
   @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.MANAGE_STAY]))
   @Get("/schedule")
-  async getStaySchedule(@Body() data: StayScheduleIdDTO) {
+  async getStaySchedule(@Query() data: StayScheduleIdDTO) {
     return await this.stayManageService.getStaySchedule(data);
   }
 
@@ -186,7 +189,7 @@ export class StayManageController {
   })
   @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.MANAGE_STAY]))
   @Get("")
-  async getStay(@Body() data: StayIdDTO) {
+  async getStay(@Query() data: StayIdDTO) {
     return await this.stayManageService.getStay(data);
   }
 
@@ -233,6 +236,34 @@ export class StayManageController {
   }
 
   @ApiOperation({
+    summary: "잔류 인원 목록",
+    description: "특정 잔류의 잔류 인원 목록을 가져옵니다.",
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: [StayApplyListResponseDTO],
+  })
+  @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.MANAGE_STAY]))
+  @Get("/apply/list")
+  async StayApplyList(@Query() data: StayIdDTO) {
+    return await this.stayManageService.getStayApplyList(data);
+  }
+
+  @ApiOperation({
+    summary: "잔류 신청 정보",
+    description: "특정 잔류 신청의 디테일한 정보를 불러옵니다",
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: StayApply,
+  })
+  @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.MANAGE_STAY]))
+  @Get("/apply")
+  async getStayApply(data: StayApplyIdDTO) {
+    return await this.stayManageService.getStayApply(data);
+  }
+
+  @ApiOperation({
     summary: "잔류 신청 등록",
     description: "학생의 잔류를 신청합니다",
   })
@@ -244,5 +275,33 @@ export class StayManageController {
   @Post("/apply")
   async createStayApply(@Body() data: CreateStayApplyDTO) {
     return await this.stayManageService.createStayApply(data);
+  }
+
+  @ApiOperation({
+    summary: "잔류 신청 수정",
+    description: "특정 잔류 신청을 수정합니다",
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: StayApply,
+  })
+  @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.MANAGE_STAY]))
+  @Patch("/apply")
+  async updateStayApply(@Body() data: UpdateStayApplyDTO) {
+    return await this.stayManageService.updateStayApply(data);
+  }
+
+  @ApiOperation({
+    summary: "잔류 신청 삭제",
+    description: "특정 잔류 신청을 삭제합니다",
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: StayApply,
+  })
+  @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.MANAGE_STAY]))
+  @Delete("/apply")
+  async deleteStayApply(@Query() data: StayApplyIdDTO) {
+    return await this.stayManageService.deleteStayApply(data);
   }
 }

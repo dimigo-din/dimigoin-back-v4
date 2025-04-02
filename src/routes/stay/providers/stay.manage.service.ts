@@ -267,8 +267,11 @@ export class StayManageService {
     return await this.stayRepository.remove(stay);
   }
 
-  async getStayApplyList() {
-    return (await this.stayApplyRepository.find()).map((e) => {
+  async getStayApplyList(data: StayIdDTO) {
+    const stay = await this.getStay(data);
+    if (!stay) throw new HttpException(ErrorMsg.Resource_NotFound, HttpStatus.NOT_FOUND);
+
+    return (await this.stayApplyRepository.find({ where: { stay: stay } })).map((e) => {
       return {
         id: e.id,
         user: e.user,
@@ -302,7 +305,7 @@ export class StayManageService {
     return await this.stayApplyRepository.save(stayApply);
   }
 
-  async patchStayApply(data: UpdateStayApplyDTO) {
+  async updateStayApply(data: UpdateStayApplyDTO) {
     const stayApply = await this.stayApplyRepository.findOne({ where: { id: data.id } });
     if (!stayApply) throw new HttpException(ErrorMsg.Resource_NotFound, HttpStatus.NOT_FOUND);
 

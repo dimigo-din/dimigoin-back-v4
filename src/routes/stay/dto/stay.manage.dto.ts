@@ -7,6 +7,7 @@ import {
   GradeValues,
   Grade,
 } from "../../../common/mapper/types";
+import { Stay, User } from "../../../schemas";
 
 export class StaySeatPresetIdDTO {
   @ApiProperty()
@@ -184,4 +185,10 @@ export class UpdateStayApplyDTO extends CreateStayApplyDTO {
   @ApiProperty()
   @IsString()
   id: string;
+}
+
+export class StayApplyListResponseDTO {
+  id: string;
+  user: User;
+  stay: Stay;
 }
