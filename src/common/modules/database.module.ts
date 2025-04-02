@@ -21,6 +21,7 @@ const typeOrmModuleOptions: TypeOrmModuleAsyncOptions = {
       password: configService.get<string>("DB_PASS"),
       database: configService.get<string>("DB_NAME"),
       entities: importToArray(entities),
+      synchronize: false,
       // logging: true,
     };
   },
