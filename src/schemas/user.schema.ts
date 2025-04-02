@@ -1,6 +1,7 @@
 import { Column, Entity, Index, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 import { StudentUserPermission } from "../common/mapper/permissions";
+import { Gender } from "../common/mapper/types";
 import { numberPermission } from "../common/utils/permission.util";
 
 import { Login, OAuth_Client, OAuth_Code, Session } from "./auth.schema";
@@ -23,6 +24,13 @@ export class User {
 
   @Column("int", { nullable: true })
   number: number | null;
+
+  /** grade + class + number */
+  @Column("varchar", { nullable: true })
+  gcn: string | null;
+
+  @Column()
+  gender: Gender;
 
   @Column()
   name: string;

@@ -7,6 +7,9 @@ export type PermissionValidationType = (typeof PermissionValidationTypeValues)[n
 export const GradeValues = [1, 2, 3] as const;
 export type Grade = (typeof GradeValues)[number];
 
+export const GenderValues = ["male", "female"] as const;
+export type Gender = (typeof GenderValues)[number];
+
 export const StaySeatMappingValues = [
   "1st_male",
   "1st_female",

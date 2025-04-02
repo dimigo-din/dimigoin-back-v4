@@ -1,3 +1,5 @@
+import * as process from "node:process";
+
 import { Module } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { TypeOrmModule, TypeOrmModuleAsyncOptions } from "@nestjs/typeorm";
@@ -19,9 +21,7 @@ const typeOrmModuleOptions: TypeOrmModuleAsyncOptions = {
       password: configService.get<string>("DB_PASS"),
       database: configService.get<string>("DB_NAME"),
       entities: importToArray(entities),
-      synchronize: true,
       // logging: true,
-      // dropSchema: true,
     };
   },
 };

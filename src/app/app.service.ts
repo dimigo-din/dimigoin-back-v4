@@ -10,6 +10,7 @@ export class AppService {
 
   private DisplayMode = {
     dev: "Development Mode",
+    test: "Test Mode",
     prod: "Production Mode",
   };
 

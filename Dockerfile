@@ -36,4 +36,4 @@ COPY --chown=node:node package.json ./
 COPY --chown=node:node --from=build /usr/src/app/node_modules ./node_modules
 COPY --chown=node:node --from=build /usr/src/app/dist ./dist
 
-ENTRYPOINT ["sh", "-c", "pm2 start dist/main.js -i ${PM2_INSTANCES:-2} && pm2 monit"]
+ENTRYPOINT ["sh", "-c", "NODE_ENV=dev pm2 start dist/main.js -i ${PM2_INSTANCES:-2} && pm2 monit"]
