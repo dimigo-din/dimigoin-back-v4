@@ -59,6 +59,7 @@ export class StayManageService {
     });
   }
 
+  // TODO: stay seat merging
   async getStaySeatPreset(data: StaySeatPresetIdDTO) {
     const staySeatPreset = await this.staySeatPresetRepository.findOne({ where: { id: data.id } });
     if (!staySeatPreset) throw new HttpException(ErrorMsg.Resource_NotFound, HttpStatus.NOT_FOUND);
@@ -71,11 +72,14 @@ export class StayManageService {
     staySeatPreset.name = data.name;
 
     const staySeatPresetRanges: StaySeatPresetRange[] = [];
-    for (const range of data.mappings) {
-      const staySeatPresetRange = new StaySeatPresetRange();
-      staySeatPresetRange.target = range.target;
-      staySeatPresetRange.stay_seat_preset = staySeatPreset;
-      staySeatPresetRanges.push(staySeatPresetRange);
+    for (const ranges of data.mappings) {
+      for (const range of ranges.ranges) {
+        const staySeatPresetRange = new StaySeatPresetRange();
+        staySeatPresetRange.target = ranges.target;
+        staySeatPresetRange.range = range;
+        staySeatPresetRange.stay_seat_preset = staySeatPreset;
+        staySeatPresetRanges.push(staySeatPresetRange);
+      }
     }
 
     const result = await this.staySeatPresetRepository.save(staySeatPreset);
@@ -91,11 +95,14 @@ export class StayManageService {
     await this.staySeatPresetRangeRepository.remove(staySeatPreset.stay_seat);
 
     const staySeatPresetRanges: StaySeatPresetRange[] = [];
-    for (const range of data.mappings) {
-      const staySeatPresetRange = new StaySeatPresetRange();
-      staySeatPresetRange.target = range.target;
-      staySeatPresetRange.stay_seat_preset = staySeatPreset;
-      staySeatPresetRanges.push(staySeatPresetRange);
+    for (const ranges of data.mappings) {
+      for (const range of ranges.ranges) {
+        const staySeatPresetRange = new StaySeatPresetRange();
+        staySeatPresetRange.target = ranges.target;
+        staySeatPresetRange.range = range;
+        staySeatPresetRange.stay_seat_preset = staySeatPreset;
+        staySeatPresetRanges.push(staySeatPresetRange);
+      }
     }
     await this.staySeatPresetRangeRepository.save(staySeatPresetRanges);
 
