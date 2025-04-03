@@ -37,12 +37,13 @@ export class CustomLoggerMiddleware implements NestMiddleware {
       );
 
       if (
+        req.body &&
         Object.keys(req.body).length > 0 &&
         Buffer.byteLength(JSON.stringify(req.body), "utf8") < 1024 * 1024 // 1mb
       )
         this.logger.log(`Request Body: ${JSON.stringify(req.body)}`);
 
-      if (Buffer.byteLength(JSON.stringify(req.body), "utf8") > 1024 * 1024)
+      if (req.body && Buffer.byteLength(JSON.stringify(req.body), "utf8") > 1024 * 1024)
         this.logger.log("Request Body: [Too large to log]");
     });
     next();
