@@ -1,5 +1,16 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsArray, IsIn, IsNumber, IsString, Matches } from "class-validator";
+import { Type } from "class-transformer";
+import {
+  IsArray,
+  IsBoolean,
+  IsDateString,
+  IsIn,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Matches,
+  ValidateNested,
+} from "class-validator";
 
 import {
   StaySeatTargets,
@@ -31,7 +42,8 @@ export class UpdateStaySeatPresetDTO {
   id: string;
 
   @ApiProperty()
-  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateStaySeatPresetDTO)
   mappings: CreateStaySeatPresetRangeDTO[];
 }
 
@@ -59,15 +71,18 @@ export class CreateStayScheduleDTO {
   name: string;
 
   @ApiProperty()
-  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => StayApplyPeriodPerGrade)
   stayApplyPeriod: StayApplyPeriodPerGrade[];
 
   @ApiProperty()
   @IsNumber()
+  /** weekday (sunday is 0) */
   stay_from: number;
 
   @ApiProperty()
   @IsNumber()
+  /** weekday (sunday is 0) */
   stay_to: number;
 
   @ApiProperty()
@@ -87,18 +102,22 @@ export class StayApplyPeriodPerGrade {
 
   @ApiProperty()
   @IsNumber()
+  /** start from 0 (sunday) */
   apply_start_day: number;
 
   @ApiProperty()
   @IsNumber()
+  /** 24h */
   apply_start_hour: number;
 
   @ApiProperty()
   @IsNumber()
+  /** start from 0 (sunday) */
   apply_end_day: number;
 
   @ApiProperty()
   @IsNumber()
+  /** 24h */
   apply_end_hour: number;
 }
 
@@ -128,7 +147,13 @@ export class CreateStayDTO {
   to: string;
 
   @ApiProperty()
+  @ValidateNested({ each: true })
+  @Type(() => StayApplyPeriod_StayDTO)
   period: StayApplyPeriod_StayDTO[];
+
+  @ApiProperty()
+  @IsString({ each: true })
+  outing_day: string[];
 
   @ApiProperty()
   @IsString()
@@ -142,10 +167,12 @@ export class StayApplyPeriod_StayDTO {
 
   @ApiProperty()
   @IsString()
+  /** YYYY-MM-DDTHH:mm */
   start: string;
 
   @ApiProperty()
   @IsString()
+  /** YYYY-MM-DDTHH:mm */
   end: string;
 }
 
@@ -167,6 +194,42 @@ export class StayApplyIdDTO {
   id: string;
 }
 
+export class OutingDTO {
+  @ApiProperty()
+  @IsString()
+  reason: string;
+
+  @ApiProperty()
+  @IsBoolean()
+  breakfast_cancel: boolean;
+
+  @ApiProperty()
+  @IsBoolean()
+  lunch_cancel: boolean;
+
+  @ApiProperty()
+  @IsBoolean()
+  dinner_cancel: boolean;
+
+  @ApiProperty()
+  @IsDateString()
+  from: string;
+
+  @ApiProperty()
+  @IsDateString()
+  to: string;
+
+  @ApiProperty()
+  @IsBoolean()
+  @IsOptional()
+  approved: boolean;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  audit_reason: string;
+}
+
 export class CreateStayApplyDTO {
   @ApiProperty()
   @IsString()
@@ -179,6 +242,11 @@ export class CreateStayApplyDTO {
   @ApiProperty()
   @IsString()
   stay_seat: string;
+
+  @ApiProperty()
+  @ValidateNested({ each: true })
+  @Type(() => OutingDTO)
+  outing: OutingDTO[];
 }
 
 export class UpdateStayApplyDTO extends CreateStayApplyDTO {

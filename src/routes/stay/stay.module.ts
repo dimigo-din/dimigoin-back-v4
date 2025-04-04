@@ -11,6 +11,7 @@ import {
   StaySeatPreset,
   StaySeatPresetRange,
   StayApply,
+  StayOuting,
 } from "../../schemas";
 
 import * as controllers from "./controllers";
@@ -22,6 +23,7 @@ import * as providers from "./providers";
       User,
       Stay,
       StayApply,
+      StayOuting,
       StaySeatPreset,
       StaySeatPresetRange,
       StaySchedule,

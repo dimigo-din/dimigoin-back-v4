@@ -309,6 +309,21 @@ export class StayManageService {
     stayApply.user = target;
     stayApply.stay = stay;
 
+    stayApply.outing = [];
+    for (const outingData of data.outing) {
+      const outing = new StayOuting();
+      outing.reason = outingData.reason;
+      outing.breakfast_cancel = outingData.breakfast_cancel;
+      outing.lunch_cancel = outingData.lunch_cancel;
+      outing.dinner_cancel = outingData.dinner_cancel;
+      outing.from = outingData.from;
+      outing.to = outingData.to;
+      outing.approved = outingData.approved;
+      outing.audit_reason = outingData.audit_reason;
+
+      stayApply.outing.push(outing);
+    }
+
     return await this.stayApplyRepository.save(stayApply);
   }
 
@@ -330,6 +345,22 @@ export class StayManageService {
     stayApply.stay_seat = data.stay_seat.toLowerCase();
     stayApply.user = target;
     stayApply.stay = stay;
+
+    await this.stayOutingRepository.remove(stayApply.outing);
+    stayApply.outing = [];
+    for (const outingData of data.outing) {
+      const outing = new StayOuting();
+      outing.reason = outingData.reason;
+      outing.breakfast_cancel = outingData.breakfast_cancel;
+      outing.lunch_cancel = outingData.lunch_cancel;
+      outing.dinner_cancel = outingData.dinner_cancel;
+      outing.from = outingData.from;
+      outing.to = outingData.to;
+      outing.approved = outingData.approved;
+      outing.audit_reason = outingData.audit_reason;
+
+      stayApply.outing.push(outing);
+    }
 
     return await this.stayApplyRepository.save(stayApply);
   }
