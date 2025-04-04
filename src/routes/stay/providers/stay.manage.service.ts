@@ -324,6 +324,7 @@ export class StayManageService {
       stayApply.outing.push(outing);
     }
 
+    await this.stayOutingRepository.save(stayApply.outing);
     return await this.stayApplyRepository.save(stayApply);
   }
 
@@ -362,6 +363,7 @@ export class StayManageService {
       stayApply.outing.push(outing);
     }
 
+    await this.stayOutingRepository.save(stayApply.outing);
     return await this.stayApplyRepository.save(stayApply);
   }
 
