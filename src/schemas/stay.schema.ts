@@ -1,3 +1,4 @@
+import { Exclude } from "class-transformer";
 import {
   Column,
   CreateDateColumn,
@@ -62,7 +63,7 @@ export class StaySchedule {
   name: string;
 
   @JoinColumn()
-  @OneToOne(
+  @OneToMany(
     () => StayApplyPeriod_StaySchedule,
     (stayApplyPeriod_StaySchedule) => stayApplyPeriod_StaySchedule.stay_schedule,
     {
@@ -80,8 +81,8 @@ export class StaySchedule {
   stay_to: number;
 
   /** ex) 0,1,2 <= sunday, monday, tuesday */
-  @Column()
-  outing_day: string;
+  @Column("int", { array: true })
+  outing_day: number[];
 
   @CreateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP(6)" })
   created_at: Date;
@@ -110,8 +111,12 @@ export class Stay {
   @Column()
   stay_to: string;
 
+  /** ex) YYYY-MM-DD */
+  @Column("text", { array: true })
+  outing_day: string[];
+
   @JoinColumn()
-  @OneToOne(() => StayApplyPeriod_Stay, (stayApplyPeriod_Stay) => stayApplyPeriod_Stay.stay, {
+  @OneToMany(() => StayApplyPeriod_Stay, (stayApplyPeriod_Stay) => stayApplyPeriod_Stay.stay, {
     eager: true,
   })
   stay_apply_period: StayApplyPeriod_Stay[];
@@ -154,10 +159,9 @@ export class StayApplyPeriod_StaySchedule {
   @Column("int")
   apply_end_hour: number;
 
-  @OneToOne(() => StaySchedule, (staySchedule) => staySchedule.stay_apply_period, {
+  @ManyToOne(() => StaySchedule, (staySchedule) => staySchedule.stay_apply_period, {
     onDelete: "CASCADE",
     onUpdate: "CASCADE",
-    nullable: true,
   })
   stay_schedule: StaySchedule;
 }
@@ -169,15 +173,15 @@ export class StayApplyPeriod_Stay {
   @Column("int")
   grade: Grade;
 
-  /** YYYY-MM-DD HH:mm */
+  /** YYYY-MM-DDTHH:mm */
   @Column()
   apply_start: string;
 
-  /** YYYY-MM-DD HH:mm */
+  /** YYYY-MM-DDTHH:mm */
   @Column()
   apply_end: string;
 
-  @OneToOne(() => Stay, (stay) => stay.stay_apply_period, {
+  @ManyToOne(() => Stay, (stay) => stay.stay_apply_period, {
     onDelete: "CASCADE",
     onUpdate: "CASCADE",
     nullable: true,
@@ -190,7 +194,7 @@ export class StayApply {
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @Column({ nullable: true })
+  @Column()
   stay_seat: string;
 
   @JoinColumn()
@@ -231,17 +235,13 @@ export class StayOuting {
   @Column("boolean")
   dinner_cancel: boolean;
 
-  /** YYYY-MM-DD HH:mm */
+  /** YYYY-MM-DDTHH:mm */
   @Column()
   from: string;
 
-  /** YYYY-MM-DD HH:mm */
+  /** YYYY-MM-DDTHH:mm */
   @Column()
   to: string;
-
-  /** 자기계발외출 */
-  @Column()
-  is_self_enlightenment: boolean;
 
   @Column("boolean", { nullable: true })
   approved: boolean;

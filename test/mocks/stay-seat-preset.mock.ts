@@ -1,6 +1,6 @@
 import { CreateStaySeatPresetDTO } from "../../src/routes/stay/dto/stay.manage.dto";
 
-export const StaySeatPresetMock = ((): CreateStaySeatPresetDTO => {
+export const StaySeatPresetMock = (): CreateStaySeatPresetDTO => {
   const staySeatPreset = new CreateStaySeatPresetDTO();
   staySeatPreset.name = "평상시";
   staySeatPreset.mappings = [
@@ -31,4 +31,4 @@ export const StaySeatPresetMock = ((): CreateStaySeatPresetDTO => {
   ];
 
   return staySeatPreset;
-})();
+};

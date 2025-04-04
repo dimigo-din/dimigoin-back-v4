@@ -9,6 +9,7 @@ import {
   StayApply,
   StayApplyPeriod_Stay,
   StayApplyPeriod_StaySchedule,
+  StayOuting,
   StaySchedule,
   StaySeatPreset,
   StaySeatPresetRange,
@@ -39,6 +40,8 @@ export class StayManageService {
     private readonly stayRepository: Repository<Stay>,
     @InjectRepository(StayApply)
     private readonly stayApplyRepository: Repository<StayApply>,
+    @InjectRepository(StayOuting)
+    private readonly stayOutingRepository: Repository<StayOuting>,
     @InjectRepository(StaySeatPreset)
     private readonly staySeatPresetRepository: Repository<StaySeatPreset>,
     @InjectRepository(StaySeatPresetRange)
@@ -138,11 +141,10 @@ export class StayManageService {
     staySchedule.name = data.name;
     staySchedule.stay_from = data.stay_from;
     staySchedule.stay_to = data.stay_to;
-    staySchedule.outing_day = data.outing_day.join(",");
+    staySchedule.outing_day = data.outing_day;
     staySchedule.stay_seat_preset = staySeatPreset;
-    const dbStaySchedule = await this.stayScheduleRepository.save(staySchedule);
 
-    const stayApplyPeriods: StayApplyPeriod_StaySchedule[] = [];
+    staySchedule.stay_apply_period = [];
     for (const period of data.stayApplyPeriod) {
       const stayApplyPeriod = new StayApplyPeriod_StaySchedule();
       stayApplyPeriod.grade = period.grade;
@@ -150,12 +152,12 @@ export class StayManageService {
       stayApplyPeriod.apply_start_hour = period.apply_start_hour;
       stayApplyPeriod.apply_end_day = period.apply_end_day;
       stayApplyPeriod.apply_end_hour = period.apply_end_hour;
-      stayApplyPeriod.stay_schedule = dbStaySchedule;
-      stayApplyPeriods.push(stayApplyPeriod);
-    }
-    await this.stayApplyPeriod_StaySchedule_Repository.save(stayApplyPeriods);
 
-    return await this.stayScheduleRepository.findOne({ where: { id: dbStaySchedule.id } });
+      staySchedule.stay_apply_period.push(stayApplyPeriod);
+    }
+
+    await this.stayApplyPeriod_StaySchedule_Repository.save(staySchedule.stay_apply_period);
+    return await this.stayScheduleRepository.save(staySchedule);
   }
 
   async updateStaySchedule(data: UpdateStayScheduleDTO) {
@@ -171,11 +173,11 @@ export class StayManageService {
     staySchedule.name = data.name;
     staySchedule.stay_from = data.stay_from;
     staySchedule.stay_to = data.stay_to;
-    staySchedule.outing_day = data.outing_day.join(",");
+    staySchedule.outing_day = data.outing_day;
     staySchedule.stay_seat_preset = staySeatPreset;
-    const dbStaySchedule = await this.stayScheduleRepository.save(staySchedule);
 
-    const stayApplyPeriods: StayApplyPeriod_StaySchedule[] = [];
+    await this.stayApplyPeriod_StaySchedule_Repository.remove(staySchedule.stay_apply_period);
+    staySchedule.stay_apply_period = [];
     for (const period of data.stayApplyPeriod) {
       const stayApplyPeriod = new StayApplyPeriod_StaySchedule();
       stayApplyPeriod.grade = period.grade;
@@ -183,13 +185,12 @@ export class StayManageService {
       stayApplyPeriod.apply_start_hour = period.apply_start_hour;
       stayApplyPeriod.apply_end_day = period.apply_end_day;
       stayApplyPeriod.apply_end_hour = period.apply_end_hour;
-      stayApplyPeriod.stay_schedule = dbStaySchedule;
-      stayApplyPeriods.push(stayApplyPeriod);
-    }
-    await this.stayApplyPeriod_StaySchedule_Repository.remove(staySchedule.stay_apply_period);
-    await this.stayApplyPeriod_StaySchedule_Repository.save(stayApplyPeriods);
 
-    return await this.stayScheduleRepository.findOne({ where: { id: dbStaySchedule.id } });
+      staySchedule.stay_apply_period.push(stayApplyPeriod);
+    }
+
+    await this.stayApplyPeriod_StaySchedule_Repository.save(staySchedule.stay_apply_period);
+    return await this.stayScheduleRepository.save(staySchedule);
   }
 
   async deleteStaySchedule(data: StayScheduleIdDTO) {
@@ -220,20 +221,20 @@ export class StayManageService {
     stay.stay_from = data.from;
     stay.stay_to = data.to;
     stay.stay_seat_preset = staySeatPreset;
-    const dbStay = await this.stayRepository.save(stay);
+    stay.outing_day = data.outing_day;
 
-    const stayApplyPeriods: StayApplyPeriod_Stay[] = [];
+    stay.stay_apply_period = [];
     for (const period of data.period) {
       const stayApplyPeriod = new StayApplyPeriod_Stay();
       stayApplyPeriod.grade = period.grade;
       stayApplyPeriod.apply_start = period.start;
       stayApplyPeriod.apply_end = period.end;
-      stayApplyPeriod.stay = dbStay;
-      stayApplyPeriods.push(stayApplyPeriod);
-    }
-    await this.stayApplyPeriod_Stay_Repository.save(stayApplyPeriods);
 
-    return await this.stayRepository.findOne({ where: { id: dbStay.id } });
+      stay.stay_apply_period.push(stayApplyPeriod);
+    }
+
+    await this.stayApplyPeriod_Stay_Repository.save(stay.stay_apply_period);
+    return await this.stayRepository.save(stay);
   }
 
   async updateStay(data: UpdateStayDTO) {
@@ -249,22 +250,20 @@ export class StayManageService {
     stay.stay_from = data.from;
     stay.stay_to = data.to;
     stay.stay_seat_preset = staySeatPreset;
+
     await this.stayApplyPeriod_Stay_Repository.remove(stay.stay_apply_period);
     stay.stay_apply_period = [];
-    const dbStay = await this.stayRepository.save(stay);
-
-    const stayApplyPeriods: StayApplyPeriod_Stay[] = [];
     for (const period of data.period) {
       const stayApplyPeriod = new StayApplyPeriod_Stay();
       stayApplyPeriod.grade = period.grade;
       stayApplyPeriod.apply_start = period.start;
       stayApplyPeriod.apply_end = period.end;
-      stayApplyPeriod.stay = dbStay;
-      stayApplyPeriods.push(stayApplyPeriod);
-    }
-    await this.stayApplyPeriod_Stay_Repository.save(stayApplyPeriods);
 
-    return await this.stayRepository.findOne({ where: { id: dbStay.id } });
+      stay.stay_apply_period.push(stayApplyPeriod);
+    }
+
+    await this.stayApplyPeriod_Stay_Repository.save(stay.stay_apply_period);
+    return await this.stayRepository.save(stay);
   }
 
   async deleteStay(data: DeleteStayDTO) {
@@ -299,13 +298,13 @@ export class StayManageService {
     if (!stay) throw new HttpException(ErrorMsg.Resource_NotFound, HttpStatus.NOT_FOUND);
 
     const exists = await this.stayApplyRepository.findOne({
-      where: { stay_seat: data.stay_seat.toLowerCase() },
+      where: { stay_seat: data.stay_seat.toUpperCase() },
     });
     if (exists) throw new HttpException(ErrorMsg.ResourceAlreadyExists, HttpStatus.BAD_REQUEST);
 
     // teacher can force stay_seat. so, stay_seat will not be filtered.
     const stayApply = new StayApply();
-    stayApply.stay_seat = data.stay_seat.toLowerCase();
+    stayApply.stay_seat = data.stay_seat.toUpperCase();
     stayApply.user = target;
     stayApply.stay = stay;
 
@@ -339,11 +338,12 @@ export class StayManageService {
     if (!stay) throw new HttpException(ErrorMsg.Resource_NotFound, HttpStatus.NOT_FOUND);
 
     const exists = await this.stayApplyRepository.findOne({
-      where: { stay_seat: data.stay_seat.toLowerCase() },
+      where: { stay_seat: data.stay_seat.toUpperCase() },
     });
-    if (exists) throw new HttpException(ErrorMsg.ResourceAlreadyExists, HttpStatus.BAD_REQUEST);
+    if (exists && stayApply.stay_seat !== data.stay_seat.toUpperCase())
+      throw new HttpException(ErrorMsg.ResourceAlreadyExists, HttpStatus.BAD_REQUEST);
 
-    stayApply.stay_seat = data.stay_seat.toLowerCase();
+    stayApply.stay_seat = data.stay_seat.toUpperCase();
     stayApply.user = target;
     stayApply.stay = stay;
 

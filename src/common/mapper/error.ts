@@ -11,4 +11,6 @@ export const ErrorMsg = {
   OAuthRedirectUri_MissMatch: "해당 Redirect Uri는 OAuth Client에 등록되어있지 않습니다.",
 
   StaySeat_Duplication: "이미 해당 좌석을 선택한 사람이 있습니다.",
+
+  ProvidedTime_Invalid: "제공하신 시간이 조건에 충족하지 않습니다.",
 };

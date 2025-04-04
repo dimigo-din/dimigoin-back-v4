@@ -259,7 +259,7 @@ export class StayManageController {
   })
   @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.MANAGE_STAY]))
   @Get("/apply")
-  async getStayApply(data: StayApplyIdDTO) {
+  async getStayApply(@Query() data: StayApplyIdDTO) {
     return await this.stayManageService.getStayApply(data);
   }
 

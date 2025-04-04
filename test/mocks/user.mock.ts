@@ -7,7 +7,7 @@ import { User } from "../../src/schemas";
 import { getApp } from "../app.e2e";
 import { UserMock } from "../types";
 
-export const StudentUserMock = (async (): Promise<UserMock> => {
+export const StudentUserMock = async (): Promise<UserMock> => {
   const target = new User();
   target.email = "student@dimigo.in";
   target.grade = 1;
@@ -30,13 +30,17 @@ export const StudentUserMock = (async (): Promise<UserMock> => {
 
   return {
     ...data,
-    save: async () => {
-      return await userManageService.insertUser(target);
+    save: async (): Promise<UserMock> => {
+      return {
+        user: await userManageService.insertUser(target),
+        jwt: data.jwt,
+        save: null,
+      };
     },
   };
-})();
+};
 
-export const AdminUserMock = (async (): Promise<UserMock> => {
+export const AdminUserMock = async (): Promise<UserMock> => {
   const target = new User();
   target.email = "admin@dimigo.in";
   target.gender = "male";
@@ -55,8 +59,12 @@ export const AdminUserMock = (async (): Promise<UserMock> => {
 
   return {
     ...data,
-    save: async () => {
-      return await userManageService.insertUser(target);
+    save: async (): Promise<UserMock> => {
+      return {
+        user: await userManageService.insertUser(target),
+        jwt: data.jwt,
+        save: null,
+      };
     },
   };
-})();
+};
