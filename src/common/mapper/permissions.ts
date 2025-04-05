@@ -1,7 +1,6 @@
 import { numberPermission } from "../utils/permission.util";
 
 export const UserPermissionValues = [
-  "SIGNUP_COMPLETE",
   "MANAGE_OAUTH_CLIENT_SELF",
   "MANAGE_STAY",
   "VIEW_STAY",

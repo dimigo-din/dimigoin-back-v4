@@ -12,7 +12,7 @@ import { v4 as uuid } from "uuid";
 
 import { ErrorMsg } from "../common/mapper/error";
 import { UserJWT } from "../common/mapper/types";
-import { UserService } from "../routes/user/providers";
+import { UserManageService } from "../routes/user/providers";
 import { Login, OAuth_Client, OAuth_Client_Redirect, OAuth_Code, Session, User } from "../schemas";
 
 @Injectable()
@@ -22,8 +22,8 @@ export class AuthService {
   constructor(
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
-    @Inject(forwardRef(() => UserService))
-    private readonly userService: UserService,
+    @Inject(forwardRef(() => UserManageService))
+    private readonly userManageService: UserManageService,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     @InjectRepository(Login)
@@ -83,7 +83,7 @@ export class AuthService {
       where: { identifier1: ticketPayload.sub || "" },
     });
     if (!login) {
-      loginUser = await this.userService.createUser({
+      loginUser = await this.userManageService.createUser({
         loginType: "google",
         identifier1: ticketPayload.sub,
         identifier2: null,

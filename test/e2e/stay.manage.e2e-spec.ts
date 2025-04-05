@@ -188,7 +188,6 @@ describe("Stay Manage", () => {
       .auth(admin.jwt, { type: "bearer" })
       .expect(200)
       .then((res) => {
-        console.log(res.body);
         expect(res.body.stay_seat).toBe("A1");
         expect(res.body.outing[0].reason).toBe("자기계발외출");
       });

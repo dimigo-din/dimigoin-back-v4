@@ -11,42 +11,13 @@ import {
   AddPermissionDTO,
   RemovePermissionDTO,
   SetPermissionDTO,
-  SetUserDetailDTO,
 } from "../dto";
-import { UserService } from "../providers";
+import { UserManageService } from "../providers";
 
 @ApiTags("User")
-@Controller("/user")
-export class UserController {
-  constructor(private readonly userService: UserService) {}
-
-  @ApiOperation({
-    summary: "회원가입 완료 여부 확인",
-    description: "회원가입 후 학번 등록이 완료되었는지 확인합니다.",
-  })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: "완료 여부",
-    type: Boolean,
-  })
-  @UseGuardsWithSwagger(CustomJwtAuthGuard)
-  @Get("/signup/complete")
-  async checkSignUpCompleted(@Req() req) {
-    return await this.userService.isSignUpCompleted(req.user.id);
-  }
-
-  @ApiOperation({
-    summary: "유저 세부정보 설정",
-    description: "회원가입 후, 학번 등록 프로세스입니다.",
-  })
-  @ApiResponse({
-    status: HttpStatus.OK,
-  })
-  @UseGuardsWithSwagger(CustomJwtAuthGuard)
-  @Post("/signup/complete")
-  async setUserDetail(@Req() req, @Body() data: SetUserDetailDTO) {
-    return await this.userService.setUserDetail(req.user, data);
-  }
+@Controller("/manage/user")
+export class UserManageController {
+  constructor(private readonly userManageService: UserManageService) {}
 
   @ApiOperation({
     summary: "비밀번호 설정",
@@ -58,7 +29,7 @@ export class UserController {
   @UseGuardsWithSwagger(CustomJwtAuthGuard)
   @Post("/login/password")
   async addPasswordLogin(@Req() req, @Body() data: AddPasswordLoginDTO) {
-    return await this.userService.addPasswordLogin(req.user.id, data.password);
+    return await this.userManageService.addPasswordLogin(req.user.id, data.password);
   }
 
   @ApiOperation({
@@ -73,7 +44,7 @@ export class UserController {
   @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.MANAGE_PERMISSION]))
   @Post("/permission/set")
   async setPermission(@Body() data: SetPermissionDTO) {
-    return await this.userService.setPermission(data);
+    return await this.userManageService.setPermission(data);
   }
 
   @ApiOperation({
@@ -88,7 +59,7 @@ export class UserController {
   @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.MANAGE_PERMISSION]))
   @Post("/permission/add")
   async addPermission(@Body() data: AddPermissionDTO) {
-    return await this.userService.addPermission(data);
+    return await this.userManageService.addPermission(data);
   }
 
   @ApiOperation({
@@ -103,6 +74,6 @@ export class UserController {
   @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.MANAGE_PERMISSION]))
   @Post("/permission/remove")
   async removePermission(@Body() data: RemovePermissionDTO) {
-    return await this.userService.removePermission(data);
+    return await this.userManageService.removePermission(data);
   }
 }

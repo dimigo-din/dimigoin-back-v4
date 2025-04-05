@@ -16,22 +16,6 @@ export class User {
   @Index()
   email: string;
 
-  @Column("int", { nullable: true })
-  grade: number | null;
-
-  @Column("int", { nullable: true })
-  class: number | null;
-
-  @Column("int", { nullable: true })
-  number: number | null;
-
-  /** grade + class + number */
-  @Column("varchar", { nullable: true })
-  gcn: string | null;
-
-  @Column()
-  gender: Gender;
-
   @Column()
   name: string;
 
