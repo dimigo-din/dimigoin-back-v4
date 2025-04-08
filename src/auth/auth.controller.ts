@@ -1,14 +1,14 @@
-import { Body, Controller, Get, HttpStatus, Post, Query, Req, Res } from "@nestjs/common";
-import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
+import * as process from "node:process";
+import * as stream from "node:stream";
 
-import {
-  GoogleLoginDTO,
-  GoogleLoginRequestDTO,
-  JWTResponse,
-  OAuthCodeExchangeDTO,
-  PasswordLoginDTO,
-  RefreshTokenDTO,
-} from "./auth.dto";
+import { Body, Controller, Get, HttpStatus, Post, Query, Req, Res } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
+import { TokenResponse } from "google-auth-library/build/src/auth/impersonated";
+
+import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE } from "../common/mapper/constants";
+
+import { GoogleLoginDTO, JWTResponse, PasswordLoginDTO, RefreshTokenDTO } from "./auth.dto";
 import { AuthService } from "./auth.service";
 import { CustomJwtAuthGuard } from "./guards";
 import { UseGuardsWithSwagger } from "./guards/useGuards";
@@ -16,7 +16,10 @@ import { UseGuardsWithSwagger } from "./guards/useGuards";
 @ApiTags("Auth")
 @Controller("/auth")
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly authService: AuthService,
+  ) {}
 
   @ApiOperation({
     summary: "핑",
@@ -37,8 +40,11 @@ export class AuthController {
     type: JWTResponse,
   })
   @Post("/login/password")
-  async passwordLogin(@Body() data: PasswordLoginDTO) {
-    return await this.authService.loginByIdPassword(data.email, data.password);
+  async passwordLogin(@Res({ passthrough: true }) res, @Body() data: PasswordLoginDTO) {
+    const token = await this.authService.loginByIdPassword(data.email, data.password);
+    this.generateCookie(res, token);
+
+    return token;
   }
 
   @ApiOperation({
@@ -49,10 +55,8 @@ export class AuthController {
     status: HttpStatus.FOUND,
   })
   @Get("/login/google")
-  async googleLogin(@Res() res, @Query() data: GoogleLoginRequestDTO) {
-    return res.redirect(
-      await this.authService.getGoogleLoginUrl(data.client_id, data.redirect_uri, data.state),
-    );
+  async googleLogin(@Res() res) {
+    return res.redirect(await this.authService.getGoogleLoginUrl());
   }
 
   @ApiOperation({
@@ -60,25 +64,14 @@ export class AuthController {
     description: "구글 로그인 콜백 엔드포인트입니다.",
   })
   @ApiResponse({
-    status: HttpStatus.OK,
+    status: HttpStatus.FOUND,
     type: JWTResponse,
   })
   @Get("/login/google/callback")
-  async googleLoginCallback(@Query() data: GoogleLoginDTO) {
-    return await this.authService.loginByGoogle(data.code, data.state);
-  }
-
-  @ApiOperation({
-    summary: "OAuth code 교환",
-    description: "OAuth 인증 코드를 인증 토큰으로 변환합니다.",
-  })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    type: JWTResponse,
-  })
-  @Post("/login/exchange")
-  async oauthCodeExchange(@Body() data: OAuthCodeExchangeDTO) {
-    return await this.authService.oauthCodeExchange(data.client_id, data.client_pw, data.code);
+  async googleLoginCallback(@Res({ passthrough: true }) res, @Query() data: GoogleLoginDTO) {
+    const token = await this.authService.loginByGoogle(data.code);
+    this.generateCookie(res, token);
+    return token;
   }
 
   @ApiOperation({
@@ -89,9 +82,18 @@ export class AuthController {
     status: HttpStatus.OK,
     type: JWTResponse,
   })
-  @Post("/refresh")
-  async refreshToken(@Body() data: RefreshTokenDTO) {
-    return await this.authService.refresh(data.refreshToken);
+  @Get("/refresh")
+  async refreshToken(@Req() req, @Res({ passthrough: true }) res, @Body() data: RefreshTokenDTO) {
+    let token;
+    if (!data || !data.refreshToken) {
+      token = await this.authService.refresh(req.cookies[REFRESH_TOKEN_COOKIE]);
+    } else {
+      token = await this.authService.refresh(data.refreshToken);
+    }
+    console.log(token);
+    this.generateCookie(res, token);
+
+    return token;
   }
 
   @ApiOperation({
@@ -105,5 +107,25 @@ export class AuthController {
   @Post("/logout")
   async logout(@Req() req) {
     return await this.authService.logout(req.user);
+  }
+
+  generateCookie(res: any, token) {
+    const sameSite = process.env.NODE_ENV === "prod" ? "none" : undefined;
+    const domain =
+      process.env.NODE_ENV === "prod" ? `.${this.configService.get<string>("DOMAIN")}` : undefined;
+    res.cookie(ACCESS_TOKEN_COOKIE, token.accessToken, {
+      path: "/",
+      maxAge: 1000 * 60 * 30,
+      httpOnly: true,
+      sameSite,
+      domain,
+    });
+    res.cookie(REFRESH_TOKEN_COOKIE, token.refreshToken, {
+      path: "/",
+      maxAge: 1000 * 60 * 60 * 24 * 30,
+      httpOnly: true,
+      sameSite,
+      domain,
+    });
   }
 }

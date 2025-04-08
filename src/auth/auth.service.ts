@@ -1,5 +1,3 @@
-import * as crypto from "crypto";
-
 import { forwardRef, HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
@@ -13,7 +11,9 @@ import { v4 as uuid } from "uuid";
 import { ErrorMsg } from "../common/mapper/error";
 import { UserJWT } from "../common/mapper/types";
 import { UserManageService } from "../routes/user/providers";
-import { Login, OAuth_Client, OAuth_Client_Redirect, OAuth_Code, Session, User } from "../schemas";
+import { Login, Session, User } from "../schemas";
+
+import { JWTResponse } from "./auth.dto";
 
 @Injectable()
 export class AuthService {
@@ -30,12 +30,6 @@ export class AuthService {
     private readonly loginRepository: Repository<Login>,
     @InjectRepository(Session)
     private readonly sessionRepository: Repository<Session>,
-    @InjectRepository(OAuth_Client)
-    private readonly oauthClientRepository: Repository<OAuth_Client>,
-    @InjectRepository(OAuth_Client_Redirect)
-    private readonly oauthClientRedirectRepository: Repository<OAuth_Client_Redirect>,
-    @InjectRepository(OAuth_Code)
-    private readonly oauthCodeRepository: Repository<OAuth_Code>,
   ) {
     this.googleOauthClient = new google.auth.OAuth2(
       configService.get<string>("GCP_OAUTH_ID"),
@@ -52,10 +46,10 @@ export class AuthService {
     if (!bcrypt.compareSync(password, login.identifier2))
       throw new HttpException(ErrorMsg.UserIdentifier_NotMatched, 403);
 
-    return await this.generateJWTKeyPair(login.user, "30m", "1M");
+    return await this.generateJWTKeyPair(login.user, "30m");
   }
 
-  async getGoogleLoginUrl(client_id: string, callback: string, state: string): Promise<string> {
+  async getGoogleLoginUrl(): Promise<string> {
     const scopes: string[] = [
       "openid",
       "https://www.googleapis.com/auth/userinfo.email",
@@ -66,17 +60,21 @@ export class AuthService {
       access_type: "online",
       prompt: "consent",
       scope: scopes,
-      state: Buffer.from(JSON.stringify({ client_id, callback, state })).toString("base64url"),
     });
   }
 
-  async loginByGoogle(code: string, state: string) {
+  async loginByGoogle(code: string): Promise<JWTResponse> {
     // google OAuth process
-    const tokenRes = await this.googleOauthClient.getToken(code);
-    const ticket = await this.googleOauthClient.verifyIdToken({
-      idToken: tokenRes.tokens.id_token,
-    });
-    const ticketPayload = ticket.getPayload();
+    let ticketPayload;
+    try {
+      const tokenRes = await this.googleOauthClient.getToken(code);
+      const ticket = await this.googleOauthClient.verifyIdToken({
+        idToken: tokenRes.tokens.id_token,
+      });
+      ticketPayload = ticket.getPayload();
+    } catch (e) {
+      throw new HttpException(ErrorMsg.GoogleOauthCode_Invalid, HttpStatus.BAD_REQUEST);
+    }
 
     let loginUser = null;
     const login = await this.loginRepository.findOne({
@@ -92,55 +90,19 @@ export class AuthService {
       });
     } else loginUser = login.user;
 
-    // dimigoin OAuth process
-    const decodedState = JSON.parse(Buffer.from(state, "base64url").toString());
-    if (!decodedState.client_id || isNaN(decodedState.client_id) || !decodedState.callback)
-      throw new HttpException(ErrorMsg.InvalidParameter, HttpStatus.BAD_REQUEST);
-
-    const oauth_client = await this.oauthClientRepository.findOne({
-      where: { client_id: decodedState.client_id },
-    });
-    if (!oauth_client) throw new HttpException(ErrorMsg.OAuthClient_NotFound, HttpStatus.NOT_FOUND);
-
-    const redirectCheck = oauth_client.redirect.some(
-      (redirect) => redirect.redirect_url === decodedState.callback,
-    );
-    if (!redirectCheck)
-      throw new HttpException(ErrorMsg.OAuthRedirectUri_MissMatch, HttpStatus.NOT_ACCEPTABLE);
-
-    // code generating
-    const rString = crypto.randomBytes(30).toString("base64");
-    const oauth_code = new OAuth_Code();
-    oauth_code.code = rString;
-    oauth_code.oauth_user = loginUser;
-    oauth_code.oauth_client = oauth_client;
-
-    await this.oauthCodeRepository.save(oauth_code);
-
-    // decodedState.redirect_uri;
-    return rString;
+    return await this.generateJWTKeyPair(loginUser, "30m");
   }
 
-  async oauthCodeExchange(client_id: string, client_pw: string, code: string) {
-    const dbCode = await this.oauthCodeRepository.findOne({ where: { code: code } });
-    if (!dbCode) return new HttpException(ErrorMsg.Resource_NotFound, HttpStatus.NOT_FOUND);
-    if (
-      dbCode.oauth_client.client_id.toString() !== client_id.toString() ||
-      dbCode.oauth_client.client_pw !== client_pw
-    )
-      throw new HttpException(ErrorMsg.PermissionDenied_Resource, HttpStatus.FORBIDDEN);
-
-    await this.oauthCodeRepository.remove(dbCode);
-
-    return await this.generateJWTKeyPair(dbCode.oauth_user, "30m", "1M");
-  }
-
+  // Actually, we need refresh "token" not refresh jwt
   async refresh(refreshToken: string) {
     const session = await this.sessionRepository.findOne({
       where: { refreshToken: refreshToken || "" },
     });
     if (!session)
-      throw new HttpException("Session not found. Is this valid jwt refresh token?", 404);
+      throw new HttpException(
+        "Session not found. Is this valid jwt refresh token?",
+        HttpStatus.NOT_FOUND,
+      );
 
     await this.sessionRepository.remove(session);
 
@@ -148,7 +110,7 @@ export class AuthService {
       where: { id: session.user.id },
     });
 
-    return await this.generateJWTKeyPair(user, "30m", "1M");
+    return await this.generateJWTKeyPair(user, "30m");
   }
 
   async logout(user: UserJWT) {
@@ -166,19 +128,17 @@ export class AuthService {
   async generateJWTKeyPair(
     user: User,
     accessExpire: string,
-    refreshExpire: string,
   ): Promise<{ accessToken: string; refreshToken: string }> {
     const sessionIdentifier = uuid().replaceAll("-", "");
 
+    const userDetail = await this.userManageService.fetchUserDetail({ email: user.email });
+
     const keyPair = {
       accessToken: await this.jwtService.signAsync(
-        { sessionIdentifier, ...user, refresh: false },
+        { sessionIdentifier, ...user, ...userDetail, refresh: false },
         { expiresIn: accessExpire || "10m" },
       ),
-      refreshToken: await this.jwtService.signAsync(
-        { sessionIdentifier, id: user.id, refresh: true },
-        { expiresIn: refreshExpire || "5h" },
-      ),
+      refreshToken: uuid(),
     };
 
     // TODO: separate to redis

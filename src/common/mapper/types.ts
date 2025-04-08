@@ -1,3 +1,6 @@
+import { User } from "../../schemas";
+import { PersonalInformationSchema } from "../../schemas/personal-information.schema";
+
 export const LoginTypeValues = ["password", "google"] as const;
 export type LoginType = (typeof LoginTypeValues)[number];
 
@@ -20,14 +23,4 @@ export const StaySeatMappingValues = [
 ] as const;
 export type StaySeatTargets = (typeof StaySeatMappingValues)[number];
 
-export type UserJWT = {
-  id: string;
-  email: string;
-  name: string;
-  nickname: string;
-  lvl: number;
-  rating: number;
-  permission: number;
-  refresh: boolean;
-  sessionIdentifier: string;
-};
+export type UserJWT = User & (PersonalInformationSchema & { sessionIdentifier: string });

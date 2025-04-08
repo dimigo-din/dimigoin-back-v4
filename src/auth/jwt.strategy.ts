@@ -7,15 +7,22 @@ import { Repository } from "typeorm";
 
 import { Session } from "../schemas";
 
+const cookieExtractor = (req: any): string | null => {
+  const cookieHeader = req.cookies;
+  if (cookieHeader && cookieHeader["access-token"]) {
+    return cookieHeader["access-token"];
+  }
+  return null;
+};
+
 @Injectable()
 export class CustomJwtStrategy extends PassportStrategy(Strategy, "jwt") {
-  constructor(
-    @InjectRepository(Session)
-    private sessionRepository: Repository<Session>,
-    private readonly configService: ConfigService,
-  ) {
+  constructor(private readonly configService: ConfigService) {
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: ExtractJwt.fromExtractors([
+        ExtractJwt.fromAuthHeaderAsBearerToken(),
+        cookieExtractor,
+      ]),
       ignoreExpiration: false,
       secretOrKey: configService.get<string>("JWT_PRIVATE"),
       algorithms: ["RS256"],
@@ -23,13 +30,6 @@ export class CustomJwtStrategy extends PassportStrategy(Strategy, "jwt") {
   }
 
   async validate(payload: any, done: VerifiedCallback): Promise<any> {
-    if (!payload.refresh) {
-      return done(null, payload);
-    } else {
-      throw new HttpException(
-        "잘못된 토큰 형식입니다. Access Token을 전달해주세요.",
-        HttpStatus.UNAUTHORIZED,
-      );
-    }
+    return done(null, payload);
   }
 }

@@ -1,17 +1,11 @@
-import { forwardRef, HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import * as bcrypt from "bcrypt";
 import { Repository } from "typeorm";
 
-import { AuthService } from "../../../auth/auth.service";
 import { ErrorMsg } from "../../../common/mapper/error";
-import { PermissionEnum, PermissionType } from "../../../common/mapper/permissions";
-import { UserJWT } from "../../../common/mapper/types";
-import {
-  hasPermission,
-  numberPermission,
-  parsePermission,
-} from "../../../common/utils/permission.util";
+import { PermissionType } from "../../../common/mapper/permissions";
+import { numberPermission, parsePermission } from "../../../common/utils/permission.util";
 import { Login, User } from "../../../schemas";
 import { PersonalInformationSchema } from "../../../schemas/personal-information.schema";
 import { AddPermissionDTO, CreateUserDTO, RemovePermissionDTO, SetPermissionDTO } from "../dto";
@@ -31,24 +25,35 @@ export class UserManageService {
     return await this.userRepository.findOne({ where: { id } });
   }
 
-  async fetchUserdetail(id: string) {
-    const user = await this.userRepository.findOne({ where: { id: id } });
-    if (!user) throw new HttpException(ErrorMsg.Resource_NotFound, HttpStatus.NOT_FOUND);
+  async fetchUserDetail(data: { id?: string; email?: string }) {
+    if (data.id) {
+      const user = await this.userRepository.findOne({ where: { id: data.id } });
+      if (!user) throw new HttpException(ErrorMsg.Resource_NotFound, HttpStatus.NOT_FOUND);
 
-    const personalInformation = await this.personalInformationRepository.findOne({
-      where: { email: user.email },
-    });
+      const personalInformation = await this.personalInformationRepository.findOne({
+        where: { email: user.email },
+      });
 
-    // TEMP
-    const data = {
-      email: personalInformation.email,
-      grade: personalInformation.grade,
-      class: personalInformation.class,
-      number: personalInformation.number,
-      hakbun: personalInformation.hakbun,
-    };
+      return {
+        email: personalInformation.email,
+        grade: personalInformation.grade,
+        class: personalInformation.class,
+        number: personalInformation.number,
+        hakbun: personalInformation.hakbun,
+      };
+    } else if (data.email) {
+      const personalInformation = await this.personalInformationRepository.findOne({
+        where: { email: data.email },
+      });
 
-    return data;
+      return {
+        email: personalInformation.email,
+        grade: personalInformation.grade,
+        class: personalInformation.class,
+        number: personalInformation.number,
+        hakbun: personalInformation.hakbun,
+      };
+    }
   }
 
   async createUser(data: CreateUserDTO): Promise<User> {

@@ -11,39 +11,7 @@ export class PasswordLoginDTO {
   password: string;
 }
 
-export class GoogleLoginRequestDTO {
-  @ApiProperty()
-  @IsString()
-  client_id: string;
-
-  @ApiProperty()
-  @IsString()
-  redirect_uri: string;
-
-  @ApiProperty()
-  @IsString({ nullable: true, default: "" })
-  state: string;
-}
-
 export class GoogleLoginDTO {
-  @ApiProperty()
-  @IsString()
-  code: string;
-
-  @ApiProperty()
-  @IsString()
-  state: string;
-}
-
-export class OAuthCodeExchangeDTO {
-  @ApiProperty()
-  @IsString()
-  client_id: string;
-
-  @ApiProperty()
-  @IsString()
-  client_pw: string;
-
   @ApiProperty()
   @IsString()
   code: string;
@@ -51,8 +19,7 @@ export class OAuthCodeExchangeDTO {
 
 export class RefreshTokenDTO {
   @ApiProperty()
-  @IsString()
-  refreshToken: string;
+  refreshToken?: string;
 }
 
 export class JWTResponse {

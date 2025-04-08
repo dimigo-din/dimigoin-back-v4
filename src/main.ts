@@ -1,6 +1,7 @@
 import { ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { NestFactory } from "@nestjs/core";
+import * as cookieParser from "cookie-parser";
 import { json } from "express";
 
 import { AppModule } from "./app";
@@ -13,6 +14,7 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
 
   app.enableCors();
+  app.use(cookieParser());
   app.use(json({ limit: "5000mb" }));
   app.useGlobalPipes(new ValidationPipe());
 
