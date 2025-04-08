@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { Cron } from "@nestjs/schedule";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { FindOneOptions, Repository } from "typeorm";
 
 import { ErrorMsg } from "../../../common/mapper/error";
 import {
@@ -64,8 +64,9 @@ export class StayManageService {
 
   // TODO: stay seat merging
   async getStaySeatPreset(data: StaySeatPresetIdDTO) {
-    const staySeatPreset = await this.staySeatPresetRepository.findOne({ where: { id: data.id } });
-    if (!staySeatPreset) throw new HttpException(ErrorMsg.Resource_NotFound, HttpStatus.NOT_FOUND);
+    const staySeatPreset = await this.safeFindOne<StaySeatPreset>(this.staySeatPresetRepository, {
+      where: { id: data.id },
+    });
 
     return staySeatPreset;
   }
@@ -92,8 +93,9 @@ export class StayManageService {
   }
 
   async updateStaySeatPreset(data: UpdateStaySeatPresetDTO) {
-    const staySeatPreset = await this.staySeatPresetRepository.findOne({ where: { id: data.id } });
-    if (!staySeatPreset) throw new HttpException(ErrorMsg.Resource_NotFound, HttpStatus.NOT_FOUND);
+    const staySeatPreset = await this.safeFindOne<StaySeatPreset>(this.staySeatPresetRepository, {
+      where: { id: data.id },
+    });
 
     await this.staySeatPresetRangeRepository.remove(staySeatPreset.stay_seat);
 
@@ -113,8 +115,9 @@ export class StayManageService {
   }
 
   async deleteStaySeatPreset(data: StaySeatPresetIdDTO) {
-    const staySeatPreset = await this.staySeatPresetRepository.findOne({ where: { id: data.id } });
-    if (!staySeatPreset) throw new HttpException(ErrorMsg.Resource_NotFound, HttpStatus.NOT_FOUND);
+    const staySeatPreset = await this.safeFindOne<StaySeatPreset>(this.staySeatPresetRepository, {
+      where: { id: data.id },
+    });
 
     return await this.staySeatPresetRepository.remove(staySeatPreset);
   }
@@ -166,8 +169,9 @@ export class StayManageService {
     });
     if (!staySeatPreset) throw new HttpException(ErrorMsg.Resource_NotFound, HttpStatus.NOT_FOUND);
 
-    const staySchedule = await this.stayScheduleRepository.findOne({ where: { id: data.id } });
-    if (!staySchedule) throw new HttpException(ErrorMsg.Resource_NotFound, HttpStatus.NOT_FOUND);
+    const staySchedule = await this.safeFindOne<StaySchedule>(this.stayScheduleRepository, {
+      where: { id: data.id },
+    });
 
     // update period
     staySchedule.name = data.name;
@@ -194,8 +198,9 @@ export class StayManageService {
   }
 
   async deleteStaySchedule(data: StayScheduleIdDTO) {
-    const staySchedule = await this.stayScheduleRepository.findOne({ where: { id: data.id } });
-    if (!staySchedule) throw new HttpException(ErrorMsg.Resource_NotFound, HttpStatus.NOT_FOUND);
+    const staySchedule = await this.safeFindOne<StaySchedule>(this.stayScheduleRepository, {
+      where: { id: data.id },
+    });
 
     return await this.stayScheduleRepository.remove(staySchedule);
   }
@@ -238,8 +243,7 @@ export class StayManageService {
   }
 
   async updateStay(data: UpdateStayDTO) {
-    const stay = await this.stayRepository.findOne({ where: { id: data.id } });
-    if (!stay) throw new HttpException(ErrorMsg.Resource_NotFound, HttpStatus.NOT_FOUND);
+    const stay = await this.safeFindOne<Stay>(this.stayRepository, { where: { id: data.id } });
 
     const staySeatPreset = await this.staySeatPresetRepository.findOne({
       where: { id: data.seat_preset },
@@ -267,8 +271,7 @@ export class StayManageService {
   }
 
   async deleteStay(data: DeleteStayDTO) {
-    const stay = await this.stayRepository.findOne({ where: { id: data.id } });
-    if (!stay) throw new HttpException(ErrorMsg.Resource_NotFound, HttpStatus.NOT_FOUND);
+    const stay = await this.safeFindOne<Stay>(this.stayRepository, { where: { id: data.id } });
 
     return await this.stayRepository.remove(stay);
   }
@@ -291,11 +294,9 @@ export class StayManageService {
   }
 
   async createStayApply(data: CreateStayApplyDTO) {
-    const target = await this.userRepository.findOne({ where: { id: data.user } });
-    if (!target) throw new HttpException(ErrorMsg.Resource_NotFound, HttpStatus.NOT_FOUND);
+    const target = await this.safeFindOne<User>(this.userRepository, { where: { id: data.user } });
 
-    const stay = await this.stayRepository.findOne({ where: { id: data.stay } });
-    if (!stay) throw new HttpException(ErrorMsg.Resource_NotFound, HttpStatus.NOT_FOUND);
+    const stay = await this.safeFindOne<Stay>(this.stayRepository, { where: { id: data.stay } });
 
     const exists = await this.stayApplyRepository.findOne({
       where: { stay_seat: data.stay_seat.toUpperCase() },
@@ -328,14 +329,13 @@ export class StayManageService {
   }
 
   async updateStayApply(data: UpdateStayApplyDTO) {
-    const stayApply = await this.stayApplyRepository.findOne({ where: { id: data.id } });
-    if (!stayApply) throw new HttpException(ErrorMsg.Resource_NotFound, HttpStatus.NOT_FOUND);
+    const stayApply = await this.safeFindOne<StayApply>(this.stayApplyRepository, {
+      where: { id: data.id },
+    });
 
-    const target = await this.userRepository.findOne({ where: { id: data.user } });
-    if (!target) throw new HttpException(ErrorMsg.Resource_NotFound, HttpStatus.NOT_FOUND);
+    const target = await this.safeFindOne<User>(this.userRepository, { where: { id: data.user } });
 
-    const stay = await this.stayRepository.findOne({ where: { id: data.stay } });
-    if (!stay) throw new HttpException(ErrorMsg.Resource_NotFound, HttpStatus.NOT_FOUND);
+    const stay = await this.safeFindOne<Stay>(this.stayRepository, { where: { id: data.stay } });
 
     const exists = await this.stayApplyRepository.findOne({
       where: { stay_seat: data.stay_seat.toUpperCase() },
@@ -368,10 +368,21 @@ export class StayManageService {
   }
 
   async deleteStayApply(data: StayApplyIdDTO) {
-    const stayApply = await this.stayApplyRepository.findOne({ where: { id: data.id } });
-    if (!stayApply) throw new HttpException(ErrorMsg.Resource_NotFound, HttpStatus.NOT_FOUND);
+    const stayApply = await this.safeFindOne<StayApply>(this.stayApplyRepository, {
+      where: { id: data.id },
+    });
 
     return await this.stayApplyRepository.remove(stayApply);
+  }
+
+  async safeFindOne<T>(
+    repo: Repository<T>,
+    condition: FindOneOptions<T> | any,
+    error = new HttpException(ErrorMsg.Resource_NotFound, HttpStatus.NOT_FOUND),
+  ) {
+    const result = await repo.findOne(condition);
+    if (!result) throw error;
+    return result;
   }
 
   // @Cron("0 0 * * *")
