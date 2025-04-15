@@ -63,20 +63,19 @@ export class ValidationService {
       Object.keys(NumberedPermissionGroupsEnum).map((v) => [v, fixedPermissionGroupMappings[v]]),
     );
     const groupUsers = users
-      .filter((u) => Object.values(deprecatedPermissionGroups).some((dpg) => dpg === u.permission))
+      .filter((u) =>
+        Object.values(deprecatedPermissionGroups).some((dpg) => dpg.toString() === u.permission),
+      )
       .map((u) => {
+        users.splice(users.indexOf(u), 1);
         const groupName = Object.entries(deprecatedPermissionGroups).find(
-          (v) => v[1] === u.permission,
+          (v) => v[1].toString() === u.permission,
         )[0];
         u.permission = NumberedPermissionGroupsEnum[groupName].toString();
         return u;
       });
 
     this.logger.log(`OK. ${groupUsers.length} users affected`);
-
-    users = users.filter(
-      (u) => !Object.values(deprecatedPermissionGroups).some((dpg) => dpg === u.permission),
-    );
 
     this.logger.log("Individual Permission migration: ");
 
@@ -86,6 +85,7 @@ export class ValidationService {
 
       const newPermissions = [];
       permissions.forEach((permission) => {
+        if (exceptions.includes(user)) return;
         if (!PermissionEnum[permission]) {
           exceptions.push(user);
           return;
