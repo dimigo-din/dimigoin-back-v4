@@ -1,6 +1,6 @@
-import { CreateStayApplyDTO, OutingDTO } from "../../src/routes/stay/dto/stay.manage.dto";
+import { CreateStayApplyDTO, OutingDTO } from "../../src/routes/stay/dto/stay.dto";
 
-export const StayApplyMock = (stayId: string, userId: string) => {
+export const StayApplyMock_User = (stayId: string) => {
   const data = new CreateStayApplyDTO();
 
   const outing = new OutingDTO();
@@ -10,12 +10,9 @@ export const StayApplyMock = (stayId: string, userId: string) => {
   outing.dinner_cancel = false;
   outing.from = "2125-04-07T10:20";
   outing.to = "2125-04-07T14:00";
-  outing.approved = true;
-  outing.audit_reason = "아 그냥 해줘;;";
 
   data.stay = stayId;
-  data.user = userId;
-  data.stay_seat = "A1";
+  data.stay_seat = "J10";
   data.outing = [outing];
 
   return data;

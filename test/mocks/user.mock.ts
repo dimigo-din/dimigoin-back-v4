@@ -27,8 +27,8 @@ export const StudentUserMock = async (): Promise<UserMock> => {
   const jwtService = app.get(JwtService);
 
   const data = {
-    user: target,
-    jwt: jwtService.sign({ ...target }, { expiresIn: "5h" }),
+    user: { ...personalInformation, ...target },
+    jwt: jwtService.sign({ ...personalInformation, ...target }, { expiresIn: "5h" }),
   };
 
   let dbUser = null;
@@ -50,8 +50,8 @@ export const StudentUserMock = async (): Promise<UserMock> => {
       dbUser = user;
 
       return {
-        user: user,
-        jwt: data.jwt,
+        user: { ...personalInformation, ...user },
+        jwt: jwtService.sign({ ...personalInformation, ...user }, { expiresIn: "5h" }),
         save: null,
         delete: async () => {
           await dataSource.initialize();

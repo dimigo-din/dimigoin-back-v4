@@ -8,7 +8,7 @@ export const StayMock = (preset: string): CreateStayDTO => {
   for (let i = 1; i <= 3; i++) {
     const applyPeriod = new StayApplyPeriod_StayDTO();
     applyPeriod.grade = i as Grade;
-    applyPeriod.start = "2125-04-03T18:00";
+    applyPeriod.start = "2025-04-03T18:00";
     applyPeriod.end = "2125-04-04T23:00";
 
     periods.push(applyPeriod);

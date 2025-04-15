@@ -2,7 +2,7 @@ import { INestApplication } from "@nestjs/common";
 import * as request from "supertest";
 
 import { closeApp, getApp } from "../app.e2e";
-import { StayApplyMock } from "../mocks/stay-apply.mock";
+import { StayApplyMock_Manage } from "../mocks/stay-apply-manage.mock";
 import { StayScheduleMock } from "../mocks/stay-schedule.mock";
 import { StaySeatPresetMock } from "../mocks/stay-seat-preset.mock";
 import { StayMock } from "../mocks/stay.mock";
@@ -29,6 +29,9 @@ describe("Stay Manage", () => {
 
     await user.delete();
     await admin.delete();
+
+    user = null;
+    admin = null;
   });
 
   it("should defined", () => {
@@ -151,7 +154,7 @@ describe("Stay Manage", () => {
   it("stay apply create", async () => {
     return request(app.getHttpServer())
       .post("/manage/stay/apply")
-      .send(StayApplyMock(stay_id, user.user.id))
+      .send(StayApplyMock_Manage(stay_id, user.user.id))
       .auth(admin.jwt, { type: "bearer" })
       .expect(201)
       .then((res) => {
@@ -175,7 +178,7 @@ describe("Stay Manage", () => {
   it("stay apply update", async () => {
     return request(app.getHttpServer())
       .patch("/manage/stay/apply")
-      .send({ id: stay_apply_id, ...StayApplyMock(stay_id, user.user.id) })
+      .send({ id: stay_apply_id, ...StayApplyMock_Manage(stay_id, user.user.id) })
       .auth(admin.jwt, { type: "bearer" })
       .expect(200)
       .then((res) => {
