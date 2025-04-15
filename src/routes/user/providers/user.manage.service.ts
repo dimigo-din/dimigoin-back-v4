@@ -25,7 +25,7 @@ export class UserManageService {
     return await this.userRepository.findOne({ where: { id } });
   }
 
-  // TODO: get from array
+  // TODO: get from array like fetchUserDetail(...email)
   async fetchUserDetail(data: { id?: string; email?: string }) {
     if (data.id) {
       const user = await this.userRepository.findOne({ where: { id: data.id } });
