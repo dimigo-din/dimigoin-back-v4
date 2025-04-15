@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, HttpStatus, Patch, Post, Query } from "@nestjs/common";
-import { ApiOperation, ApiResponse } from "@nestjs/swagger";
+import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 
 import { CustomJwtAuthGuard } from "../../../auth/guards";
 import { PermissionGuard } from "../../../auth/guards/permission.guard";
@@ -23,7 +23,9 @@ import {
 } from "../dto/stay.manage.dto";
 import { StayManageService } from "../providers/stay.manage.service";
 
+@ApiTags("Stay Manage")
 @Controller("/manage/stay")
+@UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.TEACHER]))
 export class StayManageController {
   constructor(private readonly stayManageService: StayManageService) {}
 
@@ -34,7 +36,6 @@ export class StayManageController {
   @ApiResponse({
     status: HttpStatus.OK,
   })
-  @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.TEACHER]))
   @Get("/seat/preset/list")
   async getStaySeatPresetList() {
     return await this.stayManageService.getStaySeatPresetList();
@@ -48,7 +49,6 @@ export class StayManageController {
     status: HttpStatus.OK,
     type: StaySeatPreset,
   })
-  @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.TEACHER]))
   @Get("/seat/preset")
   async getStaySeatPreset(@Query() data: StaySeatPresetIdDTO) {
     return await this.stayManageService.getStaySeatPreset(data);
@@ -62,7 +62,6 @@ export class StayManageController {
     status: HttpStatus.OK,
     type: StaySeatPreset,
   })
-  @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.TEACHER]))
   @Post("/seat/preset")
   async createStaySeatPreset(@Body() data: CreateStaySeatPresetDTO) {
     return await this.stayManageService.createStaySeatPreset(data);
@@ -76,7 +75,6 @@ export class StayManageController {
     status: HttpStatus.OK,
     type: StaySeatPreset,
   })
-  @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.TEACHER]))
   @Patch("/seat/preset")
   async updateStaySeatPreset(@Body() data: UpdateStaySeatPresetDTO) {
     return await this.stayManageService.updateStaySeatPreset(data);
@@ -91,7 +89,6 @@ export class StayManageController {
     status: HttpStatus.OK,
     type: StaySeatPreset,
   })
-  @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.TEACHER]))
   @Delete("/seat/preset")
   async deleteStaySeatPreset(@Query() data: StaySeatPresetIdDTO) {
     return await this.stayManageService.deleteStaySeatPreset(data);
@@ -104,7 +101,6 @@ export class StayManageController {
   @ApiResponse({
     status: HttpStatus.OK,
   })
-  @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.TEACHER]))
   @Get("/schedule/list")
   async getStayScheduleList() {
     return await this.stayManageService.getStayScheduleList();
@@ -118,7 +114,6 @@ export class StayManageController {
     status: HttpStatus.OK,
     type: StaySchedule,
   })
-  @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.TEACHER]))
   @Get("/schedule")
   async getStaySchedule(@Query() data: StayScheduleIdDTO) {
     return await this.stayManageService.getStaySchedule(data);
@@ -132,7 +127,6 @@ export class StayManageController {
     status: HttpStatus.OK,
     type: StaySchedule,
   })
-  @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.TEACHER]))
   @Post("/schedule")
   async createStaySchedule(@Body() data: CreateStayScheduleDTO) {
     return await this.stayManageService.createStaySchedule(data);
@@ -146,7 +140,6 @@ export class StayManageController {
     status: HttpStatus.OK,
     type: StaySchedule,
   })
-  @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.TEACHER]))
   @Patch("/schedule")
   async updateStaySchedule(@Body() data: UpdateStayScheduleDTO) {
     return await this.stayManageService.updateStaySchedule(data);
@@ -160,7 +153,6 @@ export class StayManageController {
     status: HttpStatus.OK,
     type: StaySchedule,
   })
-  @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.TEACHER]))
   @Delete("/schedule")
   async deleteStaySchedule(@Query() data: StayScheduleIdDTO) {
     return await this.stayManageService.deleteStaySchedule(data);
@@ -173,7 +165,6 @@ export class StayManageController {
   @ApiResponse({
     status: HttpStatus.OK,
   })
-  @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.TEACHER]))
   @Get("/list")
   async getStayList() {
     return await this.stayManageService.getStayList();
@@ -187,7 +178,6 @@ export class StayManageController {
     status: HttpStatus.OK,
     type: Stay,
   })
-  @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.TEACHER]))
   @Get("")
   async getStay(@Query() data: StayIdDTO) {
     return await this.stayManageService.getStay(data);
@@ -201,7 +191,6 @@ export class StayManageController {
     status: HttpStatus.OK,
     type: Stay,
   })
-  @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.TEACHER]))
   @Post("")
   async createStay(@Body() data: CreateStayDTO) {
     return await this.stayManageService.createStay(data);
@@ -215,7 +204,6 @@ export class StayManageController {
     status: HttpStatus.OK,
     type: Stay,
   })
-  @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.TEACHER]))
   @Patch("")
   async updateStay(@Body() data: UpdateStayDTO) {
     return await this.stayManageService.updateStay(data);
@@ -229,7 +217,6 @@ export class StayManageController {
     status: HttpStatus.OK,
     type: Stay,
   })
-  @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.TEACHER]))
   @Delete("")
   async deleteStay(@Query() data: StayIdDTO) {
     return await this.stayManageService.deleteStay(data);
@@ -243,7 +230,6 @@ export class StayManageController {
     status: HttpStatus.OK,
     type: [StayApplyListResponseDTO],
   })
-  @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.TEACHER]))
   @Get("/apply/list")
   async StayApplyList(@Query() data: StayIdDTO) {
     return await this.stayManageService.getStayApplyList(data);
@@ -257,7 +243,6 @@ export class StayManageController {
     status: HttpStatus.OK,
     type: StayApply,
   })
-  @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.TEACHER]))
   @Get("/apply")
   async getStayApply(@Query() data: StayApplyIdDTO) {
     return await this.stayManageService.getStayApply(data);
@@ -271,7 +256,6 @@ export class StayManageController {
     status: HttpStatus.OK,
     type: StayApply,
   })
-  @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.TEACHER]))
   @Post("/apply")
   async createStayApply(@Body() data: CreateStayApplyDTO) {
     return await this.stayManageService.createStayApply(data);
@@ -285,7 +269,6 @@ export class StayManageController {
     status: HttpStatus.OK,
     type: StayApply,
   })
-  @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.TEACHER]))
   @Patch("/apply")
   async updateStayApply(@Body() data: UpdateStayApplyDTO) {
     return await this.stayManageService.updateStayApply(data);
@@ -299,7 +282,6 @@ export class StayManageController {
     status: HttpStatus.OK,
     type: StayApply,
   })
-  @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.TEACHER]))
   @Delete("/apply")
   async deleteStayApply(@Query() data: StayApplyIdDTO) {
     return await this.stayManageService.deleteStayApply(data);
