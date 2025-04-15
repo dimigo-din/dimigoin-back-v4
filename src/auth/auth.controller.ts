@@ -88,7 +88,6 @@ export class AuthController {
     } else {
       token = await this.authService.refresh(data.refreshToken);
     }
-    console.log(token);
     this.generateCookie(res, token);
 
     return token;

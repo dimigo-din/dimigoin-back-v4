@@ -138,9 +138,6 @@ export class StayService {
 
   // pass if only_readingRoom false, pass if it's true and seat is in available range
   private isAvailableSeat(user: UserJWT, preset: StaySeatPreset, target: string) {
-    console.log(
-      preset.stay_seat.filter((stay_seat) => stay_seat.target === `${user.grade}_${user.gender}`),
-    );
     return preset.stay_seat
       .filter((stay_seat) => stay_seat.target === `${user.grade}_${user.gender}`)
       .some(
