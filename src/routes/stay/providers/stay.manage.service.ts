@@ -306,18 +306,24 @@ export class StayManageService {
   }
 
   async createStayApply(data: CreateStayApplyDTO) {
-    const target = await this.safeFindOne<User>(this.userRepository, { where: { id: data.user } });
+    const user = await this.safeFindOne<User>(this.userRepository, { where: { id: data.user } });
     const stay = await this.safeFindOne<Stay>(this.stayRepository, { where: { id: data.stay } });
 
     const exists = await this.stayApplyRepository.findOne({
-      where: { stay_seat: data.stay_seat.toUpperCase() },
+      where: { user: user, stay: stay },
     });
     if (exists) throw new HttpException(ErrorMsg.StaySeat_Duplication, HttpStatus.BAD_REQUEST);
+
+    const staySeatCheck = await this.stayApplyRepository.findOne({
+      where: { stay_seat: data.stay_seat.toUpperCase(), stay: stay },
+    }); // Allow if same as previous user's seat
+    if (staySeatCheck)
+      throw new HttpException(ErrorMsg.StaySeat_Duplication, HttpStatus.BAD_REQUEST);
 
     // teacher can force stay_seat. so, stay_seat will not be filtered.
     const stayApply = new StayApply();
     stayApply.stay_seat = data.stay_seat.toUpperCase();
-    stayApply.user = target;
+    stayApply.user = user;
     stayApply.stay = stay;
 
     stayApply.outing = [];
@@ -343,17 +349,17 @@ export class StayManageService {
     const stayApply = await this.safeFindOne<StayApply>(this.stayApplyRepository, {
       where: { id: data.id },
     });
-    const target = await this.safeFindOne<User>(this.userRepository, { where: { id: data.user } });
+    const user = await this.safeFindOne<User>(this.userRepository, { where: { id: data.user } });
     const stay = await this.safeFindOne<Stay>(this.stayRepository, { where: { id: data.stay } });
 
-    const exists = await this.stayApplyRepository.findOne({
-      where: { stay_seat: data.stay_seat.toUpperCase() },
+    const staySeatCheck = await this.stayApplyRepository.findOne({
+      where: { stay_seat: data.stay_seat.toUpperCase(), stay: stay },
     }); // Allow if same as previous user's seat
-    if (exists && stayApply.stay_seat !== data.stay_seat.toUpperCase())
+    if (staySeatCheck && stayApply.stay_seat !== data.stay_seat.toUpperCase())
       throw new HttpException(ErrorMsg.StaySeat_Duplication, HttpStatus.BAD_REQUEST);
 
     stayApply.stay_seat = data.stay_seat.toUpperCase();
-    stayApply.user = target;
+    stayApply.user = user;
     stayApply.stay = stay;
 
     await this.stayOutingRepository.remove(stayApply.outing);

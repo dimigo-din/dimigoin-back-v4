@@ -6,7 +6,7 @@ import { PermissionGuard } from "../../../auth/guards/permission.guard";
 import { UseGuardsWithSwagger } from "../../../auth/guards/useGuards";
 import { PermissionEnum } from "../../../common/mapper/permissions";
 import { Stay, StayApply } from "../../../schemas";
-import { CreateStayApplyDTO, StayApplyIdDTO } from "../dto/stay.dto";
+import { CreateStayApplyDTO, StayApplyIdDTO, StayIdDTO } from "../dto/stay.dto";
 import { StayService } from "../providers";
 
 @ApiTags("Stay")
@@ -64,7 +64,7 @@ export class StayController {
   })
   @UseGuardsWithSwagger(CustomJwtAuthGuard)
   @Patch("/apply")
-  async updateStayApply(@Req() req, @Body() data: CreateStayApplyDTO & StayApplyIdDTO) {
+  async updateStayApply(@Req() req, @Body() data: CreateStayApplyDTO) {
     return await this.stayService.updateStayApply(req.user, data);
   }
 
@@ -78,7 +78,7 @@ export class StayController {
   })
   @UseGuardsWithSwagger(CustomJwtAuthGuard)
   @Delete("/apply")
-  async deleteStayApply(@Req() req, @Query() data: StayApplyIdDTO) {
+  async deleteStayApply(@Req() req, @Query() data: StayIdDTO) {
     return await this.stayService.deleteStayApply(req.user, data);
   }
 }

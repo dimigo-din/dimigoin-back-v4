@@ -27,8 +27,8 @@ export class StayService {
       where: {
         stay_apply_period: {
           grade: user.grade as Grade,
-          apply_start: MoreThanOrEqual(new Date().toISOString()),
-          apply_end: LessThanOrEqual(new Date().toISOString()),
+          apply_start: LessThanOrEqual(new Date().toISOString()),
+          apply_end: MoreThanOrEqual(new Date().toISOString()),
         },
       },
     });
@@ -40,12 +40,27 @@ export class StayService {
 
   async createStayApply(user: UserJWT, data: CreateStayApplyDTO) {
     const target = await this.safeFindOne<User>(this.userRepository, { where: { id: user.id } });
-    const stay = await this.safeFindOne<Stay>(this.stayRepository, { where: { id: data.stay } });
+    const stay = await this.safeFindOne<Stay>(this.stayRepository, {
+      where: {
+        id: data.stay,
+        stay_apply_period: {
+          grade: user.grade as Grade,
+          apply_start: LessThanOrEqual(new Date().toISOString()),
+          apply_end: MoreThanOrEqual(new Date().toISOString()),
+        },
+      },
+    });
 
     const exists = await this.stayApplyRepository.findOne({
-      where: { stay_seat: data.stay_seat.toUpperCase(), stay: stay },
+      where: { user: { id: user.id }, stay: stay },
     });
     if (exists) throw new HttpException(ErrorMsg.StaySeat_Duplication, HttpStatus.BAD_REQUEST);
+
+    const staySeatCheck = await this.stayApplyRepository.findOne({
+      where: { stay_seat: data.stay_seat.toUpperCase(), stay: stay },
+    });
+    if (staySeatCheck)
+      throw new HttpException(ErrorMsg.StaySeat_Duplication, HttpStatus.BAD_REQUEST);
 
     if (!this.isAvailableSeat(user, stay.stay_seat_preset, data.stay_seat))
       throw new HttpException(ErrorMsg.StaySeat_NotAllowed, HttpStatus.BAD_REQUEST);
@@ -71,10 +86,10 @@ export class StayService {
     return await this.stayApplyRepository.save(stayApply);
   }
 
-  async updateStayApply(user: UserJWT, data: CreateStayApplyDTO & StayApplyIdDTO) {
+  async updateStayApply(user: UserJWT, data: CreateStayApplyDTO) {
     const dbUser = await this.safeFindOne<User>(this.userRepository, { where: { id: user.id } });
     const stayApply = await this.safeFindOne<StayApply>(this.stayApplyRepository, {
-      where: { id: data.id },
+      where: { user: dbUser, stay: { id: data.stay } },
     });
     if (stayApply.user.id !== user.id)
       throw new HttpException(ErrorMsg.PermissionDenied_Resource, HttpStatus.FORBIDDEN);
@@ -102,6 +117,8 @@ export class StayService {
       outing.dinner_cancel = outingData.dinner_cancel;
       outing.from = outingData.from;
       outing.to = outingData.to;
+      outing.audit_reason = null;
+      outing.approved = null;
       stayApply.outing.push(outing);
     }
 
@@ -109,9 +126,9 @@ export class StayService {
     return await this.stayApplyRepository.save(stayApply);
   }
 
-  async deleteStayApply(user: UserJWT, data: StayApplyIdDTO) {
+  async deleteStayApply(user: UserJWT, data: StayIdDTO) {
     const stayApply = await this.safeFindOne<StayApply>(this.stayApplyRepository, {
-      where: { id: data.id },
+      where: { stay: { id: data.id } },
     });
     if (stayApply.user.id !== user.id)
       throw new HttpException(ErrorMsg.PermissionDenied_Resource, HttpStatus.FORBIDDEN);
@@ -121,6 +138,9 @@ export class StayService {
 
   // pass if only_readingRoom false, pass if it's true and seat is in available range
   private isAvailableSeat(user: UserJWT, preset: StaySeatPreset, target: string) {
+    console.log(
+      preset.stay_seat.filter((stay_seat) => stay_seat.target === `${user.grade}_${user.gender}`),
+    );
     return preset.stay_seat
       .filter((stay_seat) => stay_seat.target === `${user.grade}_${user.gender}`)
       .some(

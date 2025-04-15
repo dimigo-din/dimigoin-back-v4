@@ -22,4 +22,4 @@ export const StaySeatMappingValues = [
 ] as const;
 export type StaySeatTargets = (typeof StaySeatMappingValues)[number];
 
-export type UserJWT = User & (PersonalInformationSchema & { sessionIdentifier: string });
+export type UserJWT = User & (PersonalInformationSchema & { sessionIdentifier?: string });

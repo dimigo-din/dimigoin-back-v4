@@ -41,6 +41,7 @@ export class UserManageService {
         class: personalInformation.class,
         number: personalInformation.number,
         hakbun: personalInformation.hakbun,
+        gender: personalInformation.gender,
       };
     } else if (data.email) {
       const personalInformation = await this.personalInformationRepository.findOne({
