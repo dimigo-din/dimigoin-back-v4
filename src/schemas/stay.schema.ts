@@ -25,6 +25,9 @@ export class StaySeatPreset {
   @Column()
   name: string;
 
+  @Column("boolean")
+  only_readingRoom: boolean;
+
   @JoinColumn()
   @OneToMany(() => StaySeatPresetRange, (staySeat) => staySeat.stay_seat_preset, { eager: true })
   stay_seat: StaySeatPresetRange[];
@@ -174,11 +177,11 @@ export class StayApplyPeriod_Stay {
   grade: Grade;
 
   /** YYYY-MM-DDTHH:mm */
-  @Column()
+  @Column("timestamp")
   apply_start: string;
 
   /** YYYY-MM-DDTHH:mm */
-  @Column()
+  @Column("timestamp")
   apply_end: string;
 
   @ManyToOne(() => Stay, (stay) => stay.stay_apply_period, {
@@ -211,9 +214,11 @@ export class StayApply {
   })
   outing: StayOuting[];
 
+  @JoinColumn()
   @ManyToOne(() => User, (user) => user.stay_apply, {
     onDelete: "CASCADE",
     onUpdate: "CASCADE",
+    eager: true,
   })
   user: User;
 }

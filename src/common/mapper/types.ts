@@ -1,5 +1,4 @@
-import { User } from "../../schemas";
-import { PersonalInformationSchema } from "../../schemas/personal-information.schema";
+import { User, PersonalInformationSchema } from "../../schemas";
 
 export const LoginTypeValues = ["password", "google"] as const;
 export type LoginType = (typeof LoginTypeValues)[number];
@@ -14,12 +13,12 @@ export const GenderValues = ["male", "female"] as const;
 export type Gender = (typeof GenderValues)[number];
 
 export const StaySeatMappingValues = [
-  "1st_male",
-  "1st_female",
-  "2nd_male",
-  "2nd_female",
-  "3rd_male",
-  "3rd_female",
+  "1_male",
+  "1_female",
+  "2_male",
+  "2_female",
+  "3_male",
+  "3_female",
 ] as const;
 export type StaySeatTargets = (typeof StaySeatMappingValues)[number];
 

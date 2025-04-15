@@ -12,6 +12,7 @@ export const ErrorMsg = {
   InvalidParameter: "잘못된 매개변수가 있습니다.",
 
   StaySeat_Duplication: "이미 해당 좌석을 선택한 사람이 있습니다.",
+  StaySeat_NotAllowed: "해당 좌석을 사용할 수 없습니다.",
 
   ProvidedTime_Invalid: "제공하신 시간이 조건에 충족하지 않습니다.",
 
