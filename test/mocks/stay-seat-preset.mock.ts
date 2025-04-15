@@ -29,6 +29,7 @@ export const StaySeatPresetMock = (): CreateStaySeatPresetDTO => {
       ranges: ["F10:I18"],
     },
   ];
+  staySeatPreset.only_readingRoom = true;
 
   return staySeatPreset;
 };
