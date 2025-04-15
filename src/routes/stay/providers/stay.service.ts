@@ -94,10 +94,10 @@ export class StayService {
     if (stayApply.user.id !== user.id)
       throw new HttpException(ErrorMsg.PermissionDenied_Resource, HttpStatus.FORBIDDEN);
 
-    const exists = await this.stayApplyRepository.findOne({
+    const staySeatCheck = await this.stayApplyRepository.findOne({
       where: { stay_seat: data.stay_seat.toUpperCase(), stay: stayApply.stay },
     });
-    if (exists && exists.id !== stayApply.id)
+    if (staySeatCheck && staySeatCheck.id !== stayApply.id)
       throw new HttpException(ErrorMsg.StaySeat_Duplication, HttpStatus.BAD_REQUEST);
 
     if (!this.isAvailableSeat(user, stayApply.stay.stay_seat_preset, data.stay_seat))
