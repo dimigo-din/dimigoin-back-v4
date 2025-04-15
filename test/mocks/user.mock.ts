@@ -31,6 +31,8 @@ export const StudentUserMock = async (): Promise<UserMock> => {
     jwt: jwtService.sign({ ...target }, { expiresIn: "5h" }),
   };
 
+  let dbUser = null;
+
   return {
     ...data,
     save: async (): Promise<UserMock> => {
@@ -45,12 +47,28 @@ export const StudentUserMock = async (): Promise<UserMock> => {
       await queryRunner.release();
       await dataSource.destroy();
 
+      dbUser = user;
+
       return {
         user: user,
         jwt: data.jwt,
         save: null,
+        delete: async () => {
+          await dataSource.initialize();
+          const queryRunner = dataSource.createQueryRunner();
+          await queryRunner.connect();
+          const entityManager = dataSource.createEntityManager(queryRunner);
+
+          const data = await entityManager.remove(User, dbUser);
+
+          await queryRunner.release();
+          await dataSource.destroy();
+
+          return data;
+        },
       };
     },
+    delete: null,
   };
 };
 
@@ -69,6 +87,8 @@ export const AdminUserMock = async (): Promise<UserMock> => {
     jwt: jwtService.sign({ ...target }, { expiresIn: "5h" }),
   };
 
+  let dbUser = null;
+
   return {
     ...data,
     save: async (): Promise<UserMock> => {
@@ -83,11 +103,27 @@ export const AdminUserMock = async (): Promise<UserMock> => {
       await queryRunner.release();
       await dataSource.destroy();
 
+      dbUser = user;
+
       return {
         user: user,
         jwt: data.jwt,
         save: null,
+        delete: async () => {
+          await dataSource.initialize();
+          const queryRunner = dataSource.createQueryRunner();
+          await queryRunner.connect();
+          const entityManager = dataSource.createEntityManager(queryRunner);
+
+          const data = await entityManager.remove(User, dbUser);
+
+          await queryRunner.release();
+          await dataSource.destroy();
+
+          return data;
+        },
       };
     },
+    delete: null,
   };
 };

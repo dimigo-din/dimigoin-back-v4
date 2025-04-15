@@ -16,7 +16,7 @@
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "pretest:e2e": "npm run migration:test",
-    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "test:e2e": "jest --config ./test/jest-e2e.json -i",
     "truncate": "npx ts-node -r tsconfig-paths/register src/scripts/truncate-all.ts",
     "truncate:prod": "NODE_ENV=prod npx ts-node -r tsconfig-paths/register src/scripts/truncate-all.ts",
     "truncate:test": "NODE_ENV=test npx ts-node -r tsconfig-paths/register src/scripts/truncate-all.ts",

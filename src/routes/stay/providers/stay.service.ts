@@ -2,18 +2,10 @@ import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { FindOneOptions, LessThanOrEqual, MoreThanOrEqual, Repository } from "typeorm";
 
-import { StaySeats } from "../../../common/mapper/constants";
 import { ErrorMsg } from "../../../common/mapper/error";
 import { Grade, UserJWT } from "../../../common/mapper/types";
 import { isInRange } from "../../../common/utils/staySeat.util";
-import {
-  Stay,
-  StayApply,
-  StayOuting,
-  StaySeatPreset,
-  StaySeatPresetRange,
-  User,
-} from "../../../schemas";
+import { Stay, StayApply, StayOuting, StaySeatPreset, User } from "../../../schemas";
 import { CreateStayApplyDTO, StayApplyIdDTO, StayIdDTO } from "../dto/stay.dto";
 
 @Injectable()
