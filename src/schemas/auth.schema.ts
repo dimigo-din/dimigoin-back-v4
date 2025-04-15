@@ -1,3 +1,4 @@
+import { ApiProperty } from "@nestjs/swagger";
 import {
   Column,
   CreateDateColumn,
@@ -15,9 +16,11 @@ import { User } from "./user.schema";
 
 @Entity()
 export class Login {
+  @ApiProperty()
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
+  @ApiProperty({ type: () => User })
   @JoinColumn()
   @ManyToOne(() => User, (user) => user.login, {
     onDelete: "CASCADE",
@@ -26,33 +29,42 @@ export class Login {
   })
   user: User;
 
+  @ApiProperty()
   @Column({ enum: LoginTypeValues })
   type: LoginType = null;
 
+  @ApiProperty()
   @Column("text")
   identifier1: string = null;
 
+  @ApiProperty()
   @Column("text", { nullable: true })
   identifier2: string | null = null;
 }
 
 @Entity()
 export class Session {
+  @ApiProperty()
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
+  @ApiProperty()
   @Column()
   accessToken: string = null;
 
+  @ApiProperty()
   @Column()
   refreshToken: string = null;
 
+  @ApiProperty()
   @Column()
   sessionIdentifier: string = null;
 
+  @ApiProperty()
   @CreateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP(6)" })
   created_at: Date;
 
+  @ApiProperty()
   @UpdateDateColumn({
     type: "timestamp",
     default: () => "CURRENT_TIMESTAMP(6)",
@@ -60,6 +72,7 @@ export class Session {
   })
   updated_at: Date;
 
+  @ApiProperty({ type: () => User })
   @JoinColumn()
   @ManyToOne(() => User, (user) => user.session, {
     onDelete: "CASCADE",

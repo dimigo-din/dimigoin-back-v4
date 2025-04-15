@@ -268,7 +268,12 @@ export class UpdateStayApplyDTO extends CreateStayApplyDTO {
 }
 
 export class StayApplyListResponseDTO {
+  @ApiProperty()
   id: string;
+
+  @ApiProperty()
   user: User;
+
+  @ApiProperty()
   stay: Stay;
 }
