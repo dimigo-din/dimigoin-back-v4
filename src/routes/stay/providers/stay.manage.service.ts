@@ -15,6 +15,7 @@ import {
   StaySeatPresetRange,
   User,
 } from "../../../schemas";
+import { UserManageService } from "../../user/providers";
 import {
   CreateStayApplyDTO,
   CreateStayDTO,
@@ -42,16 +43,17 @@ export class StayManageService {
     private readonly stayApplyRepository: Repository<StayApply>,
     @InjectRepository(StayOuting)
     private readonly stayOutingRepository: Repository<StayOuting>,
+    @InjectRepository(StaySchedule)
+    private readonly stayScheduleRepository: Repository<StaySchedule>,
     @InjectRepository(StaySeatPreset)
     private readonly staySeatPresetRepository: Repository<StaySeatPreset>,
     @InjectRepository(StaySeatPresetRange)
     private readonly staySeatPresetRangeRepository: Repository<StaySeatPresetRange>,
-    @InjectRepository(StaySchedule)
-    private readonly stayScheduleRepository: Repository<StaySchedule>,
     @InjectRepository(StayApplyPeriod_Stay)
     private readonly stayApplyPeriod_Stay_Repository: Repository<StayApplyPeriod_Stay>,
     @InjectRepository(StayApplyPeriod_StaySchedule)
     private readonly stayApplyPeriod_StaySchedule_Repository: Repository<StayApplyPeriod_StaySchedule>,
+    private readonly userManageServie: UserManageService,
   ) {}
 
   async getStaySeatPresetList() {
@@ -74,6 +76,7 @@ export class StayManageService {
   async createStaySeatPreset(data: CreateStaySeatPresetDTO) {
     const staySeatPreset = new StaySeatPreset();
     staySeatPreset.name = data.name;
+    staySeatPreset.only_readingRoom = data.only_readingRoom;
 
     const staySeatPresetRanges: StaySeatPresetRange[] = [];
     for (const ranges of data.mappings) {
@@ -96,6 +99,8 @@ export class StayManageService {
     const staySeatPreset = await this.safeFindOne<StaySeatPreset>(this.staySeatPresetRepository, {
       where: { id: data.id },
     });
+    staySeatPreset.name = data.name;
+    staySeatPreset.only_readingRoom = data.only_readingRoom;
 
     await this.staySeatPresetRangeRepository.remove(staySeatPreset.stay_seat);
 
@@ -290,18 +295,24 @@ export class StayManageService {
   }
 
   async getStayApply(data: StayApplyIdDTO) {
-    return await this.stayApplyRepository.findOne({ where: { id: data.id } });
+    const stayApply = await this.stayApplyRepository.findOne({ where: { id: data.id } });
+    return {
+      ...stayApply,
+      user: {
+        ...stayApply.user,
+        ...(await this.userManageServie.fetchUserDetail({ email: stayApply.user.email })),
+      },
+    };
   }
 
   async createStayApply(data: CreateStayApplyDTO) {
     const target = await this.safeFindOne<User>(this.userRepository, { where: { id: data.user } });
-
     const stay = await this.safeFindOne<Stay>(this.stayRepository, { where: { id: data.stay } });
 
     const exists = await this.stayApplyRepository.findOne({
       where: { stay_seat: data.stay_seat.toUpperCase() },
     });
-    if (exists) throw new HttpException(ErrorMsg.ResourceAlreadyExists, HttpStatus.BAD_REQUEST);
+    if (exists) throw new HttpException(ErrorMsg.StaySeat_Duplication, HttpStatus.BAD_REQUEST);
 
     // teacher can force stay_seat. so, stay_seat will not be filtered.
     const stayApply = new StayApply();
@@ -332,16 +343,14 @@ export class StayManageService {
     const stayApply = await this.safeFindOne<StayApply>(this.stayApplyRepository, {
       where: { id: data.id },
     });
-
     const target = await this.safeFindOne<User>(this.userRepository, { where: { id: data.user } });
-
     const stay = await this.safeFindOne<Stay>(this.stayRepository, { where: { id: data.stay } });
 
     const exists = await this.stayApplyRepository.findOne({
       where: { stay_seat: data.stay_seat.toUpperCase() },
-    });
+    }); // Allow if same as previous user's seat
     if (exists && stayApply.stay_seat !== data.stay_seat.toUpperCase())
-      throw new HttpException(ErrorMsg.ResourceAlreadyExists, HttpStatus.BAD_REQUEST);
+      throw new HttpException(ErrorMsg.StaySeat_Duplication, HttpStatus.BAD_REQUEST);
 
     stayApply.stay_seat = data.stay_seat.toUpperCase();
     stayApply.user = target;
@@ -375,9 +384,9 @@ export class StayManageService {
     return await this.stayApplyRepository.remove(stayApply);
   }
 
-  async safeFindOne<T>(
+  private async safeFindOne<T>(
     repo: Repository<T>,
-    condition: FindOneOptions<T> | any,
+    condition: FindOneOptions<T>,
     error = new HttpException(ErrorMsg.Resource_NotFound, HttpStatus.NOT_FOUND),
   ) {
     const result = await repo.findOne(condition);

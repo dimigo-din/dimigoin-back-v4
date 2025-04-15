@@ -32,6 +32,10 @@ export class CreateStaySeatPresetDTO {
   name: string;
 
   @ApiProperty()
+  @IsBoolean()
+  only_readingRoom: boolean;
+
+  @ApiProperty()
   @IsArray()
   mappings: CreateStaySeatPresetRangeDTO[];
 }
@@ -40,6 +44,14 @@ export class UpdateStaySeatPresetDTO {
   @ApiProperty()
   @IsString()
   id: string;
+
+  @ApiProperty()
+  @IsString()
+  name: string;
+
+  @ApiProperty()
+  @IsBoolean()
+  only_readingRoom: boolean;
 
   @ApiProperty()
   @ValidateNested({ each: true })

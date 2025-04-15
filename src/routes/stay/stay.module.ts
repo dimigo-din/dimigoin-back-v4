@@ -12,7 +12,10 @@ import {
   StaySeatPresetRange,
   StayApply,
   StayOuting,
+  Login,
+  PersonalInformationSchema,
 } from "../../schemas";
+import { UserManageService } from "../user/providers";
 
 import * as controllers from "./controllers";
 import * as providers from "./providers";
@@ -22,17 +25,19 @@ import * as providers from "./providers";
     TypeOrmModule.forFeature([
       User,
       Stay,
+      Login,
       StayApply,
       StayOuting,
+      StaySchedule,
       StaySeatPreset,
       StaySeatPresetRange,
-      StaySchedule,
       StayApplyPeriod_Stay,
       StayApplyPeriod_StaySchedule,
+      PersonalInformationSchema, // temporally
     ]),
   ],
   controllers: importToArray(controllers),
-  providers: [...importToArray(providers)],
+  providers: [...importToArray(providers), UserManageService],
   exports: importToArray(providers),
 })
 export class StayModule {}
