@@ -1,10 +1,6 @@
 import { numberPermission } from "../utils/permission.util";
 
-export const UserPermissionValues = [
-  "MANAGE_OAUTH_CLIENT_SELF",
-  "MANAGE_STAY",
-  "VIEW_STAY",
-] as const;
+export const UserPermissionValues = ["STUDENT", "TEACHER"] as const;
 
 export const ManagementPermissionValues = ["MANAGE_PERMISSION"] as const;
 
@@ -20,11 +16,8 @@ export const PermissionEnum = Object.fromEntries(
 ) as { [key in PermissionType]: number };
 
 // group of well-used permissions
-export const StudentUserPermission: number[] = [PermissionEnum.MANAGE_OAUTH_CLIENT_SELF];
-export const TeacherUserPermission: number[] = [
-  ...StudentUserPermission,
-  PermissionEnum.MANAGE_STAY,
-];
+export const StudentUserPermission: number[] = [PermissionEnum.STUDENT];
+export const TeacherUserPermission: number[] = [...StudentUserPermission, PermissionEnum.TEACHER];
 export const AdminUserPermission: number[] = Object.values(PermissionEnum);
 
 export const PermissionGroups = {
