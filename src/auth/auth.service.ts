@@ -142,6 +142,8 @@ export class AuthService {
     };
 
     // TODO: separate to redis
+    // Oh i think we don't need that.
+    // new TODO: cron that clears expired tokens
     const session = new Session();
     session.accessToken = keyPair.accessToken;
     session.refreshToken = keyPair.refreshToken;
