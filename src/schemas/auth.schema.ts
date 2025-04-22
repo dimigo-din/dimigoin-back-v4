@@ -21,7 +21,6 @@ export class Login {
   id: string;
 
   @ApiProperty({ type: () => User })
-  @JoinColumn()
   @ManyToOne(() => User, (user) => user.login, {
     onDelete: "CASCADE",
     onUpdate: "CASCADE",
@@ -73,7 +72,6 @@ export class Session {
   updated_at: Date;
 
   @ApiProperty({ type: () => User })
-  @JoinColumn()
   @ManyToOne(() => User, (user) => user.session, {
     onDelete: "CASCADE",
     onUpdate: "CASCADE",

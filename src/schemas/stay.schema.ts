@@ -33,7 +33,6 @@ export class StaySeatPreset {
   only_readingRoom: boolean;
 
   @ApiProperty({ type: () => [StaySeatPresetRange] })
-  @JoinColumn()
   @OneToMany(() => StaySeatPresetRange, (staySeat) => staySeat.stay_seat_preset, { eager: true })
   stay_seat: StaySeatPresetRange[];
 
@@ -76,7 +75,6 @@ export class StaySchedule {
   name: string;
 
   @ApiProperty({ type: () => [StayApplyPeriod_StaySchedule] })
-  @JoinColumn()
   @OneToMany(
     () => StayApplyPeriod_StaySchedule,
     (stayApplyPeriod_StaySchedule) => stayApplyPeriod_StaySchedule.stay_schedule,
@@ -106,7 +104,6 @@ export class StaySchedule {
   created_at: Date;
 
   @ApiProperty({ type: () => StaySeatPreset })
-  @JoinColumn()
   @ManyToOne(() => StaySeatPreset, (staySeatPreset) => staySeatPreset.stay_schedule, {
     eager: true,
     onUpdate: "CASCADE",
@@ -140,7 +137,6 @@ export class Stay {
   outing_day: string[];
 
   @ApiProperty({ type: () => [StayApplyPeriod_Stay] })
-  @JoinColumn()
   @OneToMany(() => StayApplyPeriod_Stay, (stayApplyPeriod_Stay) => stayApplyPeriod_Stay.stay, {
     eager: true,
   })
@@ -148,7 +144,6 @@ export class Stay {
 
   /** if null, stay in class or something else */
   @ApiProperty({ type: () => StaySeatPreset })
-  @JoinColumn()
   @ManyToOne(() => StaySeatPreset, (staySeatPreset) => staySeatPreset.stay_schedule, {
     eager: true,
     onUpdate: "CASCADE",
@@ -157,7 +152,6 @@ export class Stay {
   stay_seat_preset: StaySeatPreset;
 
   @ApiProperty({ type: () => StayApply })
-  @JoinColumn()
   @OneToMany(() => StayApply, (stay_apply) => stay_apply.stay)
   stay_apply: StayApply[];
 }
@@ -237,7 +231,6 @@ export class StayApply {
   stay_seat: string;
 
   @ApiProperty({ type: () => Stay })
-  @JoinColumn()
   @ManyToOne(() => Stay, (stay) => stay.stay_apply, {
     eager: true,
     onDelete: "CASCADE",
@@ -246,14 +239,12 @@ export class StayApply {
   stay: Stay;
 
   @ApiProperty({ type: () => [StayOuting] })
-  @JoinColumn()
   @OneToMany(() => StayOuting, (stayOuting) => stayOuting.stay_apply, {
     eager: true,
   })
   outing: StayOuting[];
 
   @ApiProperty({ type: () => User })
-  @JoinColumn()
   @ManyToOne(() => User, (user) => user.stay_apply, {
     onDelete: "CASCADE",
     onUpdate: "CASCADE",

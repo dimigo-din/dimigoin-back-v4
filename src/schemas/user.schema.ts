@@ -24,10 +24,6 @@ export class User {
   name: string;
 
   @ApiProperty()
-  @Column("varchar", { nullable: true })
-  card_barcode: string | null;
-
-  @ApiProperty()
   @Column("varchar", { default: numberPermission(...StudentUserPermission) })
   permission: string;
 
