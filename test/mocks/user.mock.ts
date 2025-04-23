@@ -12,7 +12,6 @@ export const StudentUserMock = async (): Promise<UserMock> => {
   const target = new User();
   target.email = "student@dimigo.in";
   target.name = "student";
-  target.card_barcode = "student";
   target.permission = numberPermission(...StudentUserPermission).toString();
 
   const personalInformation = new PersonalInformationSchema();
@@ -76,7 +75,6 @@ export const AdminUserMock = async (): Promise<UserMock> => {
   const target = new User();
   target.email = "admin@dimigo.in";
   target.name = "admin";
-  target.card_barcode = null;
   target.permission = numberPermission(...AdminUserPermission).toString();
 
   const app = await getApp();

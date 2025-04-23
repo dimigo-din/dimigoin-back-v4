@@ -6,6 +6,7 @@ import { StudentUserPermission } from "../common/mapper/permissions";
 import { numberPermission } from "../common/utils/permission.util";
 
 import { Login, Session } from "./auth.schema";
+import { LaundryApply } from "./laundry.schema";
 import { StayApply } from "./stay.schema";
 
 @Entity()
@@ -35,4 +36,7 @@ export class User {
 
   @OneToMany(() => StayApply, (stayApply) => stayApply.user)
   stay_apply: StayApply[];
+
+  @OneToMany(() => LaundryApply, (laundryApply) => laundryApply.user)
+  laundryApplies: LaundryApply[];
 }
