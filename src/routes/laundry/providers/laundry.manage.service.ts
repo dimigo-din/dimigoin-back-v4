@@ -1,0 +1,208 @@
+import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import moment from "moment";
+import { FindOneOptions, In, Repository } from "typeorm";
+
+import { ErrorMsg } from "../../../common/mapper/error";
+import { User, LaundryMachine, LaundryTime, LaundryTimeline, LaundryApply } from "../../../schemas";
+import {
+  CreateLaundryApplyDTO,
+  CreateLaundryMachineDTO,
+  CreateLaundryTimelineDTO,
+  LaundryApplyIdDTO,
+  LaundryMachineIdDTO,
+  LaundryTimelineIdDTO,
+  UpdateLaundryApplyDTO,
+  UpdateLaundryMachineDTO,
+  UpdateLaundryTimelineDTO,
+} from "../dto/laundry.manage.dto";
+
+@Injectable()
+export class LaundryManageService {
+  constructor(
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+    @InjectRepository(LaundryTime)
+    private readonly laundryTimeRepository: Repository<LaundryTime>,
+    @InjectRepository(LaundryApply)
+    private readonly laundryApplyRepository: Repository<LaundryApply>,
+    @InjectRepository(LaundryMachine)
+    private readonly laundryMachineRepository: Repository<LaundryMachine>,
+    @InjectRepository(LaundryTimeline)
+    private readonly laundryTimelineRepository: Repository<LaundryTimeline>,
+  ) {}
+
+  async getLaundryTimelineList() {
+    return (await this.laundryTimelineRepository.find()).map((e) => {
+      return {
+        id: e.id,
+        name: e.name,
+      };
+    });
+  }
+
+  async getLaundryTimeline(data: LaundryTimelineIdDTO) {
+    return await this.safeFindOne<LaundryTimeline>(this.laundryTimelineRepository, {
+      where: {
+        id: data.id,
+      },
+    });
+  }
+
+  async createLaundryTimeline(data: CreateLaundryTimelineDTO) {
+    const laundryTimeline = new LaundryTimeline();
+    laundryTimeline.name = data.name;
+    laundryTimeline.triggeredOn = data.triggeredOn;
+
+    laundryTimeline.times = [];
+    for (const time of data.times) {
+      const laundryTime = new LaundryTime();
+      laundryTime.time = time.time;
+      laundryTime.machineType = time.machineType;
+      laundryTime.grade = time.grade;
+      laundryTime.assigns = await this.laundryMachineRepository.find({
+        where: { id: In(time.assigns) },
+      });
+      laundryTime.timeline = laundryTimeline;
+
+      laundryTimeline.times.push(laundryTime);
+    }
+
+    const id = (await this.laundryTimelineRepository.save(laundryTimeline)).id;
+    await this.laundryTimeRepository.save(laundryTimeline.times);
+
+    return await this.safeFindOne<LaundryTimeline>(this.laundryTimelineRepository, {
+      where: { id: id },
+    });
+  }
+
+  async updateLaundryTimeline(data: UpdateLaundryTimelineDTO) {
+    const laundryTimeline = await this.safeFindOne<LaundryTimeline>(
+      this.laundryTimelineRepository,
+      { where: { id: data.id } },
+    );
+    laundryTimeline.name = data.name;
+    laundryTimeline.triggeredOn = data.triggeredOn;
+
+    await this.laundryTimeRepository.remove(laundryTimeline.times);
+    laundryTimeline.times = [];
+    for (const time of data.times) {
+      const laundryTime = new LaundryTime();
+      laundryTime.time = time.time;
+      laundryTime.machineType = time.machineType;
+      laundryTime.grade = time.grade;
+      laundryTime.assigns = await this.laundryMachineRepository.find({
+        where: { id: In(time.assigns) },
+      });
+      laundryTime.timeline = laundryTimeline;
+
+      laundryTimeline.times.push(laundryTime);
+    }
+
+    const id = (await this.laundryTimelineRepository.save(laundryTimeline)).id;
+    await this.laundryTimeRepository.save(laundryTimeline.times);
+
+    return await this.safeFindOne<LaundryTimeline>(this.laundryTimelineRepository, {
+      where: { id: id },
+    });
+  }
+
+  async deleteLaundryTimeline(data: LaundryTimelineIdDTO) {
+    const laundryTimeline = await this.safeFindOne<LaundryTimeline>(
+      this.laundryTimelineRepository,
+      { where: { id: data.id } },
+    );
+    return await this.laundryTimelineRepository.remove(laundryTimeline);
+  }
+
+  async getLaundryMachineList() {
+    return await this.laundryMachineRepository.find();
+  }
+
+  async createLaundryMachine(data: CreateLaundryMachineDTO) {
+    const laundryMachine = new LaundryMachine();
+    laundryMachine.type = data.type;
+    laundryMachine.name = data.name;
+    laundryMachine.gender = data.gender;
+    laundryMachine.enabled = data.enabled;
+
+    return await this.laundryMachineRepository.save(laundryMachine);
+  }
+
+  async updateLaundryMachine(data: UpdateLaundryMachineDTO) {
+    const laundryMachine = await this.safeFindOne<LaundryMachine>(this.laundryMachineRepository, {
+      where: { id: data.id },
+    });
+    laundryMachine.type = data.type;
+    laundryMachine.name = data.name;
+    laundryMachine.gender = data.gender;
+    laundryMachine.enabled = data.enabled;
+
+    return await this.laundryMachineRepository.save(laundryMachine);
+  }
+
+  async deleteLaundryMachine(data: LaundryMachineIdDTO) {
+    const laundryMachine = await this.safeFindOne<LaundryMachine>(this.laundryMachineRepository, {
+      where: { id: data.id },
+    });
+    return await this.laundryMachineRepository.remove(laundryMachine);
+  }
+
+  async getLaundryApplyList() {
+    return await this.laundryApplyRepository.find();
+  }
+
+  async createLaundryApply(data: CreateLaundryApplyDTO) {
+    const laundryTimeline = await this.safeFindOne<LaundryTimeline>(
+      this.laundryTimelineRepository,
+      { where: { times: { id: data.laundryTime } } },
+    );
+    const laundryTime = await this.safeFindOne<LaundryTime>(this.laundryTimeRepository, {
+      where: { id: data.laundryTime },
+    });
+    const laundryMachine = await this.safeFindOne<LaundryMachine>(this.laundryMachineRepository, {
+      where: { id: data.machine },
+    });
+    const user = await this.safeFindOne<User>(this.userRepository, { where: { id: data.user } });
+
+    const date = moment().format("YYYY-MM-DD");
+
+    const laundryApply = new LaundryApply();
+    laundryApply.date = date;
+    laundryApply.laundryTimeline = laundryTimeline;
+    laundryApply.laundryTime = laundryTime;
+    laundryApply.laundryMachine = laundryMachine;
+    laundryApply.user = user;
+
+    return await this.laundryApplyRepository.save(laundryApply);
+  }
+
+  async updateLaundryApply(data: UpdateLaundryApplyDTO) {
+    const laundryApply = await this.safeFindOne<LaundryApply>(this.laundryApplyRepository, {
+      where: { id: data.id },
+    });
+    const user = await this.safeFindOne<User>(this.userRepository, { where: { id: data.user } });
+
+    laundryApply.user = user;
+
+    return await this.laundryApplyRepository.save(laundryApply);
+  }
+
+  async deleteLaundryApply(data: LaundryApplyIdDTO) {
+    const laundryApply = await this.safeFindOne<LaundryApply>(this.laundryApplyRepository, {
+      where: { id: data.id },
+    });
+
+    return await this.laundryApplyRepository.remove(laundryApply);
+  }
+
+  private async safeFindOne<T>(
+    repo: Repository<T>,
+    condition: FindOneOptions<T>,
+    error = new HttpException(ErrorMsg.Resource_NotFound, HttpStatus.NOT_FOUND),
+  ) {
+    const result = await repo.findOne(condition);
+    if (!result) throw error;
+    return result;
+  }
+}

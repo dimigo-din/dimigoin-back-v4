@@ -22,4 +22,10 @@ export const StaySeatMappingValues = [
 ] as const;
 export type StaySeatTargets = (typeof StaySeatMappingValues)[number];
 
+export const LaundryMachineTypeValues = ["washer", "dryer"] as const;
+export type LaundryMachineType = (typeof LaundryMachineTypeValues)[number];
+
+export const LaundryTimelineTriggerValues = ["primary", "stay"] as const;
+export type LaundryTimelineTrigger = (typeof LaundryTimelineTriggerValues)[number];
+
 export type UserJWT = User & (PersonalInformationSchema & { sessionIdentifier?: string });
