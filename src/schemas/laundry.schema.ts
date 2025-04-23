@@ -3,6 +3,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinTable,
   ManyToMany,
   ManyToOne,
   OneToMany,
@@ -94,6 +95,7 @@ export class LaundryMachine {
   applies: LaundryApply[];
 
   @ApiProperty({ type: () => [LaundryTime] })
+  @JoinTable()
   @ManyToMany(() => LaundryTime, (laundryTime) => laundryTime.assigns)
   laundryTime: LaundryTime[];
 }
