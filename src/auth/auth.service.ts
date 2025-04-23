@@ -1,3 +1,5 @@
+import * as crypto from "crypto";
+
 import { forwardRef, HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
@@ -6,7 +8,6 @@ import * as bcrypt from "bcrypt";
 import { OAuth2Client } from "google-auth-library";
 import { google } from "googleapis";
 import { Repository } from "typeorm";
-import { v4 as uuid } from "uuid";
 
 import { ErrorMsg } from "../common/mapper/error";
 import { UserJWT } from "../common/mapper/types";
@@ -129,7 +130,7 @@ export class AuthService {
     user: User,
     accessExpire: string,
   ): Promise<{ accessToken: string; refreshToken: string }> {
-    const sessionIdentifier = uuid().replaceAll("-", "");
+    const sessionIdentifier = crypto.randomBytes(30).toString("hex");
 
     const userDetail = await this.userManageService.fetchUserDetail({ email: user.email });
 
@@ -138,7 +139,7 @@ export class AuthService {
         { sessionIdentifier, ...user, ...userDetail, refresh: false },
         { expiresIn: accessExpire || "10m" },
       ),
-      refreshToken: uuid(),
+      refreshToken: crypto.randomBytes(128).toString("hex"),
     };
 
     // TODO: separate to redis
