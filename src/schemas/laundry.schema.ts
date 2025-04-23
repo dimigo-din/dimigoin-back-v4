@@ -37,6 +37,7 @@ export class LaundryTimeline {
   applies: LaundryApply[];
 }
 
+// i think better structure exists. but. i'm boring
 @Entity()
 export class LaundryTime {
   @ApiProperty()
