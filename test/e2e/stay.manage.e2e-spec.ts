@@ -25,13 +25,13 @@ describe("Stay Manage", () => {
   });
 
   afterAll(async () => {
-    await closeApp();
-
     await user.delete();
     await admin.delete();
 
     user = null;
     admin = null;
+
+    await closeApp();
   });
 
   it("should defined", () => {

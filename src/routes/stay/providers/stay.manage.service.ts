@@ -1,5 +1,4 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
-import { Cron } from "@nestjs/schedule";
 import { InjectRepository } from "@nestjs/typeorm";
 import { FindOneOptions, Repository } from "typeorm";
 
