@@ -107,7 +107,7 @@ export class AuthController {
     status: HttpStatus.OK,
   })
   @UseGuardsWithSwagger(CustomJwtAuthGuard)
-  @Post("/logout")
+  @Get("/logout")
   async logout(@Req() req) {
     return await this.authService.logout(req.user);
   }

@@ -13,8 +13,13 @@ export class CustomLoggerMiddleware implements NestMiddleware {
     const userAgent = req.headers["user-agent"];
     const ipAddress = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
     let authorization = "";
-    if (req.headers["authorization"] && req.headers["authorization"].startsWith("Bearer")) {
-      const authorizationTmp = req.headers["authorization"].replace("Bearer ", "");
+    if (
+      (typeof req.headers["authorization"] === "string" &&
+        req.headers["authorization"].startsWith("Bearer")) ||
+      typeof req.cookies["access-token"] === "string"
+    ) {
+      const authorizationTmp =
+        req.cookies["access-token"] || req.headers["authorization"].replace("Bearer ", "");
       if (authorizationTmp.split(".").length === 3) {
         try {
           authorization = `${this.parseJwt(authorizationTmp).id}(${this.parseJwt(authorizationTmp).name})`;
