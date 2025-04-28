@@ -54,10 +54,6 @@ export class LaundryTime {
 
   @ApiProperty()
   @Column()
-  machineType: LaundryMachineType;
-
-  @ApiProperty()
-  @Column()
   grade: Grade;
 
   @ApiProperty({ type: () => [LaundryMachine] })

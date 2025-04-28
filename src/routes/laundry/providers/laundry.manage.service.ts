@@ -59,7 +59,6 @@ export class LaundryManageService {
     for (const time of data.times) {
       const laundryTime = new LaundryTime();
       laundryTime.time = time.time;
-      laundryTime.machineType = time.machineType;
       laundryTime.grade = time.grade;
       laundryTime.assigns = await this.laundryMachineRepository.find({
         where: { id: In(time.assigns) },
@@ -90,7 +89,6 @@ export class LaundryManageService {
     for (const time of data.times) {
       const laundryTime = new LaundryTime();
       laundryTime.time = time.time;
-      laundryTime.machineType = time.machineType;
       laundryTime.grade = time.grade;
       laundryTime.assigns = await this.laundryMachineRepository.find({
         where: { id: In(time.assigns) },

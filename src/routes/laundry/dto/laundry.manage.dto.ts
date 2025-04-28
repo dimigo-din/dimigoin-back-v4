@@ -25,10 +25,6 @@ export class LaundryTimeDTO {
   time: string;
 
   @ApiProperty()
-  @IsIn(LaundryMachineTypeValues)
-  machineType: LaundryMachineType;
-
-  @ApiProperty()
   @IsIn(GradeValues)
   grade: Grade;
 

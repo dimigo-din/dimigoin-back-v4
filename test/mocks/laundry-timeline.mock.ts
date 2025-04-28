@@ -11,7 +11,6 @@ export const LaundryTimelineMock = (machines: string[]) => {
 
   const laundryTime = new LaundryTimeDTO();
   laundryTime.time = "18:30";
-  laundryTime.machineType = "washer";
   laundryTime.grade = 1;
   laundryTime.assigns = machines;
   laundryTimeline.times.push(laundryTime);
