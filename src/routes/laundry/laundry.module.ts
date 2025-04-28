@@ -10,6 +10,7 @@ import {
   LaundryTime,
   LaundryTimeline,
   LaundryApply,
+  Stay,
 } from "../../schemas";
 import { UserManageService } from "../user/providers";
 
@@ -20,6 +21,7 @@ import * as providers from "./providers";
   imports: [
     TypeOrmModule.forFeature([
       User,
+      Stay,
       Login,
       LaundryTime,
       LaundryApply,

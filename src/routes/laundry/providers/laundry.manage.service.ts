@@ -2,10 +2,25 @@ import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { Cron, CronExpression } from "@nestjs/schedule";
 import { InjectRepository } from "@nestjs/typeorm";
 import * as moment from "moment";
-import { FindOneOptions, In, Not, Repository } from "typeorm";
+import {
+  FindOneOptions,
+  In,
+  IsNull,
+  LessThanOrEqual,
+  MoreThanOrEqual,
+  Not,
+  Repository,
+} from "typeorm";
 
 import { ErrorMsg } from "../../../common/mapper/error";
-import { User, LaundryMachine, LaundryTime, LaundryTimeline, LaundryApply } from "../../../schemas";
+import {
+  User,
+  LaundryMachine,
+  LaundryTime,
+  LaundryTimeline,
+  LaundryApply,
+  Stay,
+} from "../../../schemas";
 import {
   CreateLaundryApplyDTO,
   CreateLaundryMachineDTO,
@@ -23,6 +38,8 @@ export class LaundryManageService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(Stay)
+    private readonly stayRepository: Repository<Stay>,
     @InjectRepository(LaundryTime)
     private readonly laundryTimeRepository: Repository<LaundryTime>,
     @InjectRepository(LaundryApply)
@@ -220,9 +237,40 @@ export class LaundryManageService {
   // @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   @Cron(CronExpression.EVERY_SECOND)
   private async laundryTimelineScheduler() {
-    const timeline = await this.laundryTimelineRepository.find({
-      where: { triggeredOn: Not(null) },
+    const timelines = await this.laundryTimelineRepository.find();
+    const timelinesByTrigger = await this.laundryTimelineRepository.find({
+      where: { triggeredOn: Not(IsNull()) },
     });
-    console.log(timeline);
+
+    const disable = async () => {
+      await this.laundryTimelineRepository.save(
+        timelines.map((x) => {
+          x.enabled = false;
+          return x;
+        }),
+      );
+    };
+
+    const stayTimeline = timelinesByTrigger.find((x) => x.triggeredOn === "stay");
+    if (stayTimeline) {
+      const today = moment().format("YYYY-MM-DD");
+      const stay = await this.stayRepository.findOne({
+        where: { stay_from: LessThanOrEqual(today), stay_to: MoreThanOrEqual(today) },
+      });
+      if (stay && !stayTimeline.enabled) {
+        await disable();
+        stayTimeline.enabled = true;
+        await this.laundryTimelineRepository.save(stayTimeline);
+        return;
+      } else if (stayTimeline.enabled) return;
+    }
+
+    const primary = timelinesByTrigger.find((x) => x.triggeredOn === "primary");
+    if (primary && !primary.enabled) {
+      await disable();
+      primary.enabled = true;
+      await this.laundryTimelineRepository.save(primary);
+      return;
+    }
   }
 }
