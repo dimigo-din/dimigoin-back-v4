@@ -59,7 +59,7 @@ export class LaundryManageController {
     description: "세탁 일정을 생성합니다",
   })
   @ApiResponse({
-    status: HttpStatus.OK,
+    status: HttpStatus.CREATED,
     type: LaundryTimeline,
   })
   @UseGuardsWithSwagger(CustomJwtAuthGuard)
@@ -115,7 +115,7 @@ export class LaundryManageController {
     description: "세탁기나 건조기를 생성합니다",
   })
   @ApiResponse({
-    status: HttpStatus.OK,
+    status: HttpStatus.CREATED,
     type: LaundryMachine,
   })
   @UseGuardsWithSwagger(CustomJwtAuthGuard)
@@ -171,7 +171,7 @@ export class LaundryManageController {
     description: "유저의 세탁 신청을 등록합니다",
   })
   @ApiResponse({
-    status: HttpStatus.OK,
+    status: HttpStatus.CREATED,
     type: LaundryApply,
   })
   @UseGuardsWithSwagger(CustomJwtAuthGuard)

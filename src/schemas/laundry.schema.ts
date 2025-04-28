@@ -28,6 +28,10 @@ export class LaundryTimeline {
   @Column({ nullable: true, unique: true })
   triggeredOn: LaundryTimelineTrigger;
 
+  @ApiProperty()
+  @Column({ type: "boolean", default: false })
+  enabled: boolean;
+
   @ApiProperty({ type: () => [LaundryTime] })
   @OneToMany(() => LaundryTime, (laundryTime) => laundryTime.timeline, { eager: true })
   times: LaundryTime[];
@@ -69,6 +73,8 @@ export class LaundryTime {
   applies: LaundryApply[];
 }
 
+// Ahhhhhhhhhhh!!!!! this should be better!!! but.... i have no idea....
+// hahaha but i have intellij idea!
 @Entity()
 export class LaundryMachine {
   @ApiProperty()
