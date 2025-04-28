@@ -160,7 +160,7 @@ export class AuthService {
     return keyPair;
   }
 
-  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  @Cron(CronExpression.EVERY_HOUR)
   // @Cron(CronExpression.EVERY_SECOND)
   private async expiredSessionClear() {
     await this.sessionRepository.delete({
