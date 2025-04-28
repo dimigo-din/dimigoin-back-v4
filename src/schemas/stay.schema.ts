@@ -123,12 +123,12 @@ export class Stay {
 
   /** YYYY-MM-DD */
   @ApiProperty()
-  @Column()
+  @Column("date")
   stay_from: string;
 
   /** YYYY-MM-DD */
   @ApiProperty()
-  @Column()
+  @Column("date")
   stay_to: string;
 
   /** ex) YYYY-MM-DD */

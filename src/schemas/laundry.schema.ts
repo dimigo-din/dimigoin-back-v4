@@ -111,7 +111,7 @@ export class LaundryApply {
 
   /** YYYY-MM-DD */
   @ApiProperty()
-  @Column()
+  @Column("date")
   date: string;
 
   @ApiProperty({ type: () => LaundryTimeline })
