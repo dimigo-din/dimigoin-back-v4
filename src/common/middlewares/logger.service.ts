@@ -16,10 +16,13 @@ export class CustomLoggerMiddleware implements NestMiddleware {
     if (
       (typeof req.headers["authorization"] === "string" &&
         req.headers["authorization"].startsWith("Bearer")) ||
-      typeof req.cookies["access-token"] === "string"
+      (req.cookies &&
+        req.cookies["access-token"] &&
+        typeof req.cookies["access-token"] === "string")
     ) {
       const authorizationTmp =
-        req.cookies["access-token"] || req.headers["authorization"].replace("Bearer ", "");
+        (req.cookies ? req.cookies["access-token"] : null) ||
+        req.headers["authorization"].replace("Bearer ", "");
       if (authorizationTmp.split(".").length === 3) {
         try {
           authorization = `${this.parseJwt(authorizationTmp).id}(${this.parseJwt(authorizationTmp).name})`;
