@@ -3,11 +3,13 @@ import * as crypto from "crypto";
 import { forwardRef, HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
+import { Cron, CronExpression } from "@nestjs/schedule";
 import { InjectRepository } from "@nestjs/typeorm";
 import * as bcrypt from "bcrypt";
 import { OAuth2Client } from "google-auth-library";
 import { google } from "googleapis";
-import { Repository } from "typeorm";
+import * as moment from "moment";
+import { LessThan, Repository } from "typeorm";
 
 import { ErrorMsg } from "../common/mapper/error";
 import { UserJWT } from "../common/mapper/types";
@@ -136,6 +138,7 @@ export class AuthService {
 
     const userDetail = await this.userManageService.fetchUserDetail({ email: user.email });
 
+    // refresh expire: 1 month
     const keyPair = {
       accessToken: await this.jwtService.signAsync(
         { sessionIdentifier, ...user, ...userDetail, refresh: false },
@@ -155,5 +158,13 @@ export class AuthService {
     await this.sessionRepository.save(session);
 
     return keyPair;
+  }
+
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  // @Cron(CronExpression.EVERY_SECOND)
+  private async expiredSessionClear() {
+    await this.sessionRepository.delete({
+      updated_at: LessThan(moment().subtract("1", "M").toDate()),
+    });
   }
 }
