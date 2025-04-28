@@ -11,6 +11,12 @@ export class PasswordLoginDTO {
   password: string;
 }
 
+export class RedirectUriDTO {
+  @ApiProperty()
+  @IsString({ optional: true })
+  redirect_uri?: string;
+}
+
 export class GoogleLoginDTO {
   @ApiProperty()
   @IsString()

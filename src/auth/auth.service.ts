@@ -14,7 +14,7 @@ import { UserJWT } from "../common/mapper/types";
 import { UserManageService } from "../routes/user/providers";
 import { Login, Session, User } from "../schemas";
 
-import { JWTResponse } from "./auth.dto";
+import { JWTResponse, RedirectUriDTO } from "./auth.dto";
 
 @Injectable()
 export class AuthService {
@@ -50,7 +50,9 @@ export class AuthService {
     return await this.generateJWTKeyPair(login.user, "30m");
   }
 
-  async getGoogleLoginUrl(): Promise<string> {
+  async getGoogleLoginUrl(data: RedirectUriDTO): Promise<string> {
+    const redirect_uri = data.redirect_uri;
+
     const scopes: string[] = [
       "openid",
       "https://www.googleapis.com/auth/userinfo.email",
@@ -61,6 +63,7 @@ export class AuthService {
       access_type: "online",
       prompt: "consent",
       scope: scopes,
+      ...(redirect_uri ? { redirect_uri } : {}),
     });
   }
 

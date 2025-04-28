@@ -6,7 +6,13 @@ import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 
 import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE } from "../common/mapper/constants";
 
-import { GoogleLoginDTO, JWTResponse, PasswordLoginDTO, RefreshTokenDTO } from "./auth.dto";
+import {
+  GoogleLoginDTO,
+  JWTResponse,
+  PasswordLoginDTO,
+  RedirectUriDTO,
+  RefreshTokenDTO,
+} from "./auth.dto";
 import { AuthService } from "./auth.service";
 import { CustomJwtAuthGuard } from "./guards";
 import { UseGuardsWithSwagger } from "./guards/useGuards";
@@ -53,8 +59,8 @@ export class AuthController {
     status: HttpStatus.FOUND,
   })
   @Get("/login/google")
-  async googleLogin(@Res() res) {
-    return res.redirect(await this.authService.getGoogleLoginUrl());
+  async googleLogin(@Res() res, @Query() data: RedirectUriDTO) {
+    return res.redirect(await this.authService.getGoogleLoginUrl(data));
   }
 
   @ApiOperation({
