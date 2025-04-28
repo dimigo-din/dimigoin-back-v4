@@ -19,21 +19,6 @@ export class LaundryTimelineIdDTO {
   id: string;
 }
 
-export class CreateLaundryTimelineDTO {
-  @ApiProperty()
-  @IsString()
-  name: string;
-
-  @ApiProperty()
-  @IsIn(LaundryTimelineTriggerValues)
-  triggeredOn: LaundryTimelineTrigger;
-
-  @ApiProperty()
-  @ValidateNested({ each: true })
-  @Type(() => LaundryTimeDTO)
-  times: LaundryTimeDTO[];
-}
-
 export class LaundryTimeDTO {
   @ApiProperty()
   @Matches(/^((1[0-9])|(2[0-3])|(0[0-9])):([0-5][0-9])$/)
@@ -50,6 +35,21 @@ export class LaundryTimeDTO {
   @ApiProperty()
   @IsString({ each: true })
   assigns: string[];
+}
+
+export class CreateLaundryTimelineDTO {
+  @ApiProperty()
+  @IsString()
+  name: string;
+
+  @ApiProperty()
+  @IsIn(LaundryTimelineTriggerValues)
+  triggeredOn: LaundryTimelineTrigger;
+
+  @ApiProperty({ type: [LaundryTimeDTO] })
+  @ValidateNested({ each: true })
+  @Type(() => LaundryTimeDTO)
+  times: LaundryTimeDTO[];
 }
 
 export class UpdateLaundryTimelineDTO extends CreateLaundryTimelineDTO {
