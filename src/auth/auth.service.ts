@@ -105,13 +105,11 @@ export class AuthService {
         HttpStatus.NOT_FOUND,
       );
 
-    await this.sessionRepository.remove(session);
-
     const user = await this.userRepository.findOne({
       where: { id: session.user.id },
     });
 
-    return await this.generateJWTKeyPair(user, "30m");
+    return await this.generateJWTKeyPair(user, "30m", session);
   }
 
   async logout(user: UserJWT) {
@@ -129,6 +127,7 @@ export class AuthService {
   async generateJWTKeyPair(
     user: User,
     accessExpire: string,
+    old?: Session,
   ): Promise<{ accessToken: string; refreshToken: string }> {
     const sessionIdentifier = crypto.randomBytes(30).toString("hex");
 
@@ -145,7 +144,7 @@ export class AuthService {
     // TODO: separate to redis
     // Oh i think we don't need that.
     // new TODO: cron that clears expired tokens
-    const session = new Session();
+    const session = old || new Session();
     session.accessToken = keyPair.accessToken;
     session.refreshToken = keyPair.refreshToken;
     session.sessionIdentifier = sessionIdentifier;
