@@ -284,13 +284,13 @@ export class StayOuting {
   @Column()
   to: string;
 
-  @ApiProperty()
+  @ApiProperty({ nullable: true })
   @Column("boolean", { nullable: true })
-  approved: boolean;
+  approved?: boolean;
 
-  @ApiProperty()
+  @ApiProperty({ nullable: true })
   @Column("varchar", { nullable: true })
-  audit_reason: string;
+  audit_reason?: string;
 
   @ManyToOne(() => StayApply, (stayApply) => stayApply.outing, {
     onDelete: "CASCADE",

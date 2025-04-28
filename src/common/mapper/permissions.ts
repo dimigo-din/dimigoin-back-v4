@@ -17,7 +17,7 @@ export const PermissionEnum = Object.fromEntries(
 
 // group of well-used permissions
 export const StudentUserPermission: number[] = [PermissionEnum.STUDENT];
-export const TeacherUserPermission: number[] = [...StudentUserPermission, PermissionEnum.TEACHER];
+export const TeacherUserPermission: number[] = [PermissionEnum.TEACHER];
 export const AdminUserPermission: number[] = Object.values(PermissionEnum);
 
 export const PermissionGroups = {

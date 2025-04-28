@@ -234,8 +234,8 @@ export class LaundryManageService {
     return result;
   }
 
-  // @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
-  @Cron(CronExpression.EVERY_SECOND)
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  // @Cron(CronExpression.EVERY_SECOND)
   private async laundryTimelineScheduler() {
     const timelines = await this.laundryTimelineRepository.find();
     const timelinesByTrigger = await this.laundryTimelineRepository.find({

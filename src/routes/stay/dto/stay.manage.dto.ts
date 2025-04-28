@@ -55,7 +55,7 @@ export class UpdateStaySeatPresetDTO {
 
   @ApiProperty()
   @ValidateNested({ each: true })
-  @Type(() => CreateStaySeatPresetDTO)
+  @Type(() => CreateStaySeatPresetRangeDTO)
   mappings: CreateStaySeatPresetRangeDTO[];
 }
 
@@ -234,12 +234,12 @@ export class OutingDTO {
   @ApiProperty()
   @IsBoolean()
   @IsOptional()
-  approved: boolean;
+  approved?: boolean;
 
   @ApiProperty()
   @IsString()
   @IsOptional()
-  audit_reason: string;
+  audit_reason?: string;
 }
 
 export class CreateStayApplyDTO {
@@ -271,9 +271,9 @@ export class StayApplyListResponseDTO {
   @ApiProperty()
   id: string;
 
-  @ApiProperty()
+  @ApiProperty({ type: () => User })
   user: User;
 
-  @ApiProperty()
+  @ApiProperty({ type: () => Stay })
   stay: Stay;
 }
