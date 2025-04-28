@@ -149,7 +149,9 @@ export class LaundryManageService {
   }
 
   async getLaundryApplyList() {
-    return await this.laundryApplyRepository.find();
+    return await this.laundryApplyRepository.find({
+      where: { laundryTimeline: { enabled: true }, date: moment().format("YYYY-MM-DD") },
+    });
   }
 
   async createLaundryApply(data: CreateLaundryApplyDTO) {
