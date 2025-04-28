@@ -1,7 +1,8 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
+import { Cron, CronExpression } from "@nestjs/schedule";
 import { InjectRepository } from "@nestjs/typeorm";
 import * as moment from "moment";
-import { FindOneOptions, In, Repository } from "typeorm";
+import { FindOneOptions, In, Not, Repository } from "typeorm";
 
 import { ErrorMsg } from "../../../common/mapper/error";
 import { User, LaundryMachine, LaundryTime, LaundryTimeline, LaundryApply } from "../../../schemas";
@@ -216,5 +217,14 @@ export class LaundryManageService {
     const result = await repo.findOne(condition);
     if (!result) throw error;
     return result;
+  }
+
+  // @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  @Cron(CronExpression.EVERY_SECOND)
+  private async laundryTimelineScheduler() {
+    const timeline = await this.laundryTimelineRepository.find({
+      where: { triggeredOn: Not(null) },
+    });
+    console.log(timeline);
   }
 }

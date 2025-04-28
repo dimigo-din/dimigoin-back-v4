@@ -26,7 +26,7 @@ export class LaundryTimeline {
 
   @ApiProperty({ nullable: true })
   @Column({ nullable: true, unique: true })
-  triggeredOn: LaundryTimelineTrigger;
+  triggeredOn: LaundryTimelineTrigger | null;
 
   @ApiProperty()
   @Column({ type: "boolean", default: false })
