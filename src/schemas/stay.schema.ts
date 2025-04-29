@@ -9,6 +9,7 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
   OneToOne,
+  DeleteDateColumn,
 } from "typeorm";
 
 import { Grade, StaySeatTargets } from "../common/mapper/types";
@@ -109,6 +110,10 @@ export class StaySchedule {
     onUpdate: "CASCADE",
   })
   stay_seat_preset: StaySeatPreset;
+
+  @ApiProperty({ type: () => [Stay] })
+  @OneToMany(() => Stay, (stay) => stay.parent)
+  children: Stay[];
 }
 
 @Entity()
@@ -118,7 +123,7 @@ export class Stay {
   id: string;
 
   @ApiProperty()
-  @Column()
+  @Column({ unique: true })
   name: string;
 
   /** YYYY-MM-DD */
@@ -154,6 +159,13 @@ export class Stay {
   @ApiProperty({ type: () => StayApply })
   @OneToMany(() => StayApply, (stay_apply) => stay_apply.stay)
   stay_apply: StayApply[];
+
+  @ApiProperty({ type: () => StaySchedule, nullable: true })
+  @ManyToOne(() => StaySchedule, (schedule) => schedule.children, { nullable: true, eager: true })
+  parent: StaySchedule;
+
+  @DeleteDateColumn()
+  deletedAt!: Date | null;
 }
 
 @Entity()

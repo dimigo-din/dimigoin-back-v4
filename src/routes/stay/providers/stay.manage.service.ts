@@ -1,6 +1,16 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
+import { Cron, CronExpression } from "@nestjs/schedule";
 import { InjectRepository } from "@nestjs/typeorm";
-import { FindOneOptions, Repository } from "typeorm";
+import * as moment from "moment";
+import {
+  FindOneOptions,
+  IsNull,
+  LessThan,
+  LessThanOrEqual,
+  MoreThanOrEqual,
+  Not,
+  Repository,
+} from "typeorm";
 
 import { ErrorMsg } from "../../../common/mapper/error";
 import {
@@ -399,8 +409,75 @@ export class StayManageService {
     return result;
   }
 
-  // @Cron("0 0 * * *")
-  // async syncStay() {
-  //   const schedules = await this.stayScheduleRepository.find();
-  // }
+  private weekday2date(base: moment.Moment, weekday: number) {
+    const target = base.clone().weekday(weekday);
+    if (target.isBefore(base)) target.add(1, "week");
+    return target.format("YYYY-MM-DD");
+  }
+
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  async syncStay() {
+    // register stay
+    const schedules = await this.stayScheduleRepository.find({
+      where: {
+        stay_apply_period: {
+          apply_start_day: LessThanOrEqual(moment().weekday()),
+          apply_end_day: MoreThanOrEqual(moment().weekday()),
+        },
+      },
+    });
+
+    const existingStay = (
+      await this.stayRepository.find({
+        where: {
+          parent: Not(IsNull()),
+          stay_apply_period: {
+            apply_start: LessThanOrEqual(new Date().toISOString()),
+            apply_end: MoreThanOrEqual(new Date().toISOString()),
+          },
+        },
+      })
+    ).map((x) => x.parent.id);
+
+    const targetSchedules = schedules.filter((x) => !existingStay.find((y) => y === x.id));
+    for (const target of targetSchedules) {
+      const now = moment().startOf("day");
+
+      const stay = new Stay();
+      stay.name = target.name;
+      stay.stay_from = this.weekday2date(now, target.stay_from);
+      stay.stay_to = this.weekday2date(now, target.stay_to);
+      stay.outing_day = target.outing_day.map((day) => this.weekday2date(now, day));
+      stay.stay_seat_preset = target.stay_seat_preset;
+      stay.parent = target;
+
+      // stay_apply_period 복제 (Stay용 Period를 새로 생성)
+      stay.stay_apply_period = target.stay_apply_period.map((period) => {
+        const p = new StayApplyPeriod_Stay();
+        p.grade = period.grade;
+
+        p.apply_start = now
+          .clone()
+          .weekday(period.apply_start_day)
+          .hour(period.apply_start_hour)
+          .minute(0)
+          .second(0)
+          .toISOString();
+        p.apply_end = now
+          .clone()
+          .weekday(period.apply_end_day)
+          .hour(period.apply_end_hour)
+          .minute(0)
+          .second(0)
+          .toISOString();
+        return p;
+      });
+
+      await this.stayApplyPeriod_Stay_Repository.save(stay.stay_apply_period);
+      await this.stayRepository.save(stay);
+    }
+
+    // remove previous stay
+    await this.stayRepository.softDelete({ stay_to: LessThan(moment().format("YYYY-MM-DD")) });
+  }
 }
