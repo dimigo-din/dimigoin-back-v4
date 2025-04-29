@@ -412,7 +412,7 @@ export class StayManageService {
   private weekday2date(base: moment.Moment, weekday: number) {
     const target = base.clone().weekday(weekday);
     if (target.isBefore(base)) target.add(1, "week");
-    return target.format("YYYY-MM-DD");
+    return target;
   }
 
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
@@ -445,13 +445,9 @@ export class StayManageService {
 
       const stay = new Stay();
       stay.name = target.name;
-      stay.stay_from = this.weekday2date(now, target.stay_from);
-      stay.stay_to = this.weekday2date(now, target.stay_to);
-      stay.outing_day = target.outing_day.map((day) => this.weekday2date(now, day));
       stay.stay_seat_preset = target.stay_seat_preset;
       stay.parent = target;
 
-      // stay_apply_period 복제 (Stay용 Period를 새로 생성)
       stay.stay_apply_period = target.stay_apply_period.map((period) => {
         const p = new StayApplyPeriod_Stay();
         p.grade = period.grade;
@@ -472,6 +468,30 @@ export class StayManageService {
           .toISOString();
         return p;
       });
+
+      const applyEnd = moment.max(stay.stay_apply_period.map((p) => moment(p.apply_end)));
+      const from = this.weekday2date(now, target.stay_from);
+      const to = this.weekday2date(now, target.stay_to);
+      if (applyEnd.isAfter(from)) from.add("1", "w");
+      if (applyEnd.isAfter(to)) to.add("1", "w");
+      if (from.isAfter(to)) to.add("1", "w");
+
+      stay.stay_from = from.format("YYYY-MM-DD");
+      stay.stay_to = to.format("YYYY-MM-DD");
+
+      let success = true;
+      stay.outing_day = target.outing_day.map((day) => {
+        const out = this.weekday2date(now, day);
+        if (!out.isBetween(from, to)) {
+          out.add("1", "w");
+          if (!out.isBetween(from, to)) {
+            console.error(`Error. Invalid outing range on ${target.name}`);
+            success = false;
+          }
+        }
+        return out.format("YYYY-MM-DD");
+      });
+      if (!success) continue;
 
       await this.stayApplyPeriod_Stay_Repository.save(stay.stay_apply_period);
       await this.stayRepository.save(stay);
