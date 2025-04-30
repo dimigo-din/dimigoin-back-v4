@@ -175,6 +175,7 @@ describe("Stay Manage", () => {
       });
   });
 
+  let outing_id;
   it("stay apply update", async () => {
     return request(app.getHttpServer())
       .patch("/manage/stay/apply")
@@ -182,6 +183,7 @@ describe("Stay Manage", () => {
       .auth(admin.jwt, { type: "bearer" })
       .expect(200)
       .then((res) => {
+        outing_id = res.body.outing[0].id;
         expect(res.body.stay_seat).toBe("A1");
         expect(res.body.outing[0].reason).toBe("자기계발외출");
       });
@@ -196,6 +198,31 @@ describe("Stay Manage", () => {
       .then((res) => {
         expect(res.body.stay_seat).toBe("A1");
         expect(res.body.outing[0].reason).toBe("자기계발외출");
+      });
+  });
+
+  it("audit outing", async () => {
+    return request(app.getHttpServer())
+      .patch("/manage/stay/outing/audit")
+      .send({ id: outing_id, approved: true, reason: "" })
+      .auth(admin.jwt, { type: "bearer" })
+      .expect(200)
+      .then((res) => {
+        expect(res.body.approved).toBe(true);
+        expect(res.body.audit_reason).toBe("");
+      });
+  });
+
+  it("update meal cancel on outing", async () => {
+    return request(app.getHttpServer())
+      .patch("/manage/stay/outing/meal_cancel")
+      .send({ id: outing_id, breakfast_cancel: true, lunch_cancel: true, dinner_cancel: true })
+      .auth(admin.jwt, { type: "bearer" })
+      .expect(200)
+      .then((res) => {
+        expect(res.body.breakfast_cancel).toBe(true);
+        expect(res.body.lunch_cancel).toBe(true);
+        expect(res.body.dinner_cancel).toBe(true);
       });
   });
 
