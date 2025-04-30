@@ -5,6 +5,7 @@ import { FindOneOptions, Repository } from "typeorm";
 
 import { ErrorMsg } from "../../../common/mapper/error";
 import { UserJWT } from "../../../common/mapper/types";
+import { safeFindOne } from "../../../common/utils/safeFindOne.util";
 import { LaundryApply, LaundryMachine, LaundryTime, LaundryTimeline, User } from "../../../schemas";
 import { LaundryApplyDTO } from "../dto/laundry.dto";
 
@@ -24,7 +25,7 @@ export class LaundryService {
   ) {}
 
   async getTimeline() {
-    return await this.safeFindOne<LaundryTimeline>(this.laundryTimelineRepository, {
+    return await safeFindOne<LaundryTimeline>(this.laundryTimelineRepository, {
       where: { enabled: true },
     });
   }
@@ -36,19 +37,19 @@ export class LaundryService {
   }
 
   async createApply(user: UserJWT, data: LaundryApplyDTO) {
-    const dbUser = await this.safeFindOne<User>(this.userRepository, { where: { id: user.id } });
+    const dbUser = await safeFindOne<User>(this.userRepository, { where: { id: user.id } });
 
     const applyExists = await this.laundryApplyRepository.find({ where: { user: user } });
     if (applyExists)
       throw new HttpException(ErrorMsg.LaundryApply_AlreadyExists, HttpStatus.BAD_REQUEST);
 
-    const timeline = await this.safeFindOne<LaundryTimeline>(this.laundryTimelineRepository, {
+    const timeline = await safeFindOne<LaundryTimeline>(this.laundryTimelineRepository, {
       where: { times: { id: data.time } },
     });
-    const time = await this.safeFindOne<LaundryTime>(this.laundryTimeRepository, {
+    const time = await safeFindOne<LaundryTime>(this.laundryTimeRepository, {
       where: { id: data.time },
     });
-    const machine = await this.safeFindOne<LaundryMachine>(this.laundryMachineRepository, {
+    const machine = await safeFindOne<LaundryMachine>(this.laundryMachineRepository, {
       where: { id: data.machine },
     });
 
@@ -69,20 +70,10 @@ export class LaundryService {
   }
 
   async deleteApply(user: UserJWT) {
-    const apply = await this.safeFindOne<LaundryApply>(this.laundryApplyRepository, {
+    const apply = await safeFindOne<LaundryApply>(this.laundryApplyRepository, {
       where: { user: { id: user.id } },
     });
 
     return await this.laundryApplyRepository.remove(apply);
-  }
-
-  private async safeFindOne<T>(
-    repo: Repository<T>,
-    condition: FindOneOptions<T>,
-    error = new HttpException(ErrorMsg.Resource_NotFound, HttpStatus.NOT_FOUND),
-  ) {
-    const result = await repo.findOne(condition);
-    if (!result) throw error;
-    return result;
   }
 }

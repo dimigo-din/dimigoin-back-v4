@@ -13,6 +13,7 @@ import {
 } from "typeorm";
 
 import { ErrorMsg } from "../../../common/mapper/error";
+import { safeFindOne } from "../../../common/utils/safeFindOne.util";
 import {
   User,
   LaundryMachine,
@@ -60,7 +61,7 @@ export class LaundryManageService {
   }
 
   async getLaundryTimeline(data: LaundryTimelineIdDTO) {
-    return await this.safeFindOne<LaundryTimeline>(this.laundryTimelineRepository, {
+    return await safeFindOne<LaundryTimeline>(this.laundryTimelineRepository, {
       where: {
         id: data.id,
       },
@@ -88,16 +89,15 @@ export class LaundryManageService {
     const id = (await this.laundryTimelineRepository.save(laundryTimeline)).id;
     await this.laundryTimeRepository.save(laundryTimeline.times);
 
-    return await this.safeFindOne<LaundryTimeline>(this.laundryTimelineRepository, {
+    return await safeFindOne<LaundryTimeline>(this.laundryTimelineRepository, {
       where: { id: id },
     });
   }
 
   async updateLaundryTimeline(data: UpdateLaundryTimelineDTO) {
-    const laundryTimeline = await this.safeFindOne<LaundryTimeline>(
-      this.laundryTimelineRepository,
-      { where: { id: data.id } },
-    );
+    const laundryTimeline = await safeFindOne<LaundryTimeline>(this.laundryTimelineRepository, {
+      where: { id: data.id },
+    });
     laundryTimeline.name = data.name;
     laundryTimeline.triggeredOn = data.triggeredOn;
 
@@ -118,16 +118,15 @@ export class LaundryManageService {
     const id = (await this.laundryTimelineRepository.save(laundryTimeline)).id;
     await this.laundryTimeRepository.save(laundryTimeline.times);
 
-    return await this.safeFindOne<LaundryTimeline>(this.laundryTimelineRepository, {
+    return await safeFindOne<LaundryTimeline>(this.laundryTimelineRepository, {
       where: { id: id },
     });
   }
 
   async deleteLaundryTimeline(data: LaundryTimelineIdDTO) {
-    const laundryTimeline = await this.safeFindOne<LaundryTimeline>(
-      this.laundryTimelineRepository,
-      { where: { id: data.id } },
-    );
+    const laundryTimeline = await safeFindOne<LaundryTimeline>(this.laundryTimelineRepository, {
+      where: { id: data.id },
+    });
     return await this.laundryTimelineRepository.remove(laundryTimeline);
   }
 
@@ -146,7 +145,7 @@ export class LaundryManageService {
   }
 
   async updateLaundryMachine(data: UpdateLaundryMachineDTO) {
-    const laundryMachine = await this.safeFindOne<LaundryMachine>(this.laundryMachineRepository, {
+    const laundryMachine = await safeFindOne<LaundryMachine>(this.laundryMachineRepository, {
       where: { id: data.id },
     });
     laundryMachine.type = data.type;
@@ -158,7 +157,7 @@ export class LaundryManageService {
   }
 
   async deleteLaundryMachine(data: LaundryMachineIdDTO) {
-    const laundryMachine = await this.safeFindOne<LaundryMachine>(this.laundryMachineRepository, {
+    const laundryMachine = await safeFindOne<LaundryMachine>(this.laundryMachineRepository, {
       where: { id: data.id },
     });
     return await this.laundryMachineRepository.remove(laundryMachine);
@@ -171,17 +170,16 @@ export class LaundryManageService {
   }
 
   async createLaundryApply(data: CreateLaundryApplyDTO) {
-    const laundryTimeline = await this.safeFindOne<LaundryTimeline>(
-      this.laundryTimelineRepository,
-      { where: { times: { id: data.laundryTime } } },
-    );
-    const laundryTime = await this.safeFindOne<LaundryTime>(this.laundryTimeRepository, {
+    const laundryTimeline = await safeFindOne<LaundryTimeline>(this.laundryTimelineRepository, {
+      where: { times: { id: data.laundryTime } },
+    });
+    const laundryTime = await safeFindOne<LaundryTime>(this.laundryTimeRepository, {
       where: { id: data.laundryTime },
     });
-    const laundryMachine = await this.safeFindOne<LaundryMachine>(this.laundryMachineRepository, {
+    const laundryMachine = await safeFindOne<LaundryMachine>(this.laundryMachineRepository, {
       where: { id: data.machine },
     });
-    const user = await this.safeFindOne<User>(this.userRepository, { where: { id: data.user } });
+    const user = await safeFindOne<User>(this.userRepository, { where: { id: data.user } });
 
     const applyExists = await this.laundryApplyRepository.findOne({ where: { user: user } });
     if (applyExists)
@@ -206,10 +204,10 @@ export class LaundryManageService {
   }
 
   async updateLaundryApply(data: UpdateLaundryApplyDTO) {
-    const laundryApply = await this.safeFindOne<LaundryApply>(this.laundryApplyRepository, {
+    const laundryApply = await safeFindOne<LaundryApply>(this.laundryApplyRepository, {
       where: { id: data.id },
     });
-    const user = await this.safeFindOne<User>(this.userRepository, { where: { id: data.user } });
+    const user = await safeFindOne<User>(this.userRepository, { where: { id: data.user } });
 
     laundryApply.user = user;
 
@@ -217,21 +215,11 @@ export class LaundryManageService {
   }
 
   async deleteLaundryApply(data: LaundryApplyIdDTO) {
-    const laundryApply = await this.safeFindOne<LaundryApply>(this.laundryApplyRepository, {
+    const laundryApply = await safeFindOne<LaundryApply>(this.laundryApplyRepository, {
       where: { id: data.id },
     });
 
     return await this.laundryApplyRepository.remove(laundryApply);
-  }
-
-  private async safeFindOne<T>(
-    repo: Repository<T>,
-    condition: FindOneOptions<T>,
-    error = new HttpException(ErrorMsg.Resource_NotFound, HttpStatus.NOT_FOUND),
-  ) {
-    const result = await repo.findOne(condition);
-    if (!result) throw error;
-    return result;
   }
 
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)

@@ -4,6 +4,7 @@ import { FindOneOptions, LessThanOrEqual, MoreThanOrEqual, Repository } from "ty
 
 import { ErrorMsg } from "../../../common/mapper/error";
 import { Grade, UserJWT } from "../../../common/mapper/types";
+import { safeFindOne } from "../../../common/utils/safeFindOne.util";
 import { isInRange } from "../../../common/utils/staySeat.util";
 import { Stay, StayApply, StayOuting, StaySeatPreset, User } from "../../../schemas";
 import { CreateStayApplyDTO, StayApplyIdDTO, StayIdDTO } from "../dto/stay.dto";
@@ -39,8 +40,8 @@ export class StayService {
   }
 
   async createStayApply(user: UserJWT, data: CreateStayApplyDTO) {
-    const target = await this.safeFindOne<User>(this.userRepository, { where: { id: user.id } });
-    const stay = await this.safeFindOne<Stay>(this.stayRepository, {
+    const target = await safeFindOne<User>(this.userRepository, { where: { id: user.id } });
+    const stay = await safeFindOne<Stay>(this.stayRepository, {
       where: {
         id: data.stay,
         stay_apply_period: {
@@ -87,8 +88,8 @@ export class StayService {
   }
 
   async updateStayApply(user: UserJWT, data: CreateStayApplyDTO) {
-    const dbUser = await this.safeFindOne<User>(this.userRepository, { where: { id: user.id } });
-    const stayApply = await this.safeFindOne<StayApply>(this.stayApplyRepository, {
+    const dbUser = await safeFindOne<User>(this.userRepository, { where: { id: user.id } });
+    const stayApply = await safeFindOne<StayApply>(this.stayApplyRepository, {
       where: { user: dbUser, stay: { id: data.stay } },
     });
     if (stayApply.user.id !== user.id)
@@ -127,7 +128,7 @@ export class StayService {
   }
 
   async deleteStayApply(user: UserJWT, data: StayIdDTO) {
-    const stayApply = await this.safeFindOne<StayApply>(this.stayApplyRepository, {
+    const stayApply = await safeFindOne<StayApply>(this.stayApplyRepository, {
       where: { stay: { id: data.id } },
     });
     if (stayApply.user.id !== user.id)
@@ -146,16 +147,4 @@ export class StayService {
           !preset.only_readingRoom,
       );
   }
-
-  private async safeFindOne<T>(
-    repo: Repository<T>,
-    condition: FindOneOptions<T>,
-    error = new HttpException(ErrorMsg.Resource_NotFound, HttpStatus.NOT_FOUND),
-  ) {
-    const result = await repo.findOne(condition);
-    if (!result) throw error;
-    return result;
-  }
-
-  // TODO: cron that removes expired stay apply over a month
 }
