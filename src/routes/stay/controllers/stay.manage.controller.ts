@@ -299,7 +299,7 @@ export class StayManageController {
   })
   @UseGuardsWithSwagger(CustomJwtAuthGuard)
   @Patch("/outing/audit")
-  async auditOuting(data: AuditOutingDTO) {
+  async auditOuting(@Body() data: AuditOutingDTO) {
     return await this.stayManageService.auditOuting(data);
   }
 
@@ -313,7 +313,7 @@ export class StayManageController {
   })
   @UseGuardsWithSwagger(CustomJwtAuthGuard)
   @Patch("/outing/meal_cancel")
-  async updateOutingMealCancel(data: UpdateOutingMealCancelDTO) {
+  async updateOutingMealCancel(@Body() data: UpdateOutingMealCancelDTO) {
     return await this.stayManageService.updateOutingMealCancel(data);
   }
 }
