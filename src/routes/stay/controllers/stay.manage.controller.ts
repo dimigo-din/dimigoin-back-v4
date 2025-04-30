@@ -5,8 +5,10 @@ import { CustomJwtAuthGuard } from "../../../auth/guards";
 import { PermissionGuard } from "../../../auth/guards/permission.guard";
 import { UseGuardsWithSwagger } from "../../../auth/guards/useGuards";
 import { PermissionEnum } from "../../../common/mapper/permissions";
-import { Stay, StayApply, StaySchedule, StaySeatPreset } from "../../../schemas";
+import { Stay, StayApply, StayOuting, StaySchedule, StaySeatPreset } from "../../../schemas";
 import {
+  AuditOutingDTO,
+  UpdateOutingMealCancelDTO,
   CreateStayApplyDTO,
   CreateStayDTO,
   CreateStayScheduleDTO,
@@ -285,5 +287,33 @@ export class StayManageController {
   @Delete("/apply")
   async deleteStayApply(@Query() data: StayApplyIdDTO) {
     return await this.stayManageService.deleteStayApply(data);
+  }
+
+  @ApiOperation({
+    summary: "외출 허가/반려",
+    description: "외출을 허가하거나 반려합니다. Null값을 넘겨 허가나 반려를 취소할 수 있습니다.",
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: StayOuting,
+  })
+  @UseGuardsWithSwagger(CustomJwtAuthGuard)
+  @Patch("/outing/audit")
+  async auditOuting(data: AuditOutingDTO) {
+    return await this.stayManageService.auditOuting(data);
+  }
+
+  @ApiOperation({
+    summary: "외출 식사 취소 업데이트",
+    description: "외출시 취소할 식사를 변경합니다.",
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: StayOuting,
+  })
+  @UseGuardsWithSwagger(CustomJwtAuthGuard)
+  @Patch("/outing/meal_cancel")
+  async updateOutingMealCancel(data: UpdateOutingMealCancelDTO) {
+    return await this.stayManageService.updateOutingMealCancel(data);
   }
 }

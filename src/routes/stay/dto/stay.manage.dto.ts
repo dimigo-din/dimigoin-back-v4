@@ -267,6 +267,39 @@ export class UpdateStayApplyDTO extends CreateStayApplyDTO {
   id: string;
 }
 
+export class AuditOutingDTO {
+  @ApiProperty()
+  @IsString()
+  id: string;
+
+  @ApiProperty()
+  @IsString()
+  reason: string;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsBoolean()
+  approved: boolean | null;
+}
+
+export class UpdateOutingMealCancelDTO {
+  @ApiProperty()
+  @IsString()
+  id: string;
+
+  @ApiProperty()
+  @IsBoolean()
+  breakfast_cancel: boolean;
+
+  @ApiProperty()
+  @IsBoolean()
+  lunch_cancel: boolean;
+
+  @ApiProperty()
+  @IsBoolean()
+  dinner_cancel: boolean;
+}
+
 export class StayApplyListResponseDTO {
   @ApiProperty()
   id: string;

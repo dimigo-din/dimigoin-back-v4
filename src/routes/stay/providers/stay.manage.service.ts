@@ -39,6 +39,8 @@ import {
   UpdateStayDTO,
   UpdateStayScheduleDTO,
   UpdateStaySeatPresetDTO,
+  AuditOutingDTO,
+  UpdateOutingMealCancelDTO,
 } from "../dto/stay.manage.dto";
 
 @Injectable()
@@ -397,6 +399,29 @@ export class StayManageService {
     });
 
     return await this.stayApplyRepository.remove(stayApply);
+  }
+
+  async auditOuting(data: AuditOutingDTO) {
+    const outing = await this.safeFindOne<StayOuting>(this.stayOutingRepository, {
+      where: { id: data.id },
+    });
+
+    outing.approved = data.approved;
+    outing.audit_reason = data.reason;
+
+    return await this.stayOutingRepository.save(outing);
+  }
+
+  async updateOutingMealCancel(data: UpdateOutingMealCancelDTO) {
+    const outing = await this.safeFindOne<StayOuting>(this.stayOutingRepository, {
+      where: { id: data.id },
+    });
+
+    outing.breakfast_cancel = data.breakfast_cancel;
+    outing.lunch_cancel = data.lunch_cancel;
+    outing.dinner_cancel = data.dinner_cancel;
+
+    return await this.stayOutingRepository.save(outing);
   }
 
   private async safeFindOne<T>(
