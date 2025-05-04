@@ -62,7 +62,6 @@ export class StayController {
     status: HttpStatus.OK,
     type: StayApply,
   })
-  @UseGuardsWithSwagger(CustomJwtAuthGuard)
   @Patch("/apply")
   async updateStayApply(@Req() req, @Body() data: CreateStayApplyDTO) {
     return await this.stayService.updateStayApply(req.user, data);
@@ -76,7 +75,6 @@ export class StayController {
     status: HttpStatus.OK,
     type: StayApply,
   })
-  @UseGuardsWithSwagger(CustomJwtAuthGuard)
   @Delete("/apply")
   async deleteStayApply(@Req() req, @Query() data: StayIdDTO) {
     return await this.stayService.deleteStayApply(req.user, data);

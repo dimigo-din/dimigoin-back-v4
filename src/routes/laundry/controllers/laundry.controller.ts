@@ -23,7 +23,6 @@ export class LaundryController {
     status: HttpStatus.OK,
     type: LaundryTimeline,
   })
-  @UseGuardsWithSwagger(CustomJwtAuthGuard)
   @Get("/timeline")
   async getLaundryTimeline() {
     return await this.laundryService.getTimeline();
@@ -37,7 +36,6 @@ export class LaundryController {
     status: HttpStatus.OK,
     type: [LaundryApply],
   })
-  @UseGuardsWithSwagger(CustomJwtAuthGuard)
   @Get("/")
   async getLaundryApplies() {
     return await this.laundryService.getApplies();
@@ -51,7 +49,6 @@ export class LaundryController {
     status: HttpStatus.OK,
     type: LaundryApply,
   })
-  @UseGuardsWithSwagger(CustomJwtAuthGuard)
   @Post("/")
   async createApply(@Req() req, @Body() data: LaundryApplyDTO) {
     return await this.laundryService.createApply(req.user, data);
@@ -65,7 +62,6 @@ export class LaundryController {
     status: HttpStatus.OK,
     type: LaundryApply,
   })
-  @UseGuardsWithSwagger(CustomJwtAuthGuard)
   @Delete("/")
   async deleteApply(@Req() req) {
     return await this.laundryService.deleteApply(req.user);

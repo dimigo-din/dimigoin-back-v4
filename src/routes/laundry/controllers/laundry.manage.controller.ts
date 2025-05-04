@@ -34,7 +34,6 @@ export class LaundryManageController {
     status: HttpStatus.OK,
     type: [LaundryTimelineListResponseDTO],
   })
-  @UseGuardsWithSwagger(CustomJwtAuthGuard)
   @Get("/timeline/list")
   async getLaundryTimelineList() {
     return await this.laundryManageService.getLaundryTimelineList();
@@ -48,7 +47,6 @@ export class LaundryManageController {
     status: HttpStatus.OK,
     type: LaundryTimeline,
   })
-  @UseGuardsWithSwagger(CustomJwtAuthGuard)
   @Get("/timeline")
   async getLaundryTimeline(@Query() data: LaundryTimelineIdDTO) {
     return await this.laundryManageService.getLaundryTimeline(data);
@@ -62,7 +60,6 @@ export class LaundryManageController {
     status: HttpStatus.CREATED,
     type: LaundryTimeline,
   })
-  @UseGuardsWithSwagger(CustomJwtAuthGuard)
   @Post("/timeline")
   async createLaundryTimeline(@Body() data: CreateLaundryTimelineDTO) {
     return await this.laundryManageService.createLaundryTimeline(data);
@@ -76,7 +73,6 @@ export class LaundryManageController {
     status: HttpStatus.OK,
     type: LaundryTimeline,
   })
-  @UseGuardsWithSwagger(CustomJwtAuthGuard)
   @Patch("/timeline")
   async updateLaundryTimeline(@Body() data: UpdateLaundryTimelineDTO) {
     return await this.laundryManageService.updateLaundryTimeline(data);
@@ -90,7 +86,6 @@ export class LaundryManageController {
     status: HttpStatus.OK,
     type: LaundryTimeline,
   })
-  @UseGuardsWithSwagger(CustomJwtAuthGuard)
   @Delete("/timeline")
   async deelteLaundryTimeline(@Query() data: LaundryTimelineIdDTO) {
     return await this.laundryManageService.deleteLaundryTimeline(data);
@@ -104,7 +99,6 @@ export class LaundryManageController {
     status: HttpStatus.OK,
     type: [LaundryMachine],
   })
-  @UseGuardsWithSwagger(CustomJwtAuthGuard)
   @Get("/machine/list")
   async getLaundryMachineList() {
     return await this.laundryManageService.getLaundryMachineList();
@@ -118,7 +112,6 @@ export class LaundryManageController {
     status: HttpStatus.CREATED,
     type: LaundryMachine,
   })
-  @UseGuardsWithSwagger(CustomJwtAuthGuard)
   @Post("/machine")
   async createLaundryMachine(@Body() data: CreateLaundryMachineDTO) {
     return await this.laundryManageService.createLaundryMachine(data);
@@ -132,7 +125,6 @@ export class LaundryManageController {
     status: HttpStatus.OK,
     type: LaundryMachine,
   })
-  @UseGuardsWithSwagger(CustomJwtAuthGuard)
   @Patch("/machine")
   async updateLaundryMachine(@Body() data: UpdateLaundryMachineDTO) {
     return await this.laundryManageService.updateLaundryMachine(data);
@@ -146,7 +138,6 @@ export class LaundryManageController {
     status: HttpStatus.OK,
     type: LaundryMachine,
   })
-  @UseGuardsWithSwagger(CustomJwtAuthGuard)
   @Delete("/machine")
   async deleteLaundryMachine(@Query() data: LaundryMachineIdDTO) {
     return await this.laundryManageService.deleteLaundryMachine(data);
@@ -160,7 +151,6 @@ export class LaundryManageController {
     status: HttpStatus.OK,
     type: [LaundryApply],
   })
-  @UseGuardsWithSwagger(CustomJwtAuthGuard)
   @Get("/apply/list")
   async getLaundryApply() {
     return await this.laundryManageService.getLaundryApplyList();
@@ -174,7 +164,6 @@ export class LaundryManageController {
     status: HttpStatus.CREATED,
     type: LaundryApply,
   })
-  @UseGuardsWithSwagger(CustomJwtAuthGuard)
   @Post("/apply")
   async createLaundryApply(@Body() data: CreateLaundryApplyDTO) {
     return await this.laundryManageService.createLaundryApply(data);
@@ -188,7 +177,6 @@ export class LaundryManageController {
     status: HttpStatus.OK,
     type: LaundryApply,
   })
-  @UseGuardsWithSwagger(CustomJwtAuthGuard)
   @Patch("/apply")
   async updateLaundryApply(@Body() data: UpdateLaundryApplyDTO) {
     return await this.laundryManageService.updateLaundryApply(data);
@@ -202,7 +190,6 @@ export class LaundryManageController {
     status: HttpStatus.OK,
     type: LaundryApply,
   })
-  @UseGuardsWithSwagger(CustomJwtAuthGuard)
   @Delete("/apply")
   async deleteLaundryApply(@Query() data: LaundryApplyIdDTO) {
     return await this.laundryManageService.deleteLaundryApply(data);
