@@ -2,15 +2,7 @@ import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { Cron, CronExpression } from "@nestjs/schedule";
 import { InjectRepository } from "@nestjs/typeorm";
 import * as moment from "moment";
-import {
-  FindOneOptions,
-  IsNull,
-  LessThan,
-  LessThanOrEqual,
-  MoreThanOrEqual,
-  Not,
-  Repository,
-} from "typeorm";
+import { IsNull, LessThan, LessThanOrEqual, MoreThanOrEqual, Not, Repository } from "typeorm";
 
 import { ErrorMsg } from "../../../common/mapper/error";
 import { safeFindOne } from "../../../common/utils/safeFindOne.util";
@@ -180,6 +172,7 @@ export class StayManageService {
     return await this.stayScheduleRepository.save(staySchedule);
   }
 
+  // i know. quite duplicated. but.. looks better and safe!
   async updateStaySchedule(data: UpdateStayScheduleDTO) {
     const staySeatPreset = await this.staySeatPresetRepository.findOne({
       where: { id: data.staySeatPreset },
