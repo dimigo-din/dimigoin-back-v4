@@ -10,6 +10,7 @@ import { Login, User } from "../../../schemas";
 import { PersonalInformationSchema } from "../../../schemas/personal-information.schema";
 import { AddPermissionDTO, CreateUserDTO, RemovePermissionDTO, SetPermissionDTO } from "../dto";
 
+// this chuck of code need to be refactored
 @Injectable()
 export class UserManageService {
   constructor(
