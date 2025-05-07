@@ -1,0 +1,85 @@
+import { Injectable } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import * as moment from "moment";
+import { Repository } from "typeorm";
+
+import { safeFindOne } from "../../../common/utils/safeFindOne.util";
+import { FrigoApply, FrigoApplyPeriod, User } from "../../../schemas";
+import {
+  FrigoApplyDTO,
+  AuditFrigoApply,
+  FrigoApplyIdDTO,
+  FrigoApplyPeriodIdDTO,
+  SetFrigoApplyPeriodDTO,
+} from "../dto/frigo.manage.dto";
+
+@Injectable()
+export class FrigoManageService {
+  constructor(
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+    @InjectRepository(FrigoApply)
+    private readonly frigoApplyRepository: Repository<FrigoApply>,
+    @InjectRepository(FrigoApplyPeriod)
+    private readonly frigoApplyPeriodRepository: Repository<FrigoApplyPeriod>,
+  ) {}
+
+  async getApplyPeriod() {
+    return await this.frigoApplyPeriodRepository.find();
+  }
+
+  async setApplyPeriod(data: SetFrigoApplyPeriodDTO) {
+    const exists = await this.frigoApplyPeriodRepository.findOne({ where: { grade: data.grade } });
+
+    const period = exists || new FrigoApplyPeriod();
+    period.apply_start_day = data.apply_start_day;
+    period.apply_end_day = data.apply_end_day;
+    period.apply_start_hour = data.apply_start_hour;
+    period.apply_end_hour = data.apply_end_hour;
+    period.grade = data.grade;
+
+    return await this.frigoApplyPeriodRepository.save(period);
+  }
+
+  async removeApplyPeriod(data: FrigoApplyPeriodIdDTO) {
+    return await this.frigoApplyPeriodRepository.delete({ id: data.id });
+  }
+
+  async getApplyList() {
+    const week = moment().startOf("week").format("YYYY-MM-DD");
+
+    return await this.frigoApplyRepository.find({ where: { week: week } });
+  }
+
+  // considering: separate update and apply
+  async apply(data: FrigoApplyDTO) {
+    const user = await safeFindOne<User>(this.userRepository, { where: { id: data.user } });
+
+    const week = moment().startOf("week").format("YYYY-MM-DD");
+    const exists = await this.frigoApplyRepository.findOne({ where: { week: week } });
+
+    const apply = exists || new FrigoApply();
+    apply.timing = data.timing;
+    apply.reason = data.reason;
+    apply.week = week;
+    apply.user = user;
+    apply.approved = true;
+
+    return await this.frigoApplyRepository.save(apply);
+  }
+
+  async removeApply(data: FrigoApplyIdDTO) {
+    return await this.frigoApplyRepository.delete(data.id);
+  }
+
+  async auditApply(data: AuditFrigoApply) {
+    const apply = await safeFindOne<FrigoApply>(this.frigoApplyRepository, {
+      where: { id: data.id },
+    });
+
+    apply.audit_reason = data.audit_reason;
+    apply.approved = data.approved;
+
+    return await this.frigoApplyRepository.save(apply);
+  }
+}

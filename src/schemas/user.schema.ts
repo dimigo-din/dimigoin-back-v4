@@ -6,6 +6,7 @@ import { StudentUserPermission } from "../common/mapper/permissions";
 import { numberPermission } from "../common/utils/permission.util";
 
 import { Login, Session } from "./auth.schema";
+import { FrigoApply } from "./frigo.schema";
 import { LaundryApply } from "./laundry.schema";
 import { StayApply } from "./stay.schema";
 
@@ -39,4 +40,7 @@ export class User {
 
   @OneToMany(() => LaundryApply, (laundryApply) => laundryApply.user)
   laundryApplies: LaundryApply[];
+
+  @OneToMany(() => FrigoApply, (frigo) => frigo.user)
+  frigo: FrigoApply[];
 }

@@ -28,4 +28,13 @@ export type LaundryMachineType = (typeof LaundryMachineTypeValues)[number];
 export const LaundryTimelineTriggerValues = ["primary", "stay"] as const;
 export type LaundryTimelineTrigger = (typeof LaundryTimelineTriggerValues)[number];
 
+/** 종례후, 저녁, 야자1후, 야자2후 */
+export const FrigoTimingValues = [
+  "afterschool",
+  "dinner",
+  "after_1st_study",
+  "after_2nd_study",
+] as const;
+export type FrigoTiming = (typeof FrigoTimingValues)[number];
+
 export type UserJWT = User & (PersonalInformationSchema & { sessionIdentifier?: string });
