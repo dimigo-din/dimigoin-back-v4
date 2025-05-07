@@ -130,6 +130,14 @@ export class LaundryManageService {
     return await this.laundryTimelineRepository.remove(laundryTimeline);
   }
 
+  async enableLaundryTimeline(data: LaundryTimelineIdDTO) {
+    const modified = (await this.laundryTimelineRepository.find()).map((timeline) => {
+      timeline.enabled = timeline.id === data.id;
+      return timeline;
+    });
+    return await this.laundryTimelineRepository.save(modified);
+  }
+
   async getLaundryMachineList() {
     return await this.laundryMachineRepository.find();
   }

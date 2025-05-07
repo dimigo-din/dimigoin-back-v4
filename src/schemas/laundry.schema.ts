@@ -57,11 +57,17 @@ export class LaundryTime {
   grade: Grade;
 
   @ApiProperty({ type: () => [LaundryMachine] })
-  @ManyToMany(() => LaundryMachine, (laundryMachine) => laundryMachine.laundryTime)
+  @ManyToMany(() => LaundryMachine, (laundryMachine) => laundryMachine.laundryTime, {
+    onUpdate: "CASCADE",
+    onDelete: "CASCADE",
+  })
   assigns: LaundryMachine[];
 
   @ApiProperty({ type: () => LaundryTimeline })
-  @ManyToOne(() => LaundryTimeline, (laundryTimeline) => laundryTimeline.times)
+  @ManyToOne(() => LaundryTimeline, (laundryTimeline) => laundryTimeline.times, {
+    onUpdate: "CASCADE",
+    onDelete: "CASCADE",
+  })
   timeline: LaundryTimeline;
 
   @ApiProperty({ type: () => LaundryApply })
@@ -115,19 +121,31 @@ export class LaundryApply {
   date: string;
 
   @ApiProperty({ type: () => LaundryTimeline })
-  @ManyToOne(() => LaundryTimeline, (laundryTimeline) => laundryTimeline.applies)
+  @ManyToOne(() => LaundryTimeline, (laundryTimeline) => laundryTimeline.applies, {
+    onUpdate: "CASCADE",
+    onDelete: "CASCADE",
+  })
   laundryTimeline: LaundryTimeline;
 
   @ApiProperty({ type: () => LaundryTime })
-  @ManyToOne(() => LaundryTime, (laundryTime) => laundryTime.applies)
+  @ManyToOne(() => LaundryTime, (laundryTime) => laundryTime.applies, {
+    onUpdate: "CASCADE",
+    onDelete: "CASCADE",
+  })
   laundryTime: LaundryTime;
 
   @ApiProperty({ type: () => LaundryMachine })
-  @ManyToOne(() => LaundryMachine, (laundryMachine) => laundryMachine.applies)
+  @ManyToOne(() => LaundryMachine, (laundryMachine) => laundryMachine.applies, {
+    onUpdate: "CASCADE",
+    onDelete: "CASCADE",
+  })
   laundryMachine: LaundryMachine;
 
   @ApiProperty({ type: () => User })
-  @ManyToOne(() => User, (user) => user.laundryApplies)
+  @ManyToOne(() => User, (user) => user.laundryApplies, {
+    onUpdate: "CASCADE",
+    onDelete: "CASCADE",
+  })
   user: User;
 
   @ApiProperty()

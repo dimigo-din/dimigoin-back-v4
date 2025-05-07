@@ -92,6 +92,19 @@ export class LaundryManageController {
   }
 
   @ApiOperation({
+    summary: "세탁 일정 활성화",
+    description: "특정 세탁 일정을 활성화합니다. 다른 세탁 일정은 자동으로 비활성화됩니다.",
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: [LaundryTimeline],
+  })
+  @Patch("/timeline/enable")
+  async enableLaundryTimeline(@Body() data: LaundryTimelineIdDTO) {
+    return await this.laundryManageService.enableLaundryTimeline(data);
+  }
+
+  @ApiOperation({
     summary: "세탁/건조기 리스트",
     description: "세탁기와 건조기의 목록을 불러옵니다.",
   })
