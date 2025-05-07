@@ -7,6 +7,7 @@ import { ErrorMsg } from "../../../common/mapper/error";
 import { UserJWT } from "../../../common/mapper/types";
 import { safeFindOne } from "../../../common/utils/safeFindOne.util";
 import { LaundryApply, LaundryMachine, LaundryTime, LaundryTimeline, User } from "../../../schemas";
+import { UserManageService } from "../../user/providers";
 import { LaundryApplyDTO } from "../dto/laundry.dto";
 
 @Injectable()
@@ -22,6 +23,7 @@ export class LaundryService {
     private readonly laundryMachineRepository: Repository<LaundryMachine>,
     @InjectRepository(LaundryTimeline)
     private readonly laundryTimelineRepository: Repository<LaundryTimeline>,
+    private readonly userManageService: UserManageService,
   ) {}
 
   async getTimeline() {
@@ -39,7 +41,7 @@ export class LaundryService {
   async createApply(user: UserJWT, data: LaundryApplyDTO) {
     const dbUser = await safeFindOne<User>(this.userRepository, { where: { id: user.id } });
 
-    const applyExists = await this.laundryApplyRepository.find({ where: { user: user } });
+    const applyExists = await this.laundryApplyRepository.findOne({ where: { user: dbUser } });
     if (applyExists)
       throw new HttpException(ErrorMsg.LaundryApply_AlreadyExists, HttpStatus.BAD_REQUEST);
 
@@ -53,7 +55,10 @@ export class LaundryService {
       where: { id: data.machine },
     });
 
-    const machineTaken = await this.laundryApplyRepository.find({
+    if (time.grade !== user.grade)
+      throw new HttpException(ErrorMsg.PermissionDenied_Resource_Grade, HttpStatus.FORBIDDEN);
+
+    const machineTaken = await this.laundryApplyRepository.findOne({
       where: { laundryMachine: machine },
     });
     if (machineTaken)

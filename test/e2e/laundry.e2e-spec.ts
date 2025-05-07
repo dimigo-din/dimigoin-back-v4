@@ -1,8 +1,8 @@
 import { INestApplication } from "@nestjs/common";
+import * as moment from "moment/moment";
 import * as request from "supertest";
 
 import { closeApp, getApp } from "../app.e2e";
-import { LaundryApplyMock } from "../mocks/laundry-apply.mock";
 import { LaundryMachineMock } from "../mocks/laundry-machine.mock";
 import { LaundryTimelineMock } from "../mocks/laundry-timeline.mock";
 import { AdminUserMock, StudentUserMock } from "../mocks/user.mock";
@@ -14,6 +14,7 @@ describe("laundry", () => {
   let user: UserMock;
   let machine_id;
   let timeline_id;
+  let time_id;
   let apply_id;
 
   beforeAll(async () => {
@@ -32,13 +33,15 @@ describe("laundry", () => {
         .send(LaundryMachineMock())
         .expect(201)
     ).body.id;
-    timeline_id = (
+    const timelineBody = (
       await request(app.getHttpServer())
         .post("/manage/laundry/timeline")
         .auth(admin.jwt, { type: "bearer" })
         .send(LaundryTimelineMock([machine_id]))
         .expect(201)
-    ).body.id;
+    ).body;
+    timeline_id = timelineBody.id;
+    time_id = timelineBody.times[0].id;
     await request(app.getHttpServer())
       .patch("/manage/laundry/timeline/enable")
       .auth(admin.jwt, { type: "bearer" })
@@ -77,6 +80,27 @@ describe("laundry", () => {
       .expect(200)
       .then((res) => {
         expect(res.body.name).toBe("평상시");
+      });
+  });
+
+  it("apply", async () => {
+    return request(app.getHttpServer())
+      .post("/laundry")
+      .auth(user.jwt, { type: "bearer" })
+      .send({ time: time_id, machine: machine_id })
+      .expect(201)
+      .then((res) => {
+        expect(res.body.date).toBe(moment().format("YYYY-MM-DD"));
+      });
+  });
+
+  it("apply cancel", async () => {
+    return request(app.getHttpServer())
+      .delete("/laundry")
+      .auth(user.jwt, { type: "bearer" })
+      .expect(200)
+      .then((res) => {
+        expect(res.body.date).toBe(moment().format("YYYY-MM-DD"));
       });
   });
 });

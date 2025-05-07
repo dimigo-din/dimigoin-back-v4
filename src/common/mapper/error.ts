@@ -4,6 +4,7 @@ export const ErrorMsg = {
   UserSession_NotFound: "유저 세션을 찾을 수 없습니다.",
 
   PermissionDenied_Resource: "이 리소스에 대한 권한이 없습니다.",
+  PermissionDenied_Resource_Grade: "해당 학년에 이 리소스에 대한 권한이 없습니다.",
   PermissionDenied_Action: "이 작업에 대한 권한이 없습니다.",
 
   Resource_NotFound: "리소스를 찾을 수 없습니다.",
