@@ -156,4 +156,26 @@ describe("laundry manage", () => {
         expect(res.body.date).toBe(moment().format("YYYY-MM-DD"));
       });
   });
+
+  it("delete timeline", async () => {
+    return request(app.getHttpServer())
+      .delete("/manage/laundry/timeline")
+      .auth(admin.jwt, { type: "bearer" })
+      .send({ id: time_id })
+      .expect(200)
+      .then((res) => {
+        expect(res.body.name).toBe("평상시");
+      });
+  });
+
+  it("delete machine", async () => {
+    return request(app.getHttpServer())
+      .delete("/manage/laundry/machine")
+      .auth(admin.jwt, { type: "bearer" })
+      .send({ id: machine_id })
+      .expect(200)
+      .then((res) => {
+        expect(res.body.name).toBe("학봉관 1층 우측");
+      });
+  });
 });
