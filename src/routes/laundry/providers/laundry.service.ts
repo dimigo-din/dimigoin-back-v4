@@ -23,7 +23,6 @@ export class LaundryService {
     private readonly laundryMachineRepository: Repository<LaundryMachine>,
     @InjectRepository(LaundryTimeline)
     private readonly laundryTimelineRepository: Repository<LaundryTimeline>,
-    private readonly userManageService: UserManageService,
   ) {}
 
   async getTimeline() {
