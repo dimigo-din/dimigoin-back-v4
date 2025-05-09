@@ -1,8 +1,4 @@
-import {
-  CreateLaundryApplyDTO,
-  CreateLaundryMachineDTO,
-} from "../../src/routes/laundry/dto/laundry.manage.dto";
-import { LaundryApply } from "../../src/schemas";
+import { CreateLaundryApplyDTO } from "../../src/routes/laundry/dto/laundry.manage.dto";
 
 export const LaundryApplyMock = (machine: string, time: string, user: string) => {
   const laundryApply = new CreateLaundryApplyDTO();
