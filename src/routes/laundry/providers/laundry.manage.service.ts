@@ -191,13 +191,13 @@ export class LaundryManageService {
 
     const applyExists = await this.laundryApplyRepository.findOne({ where: { user: user } });
     if (applyExists)
-      throw new HttpException(ErrorMsg.LaundryApply_AlreadyExists, HttpStatus.BAD_REQUEST);
+      throw new HttpException(ErrorMsg.LaundryApply_AlreadyExists(), HttpStatus.BAD_REQUEST);
 
     const machineTaken = await this.laundryApplyRepository.findOne({
       where: { laundryMachine: laundryMachine },
     });
     if (machineTaken)
-      throw new HttpException(ErrorMsg.LaundryMachine_AlreadyTaken, HttpStatus.BAD_REQUEST);
+      throw new HttpException(ErrorMsg.LaundryMachine_AlreadyTaken(), HttpStatus.BAD_REQUEST);
 
     const date = moment().format("YYYY-MM-DD");
 

@@ -42,7 +42,7 @@ export class LaundryService {
 
     const applyExists = await this.laundryApplyRepository.findOne({ where: { user: dbUser } });
     if (applyExists)
-      throw new HttpException(ErrorMsg.LaundryApply_AlreadyExists, HttpStatus.BAD_REQUEST);
+      throw new HttpException(ErrorMsg.LaundryApply_AlreadyExists(), HttpStatus.BAD_REQUEST);
 
     const timeline = await safeFindOne<LaundryTimeline>(this.laundryTimelineRepository, {
       where: { times: { id: data.time } },
@@ -55,13 +55,13 @@ export class LaundryService {
     });
 
     if (time.grade !== user.grade)
-      throw new HttpException(ErrorMsg.PermissionDenied_Resource_Grade, HttpStatus.FORBIDDEN);
+      throw new HttpException(ErrorMsg.PermissionDenied_Resource_Grade(), HttpStatus.FORBIDDEN);
 
     const machineTaken = await this.laundryApplyRepository.findOne({
       where: { laundryMachine: machine },
     });
     if (machineTaken)
-      throw new HttpException(ErrorMsg.LaundryMachine_AlreadyTaken, HttpStatus.BAD_REQUEST);
+      throw new HttpException(ErrorMsg.LaundryMachine_AlreadyTaken(), HttpStatus.BAD_REQUEST);
 
     const apply = new LaundryApply();
     apply.laundryTimeline = timeline;

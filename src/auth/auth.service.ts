@@ -45,9 +45,9 @@ export class AuthService {
     const login = await this.loginRepository.findOne({
       where: { identifier1: id || "" },
     });
-    if (!login) throw new HttpException(ErrorMsg.UserIdentifier_NotFound, 403);
+    if (!login) throw new HttpException(ErrorMsg.UserIdentifier_NotFound(), 403);
     if (!bcrypt.compareSync(password, login.identifier2))
-      throw new HttpException(ErrorMsg.UserIdentifier_NotMatched, 403);
+      throw new HttpException(ErrorMsg.UserIdentifier_NotMatched(), 403);
 
     return await this.generateJWTKeyPair(login.user, "30m");
   }
@@ -79,7 +79,7 @@ export class AuthService {
       });
       ticketPayload = ticket.getPayload();
     } catch (e) {
-      throw new HttpException(ErrorMsg.GoogleOauthCode_Invalid, HttpStatus.BAD_REQUEST);
+      throw new HttpException(ErrorMsg.GoogleOauthCode_Invalid(), HttpStatus.BAD_REQUEST);
     }
 
     let loginUser = null;
@@ -104,11 +104,7 @@ export class AuthService {
     const session = await this.sessionRepository.findOne({
       where: { refreshToken: refreshToken || "" },
     });
-    if (!session)
-      throw new HttpException(
-        "Session not found. Is this valid jwt refresh token?",
-        HttpStatus.NOT_FOUND,
-      );
+    if (!session) throw new HttpException(ErrorMsg.UserSession_NotFound(), HttpStatus.NOT_FOUND);
 
     const user = await this.userRepository.findOne({
       where: { id: session.user.id },

@@ -30,7 +30,7 @@ export class UserManageService {
   async fetchUserDetail(data: { id?: string; email?: string }) {
     if (data.id) {
       const user = await this.userRepository.findOne({ where: { id: data.id } });
-      if (!user) throw new HttpException(ErrorMsg.Resource_NotFound, HttpStatus.NOT_FOUND);
+      if (!user) throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
 
       const personalInformation = await this.personalInformationRepository.findOne({
         where: { email: user.email },

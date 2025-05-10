@@ -55,16 +55,16 @@ export class StayService {
     const exists = await this.stayApplyRepository.findOne({
       where: { user: { id: user.id }, stay: stay },
     });
-    if (exists) throw new HttpException(ErrorMsg.StaySeat_Duplication, HttpStatus.BAD_REQUEST);
+    if (exists) throw new HttpException(ErrorMsg.StaySeat_Duplication(), HttpStatus.BAD_REQUEST);
 
     const staySeatCheck = await this.stayApplyRepository.findOne({
       where: { stay_seat: data.stay_seat.toUpperCase(), stay: stay },
     });
     if (staySeatCheck)
-      throw new HttpException(ErrorMsg.StaySeat_Duplication, HttpStatus.BAD_REQUEST);
+      throw new HttpException(ErrorMsg.StaySeat_Duplication(), HttpStatus.BAD_REQUEST);
 
     if (!this.isAvailableSeat(user, stay.stay_seat_preset, data.stay_seat))
-      throw new HttpException(ErrorMsg.StaySeat_NotAllowed, HttpStatus.BAD_REQUEST);
+      throw new HttpException(ErrorMsg.StaySeat_NotAllowed(), HttpStatus.BAD_REQUEST);
 
     const stayApply = new StayApply();
     stayApply.stay_seat = data.stay_seat.toUpperCase();
@@ -93,16 +93,16 @@ export class StayService {
       where: { user: dbUser, stay: { id: data.stay } },
     });
     if (stayApply.user.id !== user.id)
-      throw new HttpException(ErrorMsg.PermissionDenied_Resource, HttpStatus.FORBIDDEN);
+      throw new HttpException(ErrorMsg.PermissionDenied_Resource(), HttpStatus.FORBIDDEN);
 
     const staySeatCheck = await this.stayApplyRepository.findOne({
       where: { stay_seat: data.stay_seat.toUpperCase(), stay: stayApply.stay },
     });
     if (staySeatCheck && staySeatCheck.id !== stayApply.id)
-      throw new HttpException(ErrorMsg.StaySeat_Duplication, HttpStatus.BAD_REQUEST);
+      throw new HttpException(ErrorMsg.StaySeat_Duplication(), HttpStatus.BAD_REQUEST);
 
     if (!this.isAvailableSeat(user, stayApply.stay.stay_seat_preset, data.stay_seat))
-      throw new HttpException(ErrorMsg.StaySeat_NotAllowed, HttpStatus.BAD_REQUEST);
+      throw new HttpException(ErrorMsg.StaySeat_NotAllowed(), HttpStatus.BAD_REQUEST);
 
     stayApply.stay_seat = data.stay_seat.toUpperCase();
     stayApply.user = dbUser;
@@ -132,7 +132,7 @@ export class StayService {
       where: { stay: { id: data.id } },
     });
     if (stayApply.user.id !== user.id)
-      throw new HttpException(ErrorMsg.PermissionDenied_Resource, HttpStatus.FORBIDDEN);
+      throw new HttpException(ErrorMsg.PermissionDenied_Resource(), HttpStatus.FORBIDDEN);
 
     return this.stayApplyRepository.remove(stayApply);
   }

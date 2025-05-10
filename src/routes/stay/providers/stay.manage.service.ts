@@ -147,7 +147,8 @@ export class StayManageService {
     const staySeatPreset = await this.staySeatPresetRepository.findOne({
       where: { id: data.staySeatPreset },
     });
-    if (!staySeatPreset) throw new HttpException(ErrorMsg.Resource_NotFound, HttpStatus.NOT_FOUND);
+    if (!staySeatPreset)
+      throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
 
     const staySchedule = new StaySchedule();
     staySchedule.name = data.name;
@@ -177,7 +178,8 @@ export class StayManageService {
     const staySeatPreset = await this.staySeatPresetRepository.findOne({
       where: { id: data.staySeatPreset },
     });
-    if (!staySeatPreset) throw new HttpException(ErrorMsg.Resource_NotFound, HttpStatus.NOT_FOUND);
+    if (!staySeatPreset)
+      throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
 
     const staySchedule = await safeFindOne<StaySchedule>(this.stayScheduleRepository, {
       where: { id: data.id },
@@ -229,7 +231,8 @@ export class StayManageService {
     const staySeatPreset = await this.staySeatPresetRepository.findOne({
       where: { id: data.seat_preset },
     });
-    if (!staySeatPreset) throw new HttpException(ErrorMsg.Resource_NotFound, HttpStatus.NOT_FOUND);
+    if (!staySeatPreset)
+      throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
 
     const stay = new Stay();
     stay.name = data.name;
@@ -258,7 +261,8 @@ export class StayManageService {
     const staySeatPreset = await this.staySeatPresetRepository.findOne({
       where: { id: data.seat_preset },
     });
-    if (!staySeatPreset) throw new HttpException(ErrorMsg.Resource_NotFound, HttpStatus.NOT_FOUND);
+    if (!staySeatPreset)
+      throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
 
     stay.name = data.name;
     stay.stay_from = data.from;
@@ -288,7 +292,7 @@ export class StayManageService {
 
   async getStayApplyList(data: StayIdDTO) {
     const stay = await this.getStay(data);
-    if (!stay) throw new HttpException(ErrorMsg.Resource_NotFound, HttpStatus.NOT_FOUND);
+    if (!stay) throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
 
     return (await this.stayApplyRepository.find({ where: { stay: stay } })).map((e) => {
       return {
@@ -317,13 +321,13 @@ export class StayManageService {
     const exists = await this.stayApplyRepository.findOne({
       where: { user: user, stay: stay },
     });
-    if (exists) throw new HttpException(ErrorMsg.StaySeat_Duplication, HttpStatus.BAD_REQUEST);
+    if (exists) throw new HttpException(ErrorMsg.StaySeat_Duplication(), HttpStatus.BAD_REQUEST);
 
     const staySeatCheck = await this.stayApplyRepository.findOne({
       where: { stay_seat: data.stay_seat.toUpperCase(), stay: stay },
     }); // Allow if same as previous user's seat
     if (staySeatCheck)
-      throw new HttpException(ErrorMsg.StaySeat_Duplication, HttpStatus.BAD_REQUEST);
+      throw new HttpException(ErrorMsg.StaySeat_Duplication(), HttpStatus.BAD_REQUEST);
 
     // teacher can force stay_seat. so, stay_seat will not be filtered.
     const stayApply = new StayApply();
@@ -361,7 +365,7 @@ export class StayManageService {
       where: { stay_seat: data.stay_seat.toUpperCase(), stay: stay },
     }); // Allow if same as previous user's seat
     if (staySeatCheck && stayApply.stay_seat !== data.stay_seat.toUpperCase())
-      throw new HttpException(ErrorMsg.StaySeat_Duplication, HttpStatus.BAD_REQUEST);
+      throw new HttpException(ErrorMsg.StaySeat_Duplication(), HttpStatus.BAD_REQUEST);
 
     stayApply.stay_seat = data.stay_seat.toUpperCase();
     stayApply.user = user;
