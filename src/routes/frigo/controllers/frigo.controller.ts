@@ -1,13 +1,14 @@
 import { Body, Controller, Delete, Get, HttpStatus, Post, Req } from "@nestjs/common";
-import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
+import { ApiOperation, ApiTags } from "@nestjs/swagger";
 
 import { CustomJwtAuthGuard } from "../../../auth/guards";
 import { PermissionGuard } from "../../../auth/guards/permission.guard";
 import { UseGuardsWithSwagger } from "../../../auth/guards/useGuards";
+import { ApiResponseFormat } from "../../../common/dto/response_format.dto";
 import { PermissionEnum } from "../../../common/mapper/permissions";
 import { FrigoApply } from "../../../schemas";
 import { FrigoApplyDTO } from "../dto/frigo.dto";
-import { FrigoService } from "../providers/frigo.service";
+import { FrigoService } from "../providers";
 
 @ApiTags("Frigo")
 @Controller("/frigo")
@@ -19,7 +20,7 @@ export class FrigoController {
     summary: "신청정보 확인",
     description: "금요귀가 신청 정보를 확인합니다.",
   })
-  @ApiResponse({
+  @ApiResponseFormat({
     status: HttpStatus.OK,
     type: FrigoApply,
   })
@@ -32,7 +33,7 @@ export class FrigoController {
     summary: "금요귀가 신청",
     description: "금요귀가를 신청합니다.",
   })
-  @ApiResponse({
+  @ApiResponseFormat({
     status: HttpStatus.OK,
     type: FrigoApply,
   })
@@ -45,7 +46,7 @@ export class FrigoController {
     summary: "금요귀가 신청 취소",
     description: "금요귀가를 신청 취소합니다.",
   })
-  @ApiResponse({
+  @ApiResponseFormat({
     status: HttpStatus.OK,
     type: FrigoApply,
   })

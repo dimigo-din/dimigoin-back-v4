@@ -47,8 +47,8 @@ describe("laundry manage", () => {
       .send(LaundryMachineMock())
       .expect(201)
       .then((res) => {
-        machine_id = res.body.id;
-        expect(res.body.name).toBe("학봉관 1층 우측");
+        machine_id = res.body.data.id;
+        expect(res.body.data.name).toBe("학봉관 1층 우측");
       });
   });
 
@@ -58,7 +58,7 @@ describe("laundry manage", () => {
       .auth(admin.jwt, { type: "bearer" })
       .expect(200)
       .then((res) => {
-        const body = res.body.find((e) => e.id === machine_id);
+        const body = res.body.data.find((e) => e.id === machine_id);
         expect(body.name).toBe("학봉관 1층 우측");
       });
   });
@@ -70,7 +70,7 @@ describe("laundry manage", () => {
       .send({ id: machine_id, ...LaundryMachineMock() })
       .expect(200)
       .then((res) => {
-        expect(res.body.name).toBe("학봉관 1층 우측");
+        expect(res.body.data.name).toBe("학봉관 1층 우측");
       });
   });
 
@@ -82,8 +82,8 @@ describe("laundry manage", () => {
       .send(LaundryTimelineMock([machine_id]))
       .expect(201)
       .then((res) => {
-        laundryTimeline_id = res.body.id;
-        expect(res.body.name).toBe("평상시");
+        laundryTimeline_id = res.body.data.id;
+        expect(res.body.data.name).toBe("평상시");
       });
   });
 
@@ -93,7 +93,7 @@ describe("laundry manage", () => {
       .auth(admin.jwt, { type: "bearer" })
       .expect(200)
       .then((res) => {
-        const body = res.body.find((e) => e.id === laundryTimeline_id);
+        const body = res.body.data.find((e) => e.id === laundryTimeline_id);
         expect(body.name).toBe("평상시");
       });
   });
@@ -104,7 +104,7 @@ describe("laundry manage", () => {
       .auth(admin.jwt, { type: "bearer" })
       .expect(200)
       .then((res) => {
-        const body = res.body;
+        const body = res.body.data;
         expect(body.name).toBe("평상시");
       });
   });
@@ -117,8 +117,8 @@ describe("laundry manage", () => {
       .send({ id: laundryTimeline_id, ...LaundryTimelineMock([machine_id]) })
       .expect(200)
       .then((res) => {
-        time_id = res.body.times.id;
-        expect(res.body.name).toBe("평상시");
+        time_id = res.body.data.times.id;
+        expect(res.body.data.name).toBe("평상시");
       });
   });
 
@@ -130,8 +130,8 @@ describe("laundry manage", () => {
       .send(LaundryApplyMock(machine_id, time_id, user.user.id))
       .expect(201)
       .then((res) => {
-        apply_id = res.body.id;
-        expect(res.body.date).toBe(moment().format("YYYY-MM-DD"));
+        apply_id = res.body.data.id;
+        expect(res.body.data.date).toBe(moment().format("YYYY-MM-DD"));
       });
   });
 
@@ -142,7 +142,7 @@ describe("laundry manage", () => {
       .send({ id: apply_id, user: user.user.id })
       .expect(200)
       .then((res) => {
-        expect(res.body.date).toBe(moment().format("YYYY-MM-DD"));
+        expect(res.body.data.date).toBe(moment().format("YYYY-MM-DD"));
       });
   });
 
@@ -153,7 +153,7 @@ describe("laundry manage", () => {
       .send({ id: apply_id })
       .expect(200)
       .then((res) => {
-        expect(res.body.date).toBe(moment().format("YYYY-MM-DD"));
+        expect(res.body.data.date).toBe(moment().format("YYYY-MM-DD"));
       });
   });
 
@@ -164,7 +164,7 @@ describe("laundry manage", () => {
       .send({ id: time_id })
       .expect(200)
       .then((res) => {
-        expect(res.body.name).toBe("평상시");
+        expect(res.body.data.name).toBe("평상시");
       });
   });
 
@@ -175,7 +175,7 @@ describe("laundry manage", () => {
       .send({ id: machine_id })
       .expect(200)
       .then((res) => {
-        expect(res.body.name).toBe("학봉관 1층 우측");
+        expect(res.body.data.name).toBe("학봉관 1층 우측");
       });
   });
 });

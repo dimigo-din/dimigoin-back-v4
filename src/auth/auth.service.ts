@@ -45,9 +45,10 @@ export class AuthService {
     const login = await this.loginRepository.findOne({
       where: { identifier1: id || "" },
     });
-    if (!login) throw new HttpException(ErrorMsg.UserIdentifier_NotFound(), 403);
+    if (!login)
+      throw new HttpException(ErrorMsg.UserIdentifier_NotFound(), HttpStatus.UNAUTHORIZED);
     if (!bcrypt.compareSync(password, login.identifier2))
-      throw new HttpException(ErrorMsg.UserIdentifier_NotMatched(), 403);
+      throw new HttpException(ErrorMsg.UserIdentifier_NotMatched(), HttpStatus.UNAUTHORIZED);
 
     return await this.generateJWTKeyPair(login.user, "30m");
   }

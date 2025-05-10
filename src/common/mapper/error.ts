@@ -1,5 +1,5 @@
 export const ErrorMsg = {
-  UserIdentifier_NotFound: () => "유저 식별 정보를 확일할 수 없습니다.",
+  UserIdentifier_NotFound: () => "유저 식별 정보를 확인할 수 없습니다.",
   UserIdentifier_NotMatched: () => "유저 식별 정보가 일치하지 않습니다.",
   UserSession_NotFound: () => "유저 세션을 찾을 수 없습니다.",
 

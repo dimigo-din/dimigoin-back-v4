@@ -1,9 +1,10 @@
-import { Body, Controller, Get, HttpStatus, Post, Req } from "@nestjs/common";
-import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
+import { Body, Controller, HttpStatus, Post, Req } from "@nestjs/common";
+import { ApiOperation, ApiTags } from "@nestjs/swagger";
 
 import { CustomJwtAuthGuard } from "../../../auth/guards";
 import { PermissionGuard } from "../../../auth/guards/permission.guard";
 import { UseGuardsWithSwagger } from "../../../auth/guards/useGuards";
+import { ApiResponseFormat } from "../../../common/dto/response_format.dto";
 import { PermissionEnum } from "../../../common/mapper/permissions";
 import { User } from "../../../schemas";
 import {
@@ -23,7 +24,7 @@ export class UserManageController {
     summary: "비밀번호 설정",
     description: "비밀번호 로그인 방식을 추가합니다.",
   })
-  @ApiResponse({
+  @ApiResponseFormat({
     status: HttpStatus.OK,
   })
   @UseGuardsWithSwagger(CustomJwtAuthGuard)
@@ -36,7 +37,7 @@ export class UserManageController {
     summary: "권한 설정",
     description: "유저 권한 설정",
   })
-  @ApiResponse({
+  @ApiResponseFormat({
     status: HttpStatus.OK,
     description: "성공",
     type: User,
@@ -51,7 +52,7 @@ export class UserManageController {
     summary: "권한 추가",
     description: "유저 권한 추가",
   })
-  @ApiResponse({
+  @ApiResponseFormat({
     status: HttpStatus.OK,
     description: "성공",
     type: User,
@@ -66,7 +67,7 @@ export class UserManageController {
     summary: "권한 제거",
     description: "유저 권한 제거",
   })
-  @ApiResponse({
+  @ApiResponseFormat({
     status: HttpStatus.OK,
     description: "성공",
     type: User,

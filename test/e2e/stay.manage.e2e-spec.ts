@@ -45,7 +45,7 @@ describe("Stay Manage", () => {
       .send(StaySeatPresetMock())
       .expect(201)
       .then((res) => {
-        expect(res.body.name).toBe("평상시");
+        expect(res.body.data.name).toBe("평상시");
       });
   });
 
@@ -56,8 +56,8 @@ describe("Stay Manage", () => {
       .auth(admin.jwt, { type: "bearer" })
       .expect(200)
       .then((res) => {
-        presetId = res.body[0].id;
-        expect(res.body[0].name).toBe("평상시");
+        presetId = res.body.data[0].id;
+        expect(res.body.data[0].name).toBe("평상시");
       });
   });
 
@@ -68,7 +68,7 @@ describe("Stay Manage", () => {
       .auth(admin.jwt, { type: "bearer" })
       .expect(200)
       .then((res) => {
-        expect(res.body.name).toBe("평상시");
+        expect(res.body.data.name).toBe("평상시");
       });
   });
 
@@ -79,7 +79,7 @@ describe("Stay Manage", () => {
       .auth(admin.jwt, { type: "bearer" })
       .expect(201)
       .then((res) => {
-        expect(res.body.name).toBe("평상시");
+        expect(res.body.data.name).toBe("평상시");
       });
   });
 
@@ -90,8 +90,8 @@ describe("Stay Manage", () => {
       .auth(admin.jwt, { type: "bearer" })
       .expect(200)
       .then((res) => {
-        schedule_id = res.body[0].id;
-        expect(res.body[0].name).toBe("평상시");
+        schedule_id = res.body.data[0].id;
+        expect(res.body.data[0].name).toBe("평상시");
       });
   });
 
@@ -102,7 +102,7 @@ describe("Stay Manage", () => {
       .auth(admin.jwt, { type: "bearer" })
       .expect(200)
       .then((res) => {
-        expect(res.body.name).toBe("평상시");
+        expect(res.body.data.name).toBe("평상시");
       });
   });
 
@@ -113,7 +113,7 @@ describe("Stay Manage", () => {
       .auth(admin.jwt, { type: "bearer" })
       .expect(201)
       .then((res) => {
-        expect(res.body.name).toBe("평상시");
+        expect(res.body.data.name).toBe("평상시");
       });
   });
 
@@ -124,8 +124,8 @@ describe("Stay Manage", () => {
       .auth(admin.jwt, { type: "bearer" })
       .expect(200)
       .then((res) => {
-        stay_id = res.body[0].id;
-        expect(res.body[0].name).toBe("평상시");
+        stay_id = res.body.data[0].id;
+        expect(res.body.data[0].name).toBe("평상시");
       });
   });
 
@@ -136,7 +136,7 @@ describe("Stay Manage", () => {
       .auth(admin.jwt, { type: "bearer" })
       .expect(200)
       .then((res) => {
-        expect(res.body.name).toBe("평상시");
+        expect(res.body.data.name).toBe("평상시");
       });
   });
 
@@ -147,7 +147,7 @@ describe("Stay Manage", () => {
       .auth(admin.jwt, { type: "bearer" })
       .expect(200)
       .then((res) => {
-        expect(res.body.name).toBe("평상시");
+        expect(res.body.data.name).toBe("평상시");
       });
   });
 
@@ -158,8 +158,8 @@ describe("Stay Manage", () => {
       .auth(admin.jwt, { type: "bearer" })
       .expect(201)
       .then((res) => {
-        expect(res.body.stay_seat).toBe("A1");
-        expect(res.body.outing[0].reason).toBe("자기계발외출");
+        expect(res.body.data.stay_seat).toBe("A1");
+        expect(res.body.data.outing[0].reason).toBe("자기계발외출");
       });
   });
 
@@ -170,8 +170,8 @@ describe("Stay Manage", () => {
       .auth(admin.jwt, { type: "bearer" })
       .expect(200)
       .then((res) => {
-        stay_apply_id = res.body[0].id;
-        expect(res.body[0].stay.name).toBe("평상시");
+        stay_apply_id = res.body.data[0].id;
+        expect(res.body.data[0].stay.name).toBe("평상시");
       });
   });
 
@@ -183,9 +183,9 @@ describe("Stay Manage", () => {
       .auth(admin.jwt, { type: "bearer" })
       .expect(200)
       .then((res) => {
-        outing_id = res.body.outing[0].id;
-        expect(res.body.stay_seat).toBe("A1");
-        expect(res.body.outing[0].reason).toBe("자기계발외출");
+        outing_id = res.body.data.outing[0].id;
+        expect(res.body.data.stay_seat).toBe("A1");
+        expect(res.body.data.outing[0].reason).toBe("자기계발외출");
       });
   });
 
@@ -196,8 +196,8 @@ describe("Stay Manage", () => {
       .auth(admin.jwt, { type: "bearer" })
       .expect(200)
       .then((res) => {
-        expect(res.body.stay_seat).toBe("A1");
-        expect(res.body.outing[0].reason).toBe("자기계발외출");
+        expect(res.body.data.stay_seat).toBe("A1");
+        expect(res.body.data.outing[0].reason).toBe("자기계발외출");
       });
   });
 
@@ -208,8 +208,8 @@ describe("Stay Manage", () => {
       .auth(admin.jwt, { type: "bearer" })
       .expect(200)
       .then((res) => {
-        expect(res.body.approved).toBe(true);
-        expect(res.body.audit_reason).toBe("");
+        expect(res.body.data.approved).toBe(true);
+        expect(res.body.data.audit_reason).toBe("");
       });
   });
 
@@ -220,9 +220,9 @@ describe("Stay Manage", () => {
       .auth(admin.jwt, { type: "bearer" })
       .expect(200)
       .then((res) => {
-        expect(res.body.breakfast_cancel).toBe(true);
-        expect(res.body.lunch_cancel).toBe(true);
-        expect(res.body.dinner_cancel).toBe(true);
+        expect(res.body.data.breakfast_cancel).toBe(true);
+        expect(res.body.data.lunch_cancel).toBe(true);
+        expect(res.body.data.dinner_cancel).toBe(true);
       });
   });
 

@@ -24,7 +24,7 @@ export class GoogleLoginDTO {
 }
 
 export class RefreshTokenDTO {
-  @ApiProperty()
+  @ApiProperty({ required: false })
   refreshToken?: string;
 }
 

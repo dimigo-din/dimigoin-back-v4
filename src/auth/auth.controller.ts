@@ -2,7 +2,9 @@ import * as process from "node:process";
 
 import { Body, Controller, Get, HttpStatus, Post, Query, Req, Res } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
+import { ApiOperation, ApiTags } from "@nestjs/swagger";
+
+import { ApiResponseFormat } from "src/common/dto/response_format.dto";
 
 import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE } from "../common/mapper/constants";
 
@@ -39,7 +41,7 @@ export class AuthController {
     summary: "로그인 - 비밀번호",
     description: "비밀번호를 이용한 로그인입니다.",
   })
-  @ApiResponse({
+  @ApiResponseFormat({
     status: HttpStatus.OK,
     type: JWTResponse,
   })
@@ -55,7 +57,7 @@ export class AuthController {
     summary: "로그인 - 구글",
     description: "구글 OAuth2 로그인 화면으로 리다이렉트하는 엔드포인트입니다.",
   })
-  @ApiResponse({
+  @ApiResponseFormat({
     status: HttpStatus.FOUND,
   })
   @Get("/login/google")
@@ -67,7 +69,7 @@ export class AuthController {
     summary: "로그인 콜백 - 구글",
     description: "구글 로그인 콜백 엔드포인트입니다.",
   })
-  @ApiResponse({
+  @ApiResponseFormat({
     status: HttpStatus.FOUND,
     type: JWTResponse,
   })
@@ -82,11 +84,11 @@ export class AuthController {
     summary: "토큰 재발급",
     description: "만료된 accessToken을 재발급받습니다.",
   })
-  @ApiResponse({
+  @ApiResponseFormat({
     status: HttpStatus.OK,
     type: JWTResponse,
   })
-  @Get("/refresh")
+  @Post("/refresh")
   async refreshToken(@Req() req, @Res({ passthrough: true }) res, @Body() data: RefreshTokenDTO) {
     let token;
     if (!data || !data.refreshToken) {
@@ -103,7 +105,7 @@ export class AuthController {
     summary: "로그아웃",
     description: "로그아웃합니다.",
   })
-  @ApiResponse({
+  @ApiResponseFormat({
     status: HttpStatus.OK,
   })
   @UseGuardsWithSwagger(CustomJwtAuthGuard)

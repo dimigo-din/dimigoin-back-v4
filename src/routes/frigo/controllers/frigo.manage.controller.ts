@@ -1,11 +1,12 @@
 import { Body, Controller, Delete, Get, HttpStatus, Patch, Post, Query } from "@nestjs/common";
-import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
+import { ApiOperation, ApiTags } from "@nestjs/swagger";
 
 import { FrigoApply, FrigoApplyPeriod } from "src/schemas";
 
 import { CustomJwtAuthGuard } from "../../../auth/guards";
 import { PermissionGuard } from "../../../auth/guards/permission.guard";
 import { UseGuardsWithSwagger } from "../../../auth/guards/useGuards";
+import { ApiResponseFormat } from "../../../common/dto/response_format.dto";
 import { PermissionEnum } from "../../../common/mapper/permissions";
 import {
   AuditFrigoApply,
@@ -26,7 +27,7 @@ export class FrigoManageController {
     summary: "금요귀가 신청 기간 확인",
     description: "금요귀가 신청 기간을 불러옵니다.",
   })
-  @ApiResponse({
+  @ApiResponseFormat({
     status: HttpStatus.OK,
     type: [FrigoApplyPeriod],
   })
@@ -39,7 +40,7 @@ export class FrigoManageController {
     summary: "금요귀가 신청 기간 설정",
     description: "금요귀가 신청 기간을 설정합니다. 신청 기간이 존재하지 않을 시, 새로 생성합니다.",
   })
-  @ApiResponse({
+  @ApiResponseFormat({
     status: HttpStatus.OK,
     type: FrigoApply,
   })
@@ -53,7 +54,7 @@ export class FrigoManageController {
     description:
       "금요귀가 신청 기간을 삭제합니다. 삭제할시 해당 학년의 금요귀가 신청이 다시 일정이 생성될때까지 불가합니다.",
   })
-  @ApiResponse({
+  @ApiResponseFormat({
     status: HttpStatus.OK,
     type: FrigoApplyPeriod,
   })
@@ -66,7 +67,7 @@ export class FrigoManageController {
     summary: "금요귀가 신청자 리스트",
     description: "금요귀가 신청자 목록을 불러옵니다.",
   })
-  @ApiResponse({
+  @ApiResponseFormat({
     status: HttpStatus.OK,
     type: [FrigoApply],
   })
@@ -79,7 +80,7 @@ export class FrigoManageController {
     summary: "금요귀가 신청",
     description: "학생의 금요귀가를 신청하고 자동으로 수리합니다.",
   })
-  @ApiResponse({
+  @ApiResponseFormat({
     status: HttpStatus.OK,
     type: FrigoApply,
   })
@@ -92,7 +93,7 @@ export class FrigoManageController {
     summary: "금요귀가 신청 삭제",
     description: "학생의 금요귀가 신청을 삭제합니다.",
   })
-  @ApiResponse({
+  @ApiResponseFormat({
     status: HttpStatus.OK,
     type: FrigoApply,
   })
@@ -106,7 +107,7 @@ export class FrigoManageController {
     description:
       "학생의 금요귀가 신청을 수리하거나 반려시킵니다. null값을 apporved에 제공시 심사대기상태로 기록됩니다.",
   })
-  @ApiResponse({
+  @ApiResponseFormat({
     status: HttpStatus.OK,
     type: FrigoApply,
   })

@@ -1,12 +1,13 @@
 import { Body, Controller, Delete, Get, HttpStatus, Post, Query, Req } from "@nestjs/common";
-import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
+import { ApiOperation, ApiTags } from "@nestjs/swagger";
 
 import { CustomJwtAuthGuard } from "../../../auth/guards";
 import { PermissionGuard } from "../../../auth/guards/permission.guard";
 import { UseGuardsWithSwagger } from "../../../auth/guards/useGuards";
+import { ApiResponseFormat } from "../../../common/dto/response_format.dto";
 import { PermissionEnum } from "../../../common/mapper/permissions";
 import { LaundryApply, LaundryTimeline } from "../../../schemas";
-import { LaundryApplyDTO, LaundryApplyIdDTO } from "../dto/laundry.dto";
+import { LaundryApplyDTO } from "../dto/laundry.dto";
 import { LaundryService } from "../providers/laundry.service";
 
 @ApiTags("Laundry")
@@ -19,7 +20,7 @@ export class LaundryController {
     summary: "세탁 시간표",
     description: "현재 세탁 시간표를 불러옵니다.",
   })
-  @ApiResponse({
+  @ApiResponseFormat({
     status: HttpStatus.OK,
     type: LaundryTimeline,
   })
@@ -32,7 +33,7 @@ export class LaundryController {
     summary: "세탁 신청 목록",
     description: "전체 세탁 신청 목록을 가져옵니다.",
   })
-  @ApiResponse({
+  @ApiResponseFormat({
     status: HttpStatus.OK,
     type: [LaundryApply],
   })
@@ -45,7 +46,7 @@ export class LaundryController {
     summary: "세탁 신청",
     description: "세탁을 신청합니다.",
   })
-  @ApiResponse({
+  @ApiResponseFormat({
     status: HttpStatus.OK,
     type: LaundryApply,
   })
@@ -58,7 +59,7 @@ export class LaundryController {
     summary: "세탁 취소",
     description: "세탁 신청을 취소합니다.",
   })
-  @ApiResponse({
+  @ApiResponseFormat({
     status: HttpStatus.OK,
     type: LaundryApply,
   })

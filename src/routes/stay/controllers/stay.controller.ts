@@ -1,12 +1,13 @@
 import { Body, Controller, Delete, Get, HttpStatus, Patch, Post, Query, Req } from "@nestjs/common";
-import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
+import { ApiOperation, ApiTags } from "@nestjs/swagger";
 
 import { CustomJwtAuthGuard } from "../../../auth/guards";
 import { PermissionGuard } from "../../../auth/guards/permission.guard";
 import { UseGuardsWithSwagger } from "../../../auth/guards/useGuards";
+import { ApiResponseFormat } from "../../../common/dto/response_format.dto";
 import { PermissionEnum } from "../../../common/mapper/permissions";
 import { Stay, StayApply } from "../../../schemas";
-import { CreateStayApplyDTO, StayApplyIdDTO, StayIdDTO } from "../dto/stay.dto";
+import { CreateStayApplyDTO, StayIdDTO } from "../dto/stay.dto";
 import { StayService } from "../providers";
 
 @ApiTags("Stay")
@@ -19,7 +20,7 @@ export class StayController {
     summary: "잔류 목록",
     description: "활성화된 잔류 목록을 가져옵니다.",
   })
-  @ApiResponse({
+  @ApiResponseFormat({
     status: HttpStatus.OK,
     type: [Stay],
   })
@@ -32,7 +33,7 @@ export class StayController {
     summary: "잔류 신청 목록",
     description: "자신이 신청한 잔류 목록을 불러옵니다.",
   })
-  @ApiResponse({
+  @ApiResponseFormat({
     status: HttpStatus.OK,
     type: [StayApply],
   })
@@ -45,7 +46,7 @@ export class StayController {
     summary: "잔류 신청",
     description: "잔류를 신청합니다.",
   })
-  @ApiResponse({
+  @ApiResponseFormat({
     status: HttpStatus.CREATED,
     type: StayApply,
   })
@@ -58,7 +59,7 @@ export class StayController {
     summary: "잔류 신청 수정",
     description: "신청한 잔류를 수정합니다.",
   })
-  @ApiResponse({
+  @ApiResponseFormat({
     status: HttpStatus.OK,
     type: StayApply,
   })
@@ -71,7 +72,7 @@ export class StayController {
     summary: "잔류 신청 취소",
     description: "신청한 잔류를 취소합니다",
   })
-  @ApiResponse({
+  @ApiResponseFormat({
     status: HttpStatus.OK,
     type: StayApply,
   })

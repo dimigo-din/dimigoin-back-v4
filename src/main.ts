@@ -3,8 +3,10 @@ import { ConfigService } from "@nestjs/config";
 import { NestFactory } from "@nestjs/core";
 import * as cookieParser from "cookie-parser";
 import { json } from "express";
+import importToArray from "import-to-array";
 
 import { AppModule } from "./app";
+import * as interceptors from "./common/interceptors";
 import { CustomSwaggerSetup } from "./common/modules/swagger.module";
 import { ValidationService } from "./common/modules/validation.module";
 
@@ -17,6 +19,7 @@ async function bootstrap() {
   app.use(cookieParser());
   app.use(json({ limit: "5000mb" }));
   app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalInterceptors(...importToArray(interceptors).map((i) => new i()));
 
   await CustomSwaggerSetup(app);
 

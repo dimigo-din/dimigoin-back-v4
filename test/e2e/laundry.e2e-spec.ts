@@ -40,8 +40,8 @@ describe("laundry", () => {
         .send(LaundryTimelineMock([machine_id]))
         .expect(201)
     ).body;
-    timeline_id = timelineBody.id;
-    time_id = timelineBody.times[0].id;
+    timeline_id = timelineBody.data.id;
+    time_id = timelineBody.data.times[0].id;
     await request(app.getHttpServer())
       .patch("/manage/laundry/timeline/enable")
       .auth(admin.jwt, { type: "bearer" })
@@ -79,7 +79,7 @@ describe("laundry", () => {
       .auth(user.jwt, { type: "bearer" })
       .expect(200)
       .then((res) => {
-        expect(res.body.name).toBe("평상시");
+        expect(res.body.data.name).toBe("평상시");
       });
   });
 
@@ -90,7 +90,7 @@ describe("laundry", () => {
       .send({ time: time_id, machine: machine_id })
       .expect(201)
       .then((res) => {
-        expect(res.body.date).toBe(moment().format("YYYY-MM-DD"));
+        expect(res.body.data.date).toBe(moment().format("YYYY-MM-DD"));
       });
   });
 
@@ -100,7 +100,7 @@ describe("laundry", () => {
       .auth(user.jwt, { type: "bearer" })
       .expect(200)
       .then((res) => {
-        expect(res.body.date).toBe(moment().format("YYYY-MM-DD"));
+        expect(res.body.data.date).toBe(moment().format("YYYY-MM-DD"));
       });
   });
 });

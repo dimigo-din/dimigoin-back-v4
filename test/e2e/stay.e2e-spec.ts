@@ -30,14 +30,14 @@ describe("stay", () => {
         .auth(admin.jwt, { type: "bearer" })
         .send(StaySeatPresetMock())
         .expect(201)
-    ).body.id;
+    ).body.data.id;
     stayId = (
       await request(app.getHttpServer())
         .post("/manage/stay")
         .send(StayMock(presetId))
         .auth(admin.jwt, { type: "bearer" })
         .expect(201)
-    ).body.id;
+    ).body.data.id;
   });
 
   afterAll(async () => {
@@ -72,7 +72,7 @@ describe("stay", () => {
       .auth(user.jwt, { type: "bearer" })
       .expect(201)
       .then((res) => {
-        expect(res.body.user.id).toBe(user.user.id);
+        expect(res.body.data.user.id).toBe(user.user.id);
       });
   });
 
@@ -83,7 +83,7 @@ describe("stay", () => {
       .auth(user.jwt, { type: "bearer" })
       .expect(200)
       .then((res) => {
-        expect(res.body.user.id).toBe(user.user.id);
+        expect(res.body.data.user.id).toBe(user.user.id);
       });
   });
 
@@ -94,7 +94,7 @@ describe("stay", () => {
       .auth(user.jwt, { type: "bearer" })
       .expect(200)
       .then((res) => {
-        expect(res.body.user.id).toBe(user.user.id);
+        expect(res.body.data.user.id).toBe(user.user.id);
       });
   });
 });

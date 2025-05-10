@@ -44,8 +44,8 @@ describe("laundry manage", () => {
       .send(FrigoApplyPeriodMock())
       .expect(201)
       .then((res) => {
-        period_id = res.body.id;
-        expect(res.body.grade).toBe(1);
+        period_id = res.body.data.id;
+        expect(res.body.data.grade).toBe(1);
       });
   });
 
@@ -57,9 +57,9 @@ describe("laundry manage", () => {
       .send(FrigoApplyManageMock(user.user.id))
       .expect(201)
       .then((res) => {
-        frigo_id = res.body.id;
-        expect(res.body.reason).toBe("집에가고싶어서");
-        expect(res.body.approved).toBe(true);
+        frigo_id = res.body.data.id;
+        expect(res.body.data.reason).toBe("집에가고싶어서");
+        expect(res.body.data.approved).toBe(true);
       });
   });
 
@@ -70,8 +70,8 @@ describe("laundry manage", () => {
       .send({ id: frigo_id, audit_reason: "집보내주기싫어서", approved: false })
       .expect(200)
       .then((res) => {
-        expect(res.body.audit_reason).toBe("집보내주기싫어서");
-        expect(res.body.approved).toBe(false);
+        expect(res.body.data.audit_reason).toBe("집보내주기싫어서");
+        expect(res.body.data.approved).toBe(false);
       });
   });
 
@@ -81,17 +81,17 @@ describe("laundry manage", () => {
       .auth(admin.jwt, { type: "bearer" })
       .expect(200)
       .then((res) => {
-        expect(res.body.affected).toBe(1);
+        expect(res.body.data.reason).toBe("집에가고싶어서");
       });
   });
 
-  it("delete apply", async () => {
+  it("delete apply period", async () => {
     return request(app.getHttpServer())
       .delete("/manage/frigo/period?id=" + period_id)
       .auth(admin.jwt, { type: "bearer" })
       .expect(200)
       .then((res) => {
-        expect(res.body.affected).toBe(1);
+        expect(res.body.data.grade).toBe(1);
       });
   });
 });
