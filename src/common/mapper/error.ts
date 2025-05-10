@@ -18,6 +18,11 @@ export const ErrorMsg = {
 
   ProvidedTime_Invalid: () => "제공하신 시간이 조건에 충족하지 않습니다.",
 
+  FrigoPeriod_NotExistsForGrade: () =>
+    "해당 학년은 금요귀가 신청이 불가능합니다. 담임 선생님께 문의주세요.",
+  FrigoPeriod_NotInApplyPeriod: (from_day, from_hour, to_hour, to_day) =>
+    `금요귀가 신청기간이 아닙니다. 신청기간: ${from_day}요일 ${from_hour}시 ~ ${to_day}요일 ${to_hour}`,
+
   LaundryApply_AlreadyExists: () => "이미 세탁 신청을 하셨습니다.",
   LaundryMachine_AlreadyTaken: () => "이미 해당 세탁/건조기가 신청된 상태입니다.",
 

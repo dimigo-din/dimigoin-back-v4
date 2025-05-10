@@ -120,7 +120,7 @@ export class AuthService {
     // cannot be called. if called, it's a bug. (jwt strategy should catch this)
     if (!session) throw new HttpException("Cannot find valid session.", 404);
 
-    await this.sessionRepository.delete(session);
+    await this.sessionRepository.remove(session);
 
     return session;
   }
