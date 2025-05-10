@@ -7,7 +7,7 @@ import { FrigoApplyPeriodMock } from "../mocks/frigo-apply-period.mock";
 import { AdminUserMock, StudentUserMock } from "../mocks/user.mock";
 import { UserMock } from "../types";
 
-describe("laundry manage", () => {
+describe("frigo manage", () => {
   let app: INestApplication;
   let admin: UserMock;
   let user: UserMock;
