@@ -42,7 +42,11 @@ export class FrigoManageService {
   }
 
   async removeApplyPeriod(data: FrigoApplyPeriodIdDTO) {
-    return await this.frigoApplyPeriodRepository.delete({ id: data.id });
+    const period = await safeFindOne<FrigoApplyPeriod>(this.frigoApplyPeriodRepository, {
+      where: { id: data.id },
+    });
+
+    return await this.frigoApplyPeriodRepository.remove(period);
   }
 
   async getApplyList() {
@@ -69,7 +73,11 @@ export class FrigoManageService {
   }
 
   async removeApply(data: FrigoApplyIdDTO) {
-    return await this.frigoApplyRepository.delete(data.id);
+    const apply = await safeFindOne<FrigoApply>(this.frigoApplyRepository, {
+      where: { id: data.id },
+    });
+
+    return await this.frigoApplyRepository.remove(apply);
   }
 
   async auditApply(data: AuditFrigoApply) {
