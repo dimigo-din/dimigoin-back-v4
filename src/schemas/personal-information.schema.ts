@@ -1,6 +1,6 @@
 import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 
-import { Gender, Grade } from "../common/mapper/types";
+import { Class, Gender, Grade } from "../common/mapper/types";
 
 // This is temporal entity for testing before auth server being built.
 @Entity()
@@ -15,7 +15,7 @@ export class PersonalInformationSchema {
   grade: Grade;
 
   @Column("int")
-  class: number;
+  class: Class;
 
   @Column("int")
   number: number;

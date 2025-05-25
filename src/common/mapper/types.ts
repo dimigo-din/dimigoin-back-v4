@@ -1,4 +1,4 @@
-import { User, PersonalInformationSchema } from "../../schemas";
+import { User, PersonalInformationSchema, FacilityReport } from "../../schemas";
 
 export const LoginTypeValues = ["password", "google"] as const;
 export type LoginType = (typeof LoginTypeValues)[number];
@@ -8,6 +8,9 @@ export type PermissionValidationType = (typeof PermissionValidationTypeValues)[n
 
 export const GradeValues = [1, 2, 3] as const;
 export type Grade = (typeof GradeValues)[number];
+
+export const ClassValues = [1, 2, 3, 4, 5, 6] as const;
+export type Class = (typeof ClassValues)[number];
 
 export const GenderValues = ["male", "female"] as const;
 export type Gender = (typeof GenderValues)[number];
@@ -37,4 +40,25 @@ export const FrigoTimingValues = [
 ] as const;
 export type FrigoTiming = (typeof FrigoTimingValues)[number];
 
-export type UserJWT = User & (PersonalInformationSchema & { sessionIdentifier?: string });
+export const FacilityReportTypeValues = ["suggest", "broken", "danger"] as const;
+export type FacilityReportType = (typeof FacilityReportTypeValues)[number];
+
+export const FacilityReportStatusValues = [
+  "Waiting",
+  "UnderReview",
+  "Working",
+  "Done",
+  "Ignored",
+  "Failed",
+] as const;
+export type FacilityReportStatus = (typeof FacilityReportStatusValues)[number];
+
+export type PersonalData = {
+  gender: string;
+  grade: Grade;
+  class: Class;
+  number: number;
+  hakbun: string;
+};
+
+export type UserJWT = User & PersonalData & { sessionIdentifier?: string };

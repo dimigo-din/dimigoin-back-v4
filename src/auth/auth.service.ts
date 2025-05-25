@@ -133,7 +133,7 @@ export class AuthService {
   ): Promise<{ accessToken: string; refreshToken: string }> {
     const sessionIdentifier = crypto.randomBytes(30).toString("hex");
 
-    const userDetail = await this.userManageService.fetchUserDetail({ email: user.email });
+    const userDetail = await this.userManageService.fetchUserDetail(user.email)[0];
 
     // refresh expire: 1 month
     const keyPair = {

@@ -57,7 +57,7 @@ export class StayManageService {
     private readonly stayApplyPeriod_Stay_Repository: Repository<StayApplyPeriod_Stay>,
     @InjectRepository(StayApplyPeriod_StaySchedule)
     private readonly stayApplyPeriod_StaySchedule_Repository: Repository<StayApplyPeriod_StaySchedule>,
-    private readonly userManageServie: UserManageService,
+    private readonly userManageService: UserManageService,
   ) {}
 
   async getStaySeatPresetList() {
@@ -294,10 +294,16 @@ export class StayManageService {
     const stay = await this.getStay(data);
     if (!stay) throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
 
-    return (await this.stayApplyRepository.find({ where: { stay: stay } })).map((e) => {
+    const applies = await this.stayApplyRepository.find({ where: { stay: stay } });
+
+    const personalData = await this.userManageService.fetchUserDetail(
+      ...applies.map((a) => a.user.email),
+    );
+
+    return applies.map((e, i) => {
       return {
         id: e.id,
-        user: e.user,
+        user: { ...e.user, ...personalData[i] },
         stay: e.stay,
       };
     });
@@ -309,7 +315,7 @@ export class StayManageService {
       ...stayApply,
       user: {
         ...stayApply.user,
-        ...(await this.userManageServie.fetchUserDetail({ email: stayApply.user.email })),
+        ...(await this.userManageService.fetchUserDetail(stayApply.user.email)),
       },
     };
   }

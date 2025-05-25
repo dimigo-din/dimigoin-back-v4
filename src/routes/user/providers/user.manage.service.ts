@@ -5,6 +5,7 @@ import { Repository } from "typeorm";
 
 import { ErrorMsg } from "../../../common/mapper/error";
 import { PermissionType } from "../../../common/mapper/permissions";
+import { PersonalData } from "../../../common/mapper/types";
 import { numberPermission, parsePermission } from "../../../common/utils/permission.util";
 import { Login, User } from "../../../schemas";
 import { PersonalInformationSchema } from "../../../schemas/personal-information.schema";
@@ -27,36 +28,26 @@ export class UserManageService {
   }
 
   // TODO: get from array like fetchUserDetail(...email)
-  async fetchUserDetail(data: { id?: string; email?: string }) {
-    if (data.id) {
-      const user = await this.userRepository.findOne({ where: { id: data.id } });
-      if (!user) throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
+  async fetchUserDetail(...emails: string[]): Promise<PersonalData[]> {
+    const data: PersonalData[] = [];
 
+    for (const email of emails) {
       const personalInformation = await this.personalInformationRepository.findOne({
-        where: { email: user.email },
+        where: { email: email },
       });
 
-      return {
-        email: personalInformation.email,
-        grade: personalInformation.grade,
-        class: personalInformation.class,
-        number: personalInformation.number,
-        hakbun: personalInformation.hakbun,
-        gender: personalInformation.gender,
-      };
-    } else if (data.email) {
-      const personalInformation = await this.personalInformationRepository.findOne({
-        where: { email: data.email },
-      });
-
-      return {
-        email: personalInformation.email,
-        grade: personalInformation.grade,
-        class: personalInformation.class,
-        number: personalInformation.number,
-        hakbun: personalInformation.hakbun,
-      };
+      if (personalInformation)
+        data.push({
+          gender: personalInformation.gender,
+          grade: personalInformation.grade,
+          class: personalInformation.class,
+          number: personalInformation.number,
+          hakbun: personalInformation.hakbun,
+        });
+      else data.push(null);
     }
+
+    return data;
   }
 
   async createUser(data: CreateUserDTO): Promise<User> {
