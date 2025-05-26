@@ -77,7 +77,8 @@ describe("frigo manage", () => {
 
   it("delete apply", async () => {
     return request(app.getHttpServer())
-      .delete("/manage/frigo?id=" + frigo_id)
+      .delete("/manage/frigo")
+      .query({ id: frigo_id })
       .auth(admin.jwt, { type: "bearer" })
       .expect(200)
       .then((res) => {
@@ -87,7 +88,8 @@ describe("frigo manage", () => {
 
   it("delete apply period", async () => {
     return request(app.getHttpServer())
-      .delete("/manage/frigo/period?id=" + period_id)
+      .delete("/manage/frigo/period")
+      .query({ id: period_id })
       .auth(admin.jwt, { type: "bearer" })
       .expect(200)
       .then((res) => {

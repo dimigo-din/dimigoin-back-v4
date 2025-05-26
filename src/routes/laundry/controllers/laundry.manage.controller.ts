@@ -88,7 +88,7 @@ export class LaundryManageController {
     type: LaundryTimeline,
   })
   @Delete("/timeline")
-  async deelteLaundryTimeline(@Query() data: LaundryTimelineIdDTO) {
+  async deleteLaundryTimeline(@Query() data: LaundryTimelineIdDTO) {
     return await this.laundryManageService.deleteLaundryTimeline(data);
   }
 

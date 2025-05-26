@@ -91,7 +91,8 @@ describe("stay", () => {
 
   it("delete stay apply", async () => {
     return request(app.getHttpServer())
-      .delete("/stay/apply?id=" + apply_id)
+      .delete("/stay/apply")
+      .query({ id: apply_id })
       .auth(user.jwt, { type: "bearer" })
       .expect(200)
       .then((res) => {

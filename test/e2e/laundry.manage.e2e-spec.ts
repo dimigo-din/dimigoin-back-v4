@@ -100,7 +100,8 @@ describe("laundry manage", () => {
 
   it("get laundry time list", async () => {
     return request(app.getHttpServer())
-      .get(`/manage/laundry/timeline?id=${laundryTimeline_id}`)
+      .get("/manage/laundry/timeline")
+      .query({ id: laundryTimeline_id })
       .auth(admin.jwt, { type: "bearer" })
       .expect(200)
       .then((res) => {
@@ -148,7 +149,8 @@ describe("laundry manage", () => {
 
   it("delete laundry apply", async () => {
     return request(app.getHttpServer())
-      .delete("/manage/laundry/apply?id=" + apply_id)
+      .delete("/manage/laundry/apply")
+      .query({ id: apply_id })
       .auth(admin.jwt, { type: "bearer" })
       .expect(200)
       .then((res) => {
@@ -158,7 +160,8 @@ describe("laundry manage", () => {
 
   it("delete timeline", async () => {
     return request(app.getHttpServer())
-      .delete("/manage/laundry/timeline?id=" + laundryTimeline_id)
+      .delete("/manage/laundry/timeline")
+      .query({ id: laundryTimeline_id })
       .auth(admin.jwt, { type: "bearer" })
       .expect(200)
       .then((res) => {
@@ -168,7 +171,8 @@ describe("laundry manage", () => {
 
   it("delete machine", async () => {
     return request(app.getHttpServer())
-      .delete("/manage/laundry/machine?id=" + machine_id)
+      .delete("/manage/laundry/machine")
+      .query({ id: machine_id })
       .auth(admin.jwt, { type: "bearer" })
       .expect(200)
       .then((res) => {

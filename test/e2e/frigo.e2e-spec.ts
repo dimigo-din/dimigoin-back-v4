@@ -33,7 +33,8 @@ describe("frigo manage", () => {
 
   afterAll(async () => {
     await request(app.getHttpServer())
-      .delete("/manage/frigo/period?id=" + period_id)
+      .delete("/manage/frigo/period")
+      .query({ id: period_id })
       .auth(admin.jwt, { type: "bearer" })
       .expect(200);
 

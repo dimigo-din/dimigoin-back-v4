@@ -51,11 +51,13 @@ describe("laundry", () => {
 
   afterAll(async () => {
     await request(app.getHttpServer())
-      .delete("/manage/laundry/timeline?id=" + timeline_id)
+      .delete("/manage/laundry/timeline")
+      .query({ id: timeline_id })
       .auth(admin.jwt, { type: "bearer" })
       .expect(200);
     await request(app.getHttpServer())
-      .delete("/manage/laundry/machine?id=" + machine_id)
+      .delete("/manage/laundry/machine")
+      .query({ id: machine_id })
       .auth(admin.jwt, { type: "bearer" })
       .expect(200);
     await user.delete();
