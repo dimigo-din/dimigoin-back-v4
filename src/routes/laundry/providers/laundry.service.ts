@@ -38,7 +38,7 @@ export class LaundryService {
   }
 
   async createApply(user: UserJWT, data: LaundryApplyDTO) {
-    const dbUser = await safeFindOne<User>(this.userRepository, { where: { id: user.id } });
+    const dbUser = await safeFindOne<User>(this.userRepository, user.id);
 
     const applyExists = await this.laundryApplyRepository.findOne({ where: { user: dbUser } });
     if (applyExists)
@@ -47,12 +47,8 @@ export class LaundryService {
     const timeline = await safeFindOne<LaundryTimeline>(this.laundryTimelineRepository, {
       where: { times: { id: data.time } },
     });
-    const time = await safeFindOne<LaundryTime>(this.laundryTimeRepository, {
-      where: { id: data.time },
-    });
-    const machine = await safeFindOne<LaundryMachine>(this.laundryMachineRepository, {
-      where: { id: data.machine },
-    });
+    const time = await safeFindOne<LaundryTime>(this.laundryTimeRepository, data.time);
+    const machine = await safeFindOne<LaundryMachine>(this.laundryMachineRepository, data.machine);
 
     if (time.grade !== user.grade)
       throw new HttpException(ErrorMsg.PermissionDenied_Resource_Grade(), HttpStatus.FORBIDDEN);

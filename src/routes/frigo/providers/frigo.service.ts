@@ -56,7 +56,7 @@ export class FrigoService {
       );
 
     // apply
-    const dbUser = await safeFindOne<User>(this.userRepository, { where: { id: user.id } });
+    const dbUser = await safeFindOne<User>(this.userRepository, user.id);
 
     const apply = new FrigoApply();
     apply.timing = data.timing;

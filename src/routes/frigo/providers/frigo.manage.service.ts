@@ -5,6 +5,7 @@ import { Repository } from "typeorm";
 
 import { safeFindOne } from "../../../common/utils/safeFindOne.util";
 import { FrigoApply, FrigoApplyPeriod, User } from "../../../schemas";
+import { UserManageService } from "../../user/providers";
 import {
   FrigoApplyDTO,
   AuditFrigoApply,
@@ -22,6 +23,7 @@ export class FrigoManageService {
     private readonly frigoApplyRepository: Repository<FrigoApply>,
     @InjectRepository(FrigoApplyPeriod)
     private readonly frigoApplyPeriodRepository: Repository<FrigoApplyPeriod>,
+    private readonly userManageService: UserManageService,
   ) {}
 
   async getApplyPeriod() {
@@ -42,22 +44,29 @@ export class FrigoManageService {
   }
 
   async removeApplyPeriod(data: FrigoApplyPeriodIdDTO) {
-    const period = await safeFindOne<FrigoApplyPeriod>(this.frigoApplyPeriodRepository, {
-      where: { id: data.id },
-    });
+    const period = await safeFindOne<FrigoApplyPeriod>(this.frigoApplyPeriodRepository, data.id);
 
     return await this.frigoApplyPeriodRepository.remove(period);
   }
 
   async getApplyList() {
     const week = moment().startOf("week").format("YYYY-MM-DD");
+    const applies = await this.frigoApplyRepository.find({ where: { week: week } });
 
-    return await this.frigoApplyRepository.find({ where: { week: week } });
+    const personalData = await this.userManageService.fetchUserDetail(
+      ...applies.map((a) => a.user.email),
+    );
+    return applies.map((a, i) => {
+      return {
+        ...a,
+        user: { ...a.user, ...personalData[i] },
+      };
+    });
   }
 
   // considering: separate update and apply
   async apply(data: FrigoApplyDTO) {
-    const user = await safeFindOne<User>(this.userRepository, { where: { id: data.user } });
+    const user = await safeFindOne<User>(this.userRepository, data.user);
 
     const week = moment().startOf("week").format("YYYY-MM-DD");
     const exists = await this.frigoApplyRepository.findOne({ where: { week: week } });
@@ -73,17 +82,13 @@ export class FrigoManageService {
   }
 
   async removeApply(data: FrigoApplyIdDTO) {
-    const apply = await safeFindOne<FrigoApply>(this.frigoApplyRepository, {
-      where: { id: data.id },
-    });
+    const apply = await safeFindOne<FrigoApply>(this.frigoApplyRepository, data.id);
 
     return await this.frigoApplyRepository.remove(apply);
   }
 
   async auditApply(data: AuditFrigoApply) {
-    const apply = await safeFindOne<FrigoApply>(this.frigoApplyRepository, {
-      where: { id: data.id },
-    });
+    const apply = await safeFindOne<FrigoApply>(this.frigoApplyRepository, data.id);
 
     apply.audit_reason = data.audit_reason;
     apply.approved = data.approved;

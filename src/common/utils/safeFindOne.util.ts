@@ -3,12 +3,17 @@ import { FindOneOptions, Repository } from "typeorm";
 
 import { ErrorMsg } from "../mapper/error";
 
-export const safeFindOne = async <T>(
+type IdTable = { id: string };
+
+export const safeFindOne = async <T extends IdTable>(
   repo: Repository<T>,
-  condition: FindOneOptions<T>,
+  condition: FindOneOptions<T> | string,
   error = new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND),
 ) => {
-  const result = await repo.findOne(condition);
+  const result =
+    typeof condition === "string"
+      ? await repo.findOne({ where: { id: condition } as FindOneOptions<T>["where"] })
+      : await repo.findOne(condition);
   if (!result) throw error;
   return result;
 };

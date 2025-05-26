@@ -70,9 +70,10 @@ export class StayManageService {
 
   // TODO: stay seat merging
   async getStaySeatPreset(data: StaySeatPresetIdDTO) {
-    const staySeatPreset = await safeFindOne<StaySeatPreset>(this.staySeatPresetRepository, {
-      where: { id: data.id },
-    });
+    const staySeatPreset = await safeFindOne<StaySeatPreset>(
+      this.staySeatPresetRepository,
+      data.id,
+    );
 
     return staySeatPreset;
   }
@@ -100,9 +101,10 @@ export class StayManageService {
   }
 
   async updateStaySeatPreset(data: UpdateStaySeatPresetDTO) {
-    const staySeatPreset = await safeFindOne<StaySeatPreset>(this.staySeatPresetRepository, {
-      where: { id: data.id },
-    });
+    const staySeatPreset = await safeFindOne<StaySeatPreset>(
+      this.staySeatPresetRepository,
+      data.id,
+    );
     staySeatPreset.name = data.name;
     staySeatPreset.only_readingRoom = data.only_readingRoom;
 
@@ -124,9 +126,10 @@ export class StayManageService {
   }
 
   async deleteStaySeatPreset(data: StaySeatPresetIdDTO) {
-    const staySeatPreset = await safeFindOne<StaySeatPreset>(this.staySeatPresetRepository, {
-      where: { id: data.id },
-    });
+    const staySeatPreset = await safeFindOne<StaySeatPreset>(
+      this.staySeatPresetRepository,
+      data.id,
+    );
 
     return await this.staySeatPresetRepository.remove(staySeatPreset);
   }
@@ -181,9 +184,7 @@ export class StayManageService {
     if (!staySeatPreset)
       throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
 
-    const staySchedule = await safeFindOne<StaySchedule>(this.stayScheduleRepository, {
-      where: { id: data.id },
-    });
+    const staySchedule = await safeFindOne<StaySchedule>(this.stayScheduleRepository, data.id);
 
     // update period
     staySchedule.name = data.name;
@@ -210,9 +211,7 @@ export class StayManageService {
   }
 
   async deleteStaySchedule(data: StayScheduleIdDTO) {
-    const staySchedule = await safeFindOne<StaySchedule>(this.stayScheduleRepository, {
-      where: { id: data.id },
-    });
+    const staySchedule = await safeFindOne<StaySchedule>(this.stayScheduleRepository, data.id);
 
     return await this.stayScheduleRepository.remove(staySchedule);
   }
@@ -256,7 +255,7 @@ export class StayManageService {
   }
 
   async updateStay(data: UpdateStayDTO) {
-    const stay = await safeFindOne<Stay>(this.stayRepository, { where: { id: data.id } });
+    const stay = await safeFindOne<Stay>(this.stayRepository, data.id);
 
     const staySeatPreset = await this.staySeatPresetRepository.findOne({
       where: { id: data.seat_preset },
@@ -285,7 +284,7 @@ export class StayManageService {
   }
 
   async deleteStay(data: DeleteStayDTO) {
-    const stay = await safeFindOne<Stay>(this.stayRepository, { where: { id: data.id } });
+    const stay = await safeFindOne<Stay>(this.stayRepository, data.id);
 
     return await this.stayRepository.remove(stay);
   }
@@ -321,8 +320,8 @@ export class StayManageService {
   }
 
   async createStayApply(data: CreateStayApplyDTO) {
-    const user = await safeFindOne<User>(this.userRepository, { where: { id: data.user } });
-    const stay = await safeFindOne<Stay>(this.stayRepository, { where: { id: data.stay } });
+    const user = await safeFindOne<User>(this.userRepository, data.user);
+    const stay = await safeFindOne<Stay>(this.stayRepository, data.stay);
 
     const exists = await this.stayApplyRepository.findOne({
       where: { user: user, stay: stay },
@@ -361,11 +360,9 @@ export class StayManageService {
   }
 
   async updateStayApply(data: UpdateStayApplyDTO) {
-    const stayApply = await safeFindOne<StayApply>(this.stayApplyRepository, {
-      where: { id: data.id },
-    });
-    const user = await safeFindOne<User>(this.userRepository, { where: { id: data.user } });
-    const stay = await safeFindOne<Stay>(this.stayRepository, { where: { id: data.stay } });
+    const stayApply = await safeFindOne<StayApply>(this.stayApplyRepository, data.id);
+    const user = await safeFindOne<User>(this.userRepository, data.user);
+    const stay = await safeFindOne<Stay>(this.stayRepository, data.stay);
 
     const staySeatCheck = await this.stayApplyRepository.findOne({
       where: { stay_seat: data.stay_seat.toUpperCase(), stay: stay },
@@ -398,17 +395,13 @@ export class StayManageService {
   }
 
   async deleteStayApply(data: StayApplyIdDTO) {
-    const stayApply = await safeFindOne<StayApply>(this.stayApplyRepository, {
-      where: { id: data.id },
-    });
+    const stayApply = await safeFindOne<StayApply>(this.stayApplyRepository, data.id);
 
     return await this.stayApplyRepository.remove(stayApply);
   }
 
   async auditOuting(data: AuditOutingDTO) {
-    const outing = await safeFindOne<StayOuting>(this.stayOutingRepository, {
-      where: { id: data.id },
-    });
+    const outing = await safeFindOne<StayOuting>(this.stayOutingRepository, data.id);
 
     outing.approved = data.approved;
     outing.audit_reason = data.reason;
@@ -417,9 +410,7 @@ export class StayManageService {
   }
 
   async updateOutingMealCancel(data: UpdateOutingMealCancelDTO) {
-    const outing = await safeFindOne<StayOuting>(this.stayOutingRepository, {
-      where: { id: data.id },
-    });
+    const outing = await safeFindOne<StayOuting>(this.stayOutingRepository, data.id);
 
     outing.breakfast_cancel = data.breakfast_cancel;
     outing.lunch_cancel = data.lunch_cancel;

@@ -40,7 +40,7 @@ export class StayService {
   }
 
   async createStayApply(user: UserJWT, data: CreateStayApplyDTO) {
-    const target = await safeFindOne<User>(this.userRepository, { where: { id: user.id } });
+    const target = await safeFindOne<User>(this.userRepository, user.id);
     const stay = await safeFindOne<Stay>(this.stayRepository, {
       where: {
         id: data.stay,
@@ -88,7 +88,7 @@ export class StayService {
   }
 
   async updateStayApply(user: UserJWT, data: CreateStayApplyDTO) {
-    const dbUser = await safeFindOne<User>(this.userRepository, { where: { id: user.id } });
+    const dbUser = await safeFindOne<User>(this.userRepository, user.id);
     const stayApply = await safeFindOne<StayApply>(this.stayApplyRepository, {
       where: { user: dbUser, stay: { id: data.stay } },
     });
@@ -128,9 +128,7 @@ export class StayService {
   }
 
   async deleteStayApply(user: UserJWT, data: StayIdDTO) {
-    const stayApply = await safeFindOne<StayApply>(this.stayApplyRepository, {
-      where: { stay: { id: data.id } },
-    });
+    const stayApply = await safeFindOne<StayApply>(this.stayApplyRepository, data.id);
     if (stayApply.user.id !== user.id)
       throw new HttpException(ErrorMsg.PermissionDenied_Resource(), HttpStatus.FORBIDDEN);
 
