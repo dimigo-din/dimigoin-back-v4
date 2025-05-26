@@ -117,7 +117,7 @@ describe("laundry manage", () => {
       .send({ id: laundryTimeline_id, ...LaundryTimelineMock([machine_id]) })
       .expect(200)
       .then((res) => {
-        time_id = res.body.data.times.id;
+        time_id = res.body.data.times[0].id;
         expect(res.body.data.name).toBe("평상시");
       });
   });
@@ -148,9 +148,8 @@ describe("laundry manage", () => {
 
   it("delete laundry apply", async () => {
     return request(app.getHttpServer())
-      .delete("/manage/laundry/apply")
+      .delete("/manage/laundry/apply?id=" + apply_id)
       .auth(admin.jwt, { type: "bearer" })
-      .send({ id: apply_id })
       .expect(200)
       .then((res) => {
         expect(res.body.data.date).toBe(moment().format("YYYY-MM-DD"));
@@ -159,9 +158,8 @@ describe("laundry manage", () => {
 
   it("delete timeline", async () => {
     return request(app.getHttpServer())
-      .delete("/manage/laundry/timeline")
+      .delete("/manage/laundry/timeline?id=" + laundryTimeline_id)
       .auth(admin.jwt, { type: "bearer" })
-      .send({ id: time_id })
       .expect(200)
       .then((res) => {
         expect(res.body.data.name).toBe("평상시");
@@ -170,9 +168,8 @@ describe("laundry manage", () => {
 
   it("delete machine", async () => {
     return request(app.getHttpServer())
-      .delete("/manage/laundry/machine")
+      .delete("/manage/laundry/machine?id=" + machine_id)
       .auth(admin.jwt, { type: "bearer" })
-      .send({ id: machine_id })
       .expect(200)
       .then((res) => {
         expect(res.body.data.name).toBe("학봉관 1층 우측");

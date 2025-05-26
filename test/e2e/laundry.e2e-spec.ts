@@ -32,7 +32,7 @@ describe("laundry", () => {
         .auth(admin.jwt, { type: "bearer" })
         .send(LaundryMachineMock())
         .expect(201)
-    ).body.id;
+    ).body.data.id;
     const timelineBody = (
       await request(app.getHttpServer())
         .post("/manage/laundry/timeline")
@@ -51,14 +51,12 @@ describe("laundry", () => {
 
   afterAll(async () => {
     await request(app.getHttpServer())
-      .delete("/manage/laundry/timeline")
+      .delete("/manage/laundry/timeline?id=" + timeline_id)
       .auth(admin.jwt, { type: "bearer" })
-      .send({ id: timeline_id })
       .expect(200);
     await request(app.getHttpServer())
-      .delete("/manage/laundry/machine")
+      .delete("/manage/laundry/machine?id=" + machine_id)
       .auth(admin.jwt, { type: "bearer" })
-      .send({ id: machine_id })
       .expect(200);
     await user.delete();
     await admin.delete();

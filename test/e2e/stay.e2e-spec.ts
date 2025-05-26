@@ -76,6 +76,7 @@ describe("stay", () => {
       });
   });
 
+  let apply_id;
   it("update stay apply", async () => {
     return request(app.getHttpServer())
       .patch("/stay/apply")
@@ -83,14 +84,14 @@ describe("stay", () => {
       .auth(user.jwt, { type: "bearer" })
       .expect(200)
       .then((res) => {
+        apply_id = res.body.data.id;
         expect(res.body.data.user.id).toBe(user.user.id);
       });
   });
 
   it("delete stay apply", async () => {
     return request(app.getHttpServer())
-      .delete("/stay/apply")
-      .send({ id: stayId })
+      .delete("/stay/apply?id=" + apply_id)
       .auth(user.jwt, { type: "bearer" })
       .expect(200)
       .then((res) => {
