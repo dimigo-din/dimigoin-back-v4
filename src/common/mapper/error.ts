@@ -18,6 +18,9 @@ export const ErrorMsg = {
 
   ProvidedTime_Invalid: () => "제공하신 시간이 조건에 충족하지 않습니다.",
 
+  Not_A_Valid_Image: () => "정상적인 이미지가 아니거나, 서버에서 처리할 수 없는 이미지입니다.",
+  Invalid_Parent: () => "전송된 댓글 부모의 포스트와 현재 댓글의 포스트가 일치하지 않습니다.",
+
   FrigoPeriod_NotExistsForGrade: () =>
     "해당 학년은 금요귀가 신청이 불가능합니다. 담임 선생님께 문의주세요.",
   FrigoPeriod_NotInApplyPeriod: (from_day, from_hour, to_hour, to_day) =>

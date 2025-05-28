@@ -6,7 +6,7 @@ import { StudentUserPermission } from "../common/mapper/permissions";
 import { numberPermission } from "../common/utils/permission.util";
 
 import { Login, Session } from "./auth.schema";
-import { FacilityReport } from "./facility.schema";
+import { FacilityReport, FacilityReportComment } from "./facility.schema";
 import { FrigoApply } from "./frigo.schema";
 import { LaundryApply } from "./laundry.schema";
 import { StayApply } from "./stay.schema";
@@ -47,4 +47,7 @@ export class User {
 
   @OneToMany(() => FacilityReport, (facilityReport) => facilityReport.user)
   facilityReport: FacilityReport[];
+
+  @OneToMany(() => FacilityReportComment, (facilityReportComment) => facilityReportComment.user)
+  facilityReportComment: FacilityReportComment[];
 }
