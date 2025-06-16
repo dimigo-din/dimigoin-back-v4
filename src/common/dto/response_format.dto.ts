@@ -23,7 +23,7 @@ export function ApiResponseFormat<
     ? (options.type[0] as Type<unknown>)
     : (options.type as Type<unknown>);
 
-  ApiExtraModels(type);
+  // ApiExtraModels(type);
 
   class WrapperDTO {
     @ApiProperty({ example: true })
