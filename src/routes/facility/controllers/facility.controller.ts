@@ -44,7 +44,7 @@ export class FacilityController {
     summary: "이미지 불러오기",
     description: "업로드된 이미지를 불러옵니다.",
   })
-  @ApiResponseFormat({
+  @ApiResponse({
     status: HttpStatus.OK,
     type: StreamableFile,
   })
@@ -101,7 +101,7 @@ export class FacilityController {
     @UploadedFiles() files: { file: Array<Express.Multer.File> },
   ) {
     try {
-      return await this.facilityService.report(req.user, data, files.file);
+      return await this.facilityService.createReport(req.user, data, files.file);
     } catch (e) {
       console.log(e);
       files.file.forEach((f) =>

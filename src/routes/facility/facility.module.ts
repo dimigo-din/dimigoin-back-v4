@@ -10,6 +10,7 @@ import {
   PersonalInformationSchema,
   User,
 } from "../../schemas";
+import { UserManageService } from "../user/providers";
 
 import * as controllers from "./controllers";
 import * as providers from "./providers";
@@ -26,7 +27,7 @@ import * as providers from "./providers";
     ]),
   ],
   controllers: importToArray(controllers),
-  providers: [...importToArray(providers)],
+  providers: [...importToArray(providers), UserManageService],
   exports: importToArray(providers),
 })
 export class FacilityModule {}

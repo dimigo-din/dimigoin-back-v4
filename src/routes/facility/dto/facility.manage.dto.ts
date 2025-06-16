@@ -1,7 +1,12 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsIn, IsNumber, IsOptional, IsString, Matches } from "class-validator";
 
-import { FacilityReportType, FacilityReportTypeValues } from "../../../common/mapper/types";
+import {
+  FacilityReportStatus,
+  FacilityReportStatusValues,
+  FacilityReportType,
+  FacilityReportTypeValues,
+} from "../../../common/mapper/types";
 import { User } from "../../../schemas";
 
 export class ReportFacilityDTO {
@@ -82,4 +87,30 @@ export class FacilityReportListResDTO {
 
   @ApiProperty({ type: () => User })
   user: User;
+}
+
+export class FacilityReportCommentIdDTO {
+  @ApiProperty()
+  @IsString()
+  id: string;
+}
+
+export class ChangeFacilityReportTypeDTO {
+  @ApiProperty()
+  @IsString()
+  id: string;
+
+  @ApiProperty()
+  @IsIn(FacilityReportTypeValues)
+  type: FacilityReportType;
+}
+
+export class ChangeFacilityReportStatusDTO {
+  @ApiProperty()
+  @IsString()
+  id: string;
+
+  @ApiProperty()
+  @IsIn(FacilityReportStatusValues)
+  status: FacilityReportStatus;
 }

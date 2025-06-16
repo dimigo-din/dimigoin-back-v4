@@ -1,5 +1,5 @@
-import * as fs from "node:fs";
-import * as path from "node:path";
+import fs from "node:fs";
+import path from "node:path";
 
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -11,15 +11,18 @@ import { safeFindOne } from "../../../common/utils/safeFindOne.util";
 import { FacilityImg, FacilityReport, FacilityReportComment, User } from "../../../schemas";
 import { UserManageService } from "../../user/providers";
 import {
+  ChangeFacilityReportStatusDTO,
+  ChangeFacilityReportTypeDTO,
   FacilityImgIdDTO,
+  FacilityReportCommentIdDTO,
   FacilityReportIdDTO,
   GetReportListDTO,
   PostCommentDTO,
   ReportFacilityDTO,
-} from "../dto/facility.dto";
+} from "../dto/facility.manage.dto";
 
 @Injectable()
-export class FacilityService {
+export class FacilityManageService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
@@ -41,6 +44,12 @@ export class FacilityService {
     };
   }
 
+  async deleteImg(data: FacilityImgIdDTO) {
+    const img = await safeFindOne<FacilityImg>(this.facilityImgRepository, data.id);
+
+    return await this.facilityImgRepository.remove(img);
+  }
+
   async reportList(data: GetReportListDTO) {
     return await this.facilityReportRepository.find({
       relations: ["user"],
@@ -51,7 +60,7 @@ export class FacilityService {
   }
 
   async getReport(data: FacilityReportIdDTO) {
-    const report: FacilityReport = await this.facilityReportRepository
+    const report = await this.facilityReportRepository
       .createQueryBuilder("report")
       .leftJoinAndSelect("report.comment", "comment")
       .leftJoinAndSelect("report.file", "file")
@@ -96,6 +105,12 @@ export class FacilityService {
     return await this.facilityReportRepository.findOne({ where: { id: report_id } });
   }
 
+  async deleteReport(data: FacilityReportIdDTO) {
+    const report = await safeFindOne<FacilityReport>(this.facilityReportRepository, data.id);
+
+    return await this.facilityReportRepository.remove(report);
+  }
+
   async writeComment(user: UserJWT, data: PostCommentDTO) {
     const dbUser = await safeFindOne<User>(this.userRepository, user.id);
 
@@ -116,5 +131,28 @@ export class FacilityService {
     comment.user = dbUser;
 
     return await this.facilityReportCommentRepository.save(comment);
+  }
+
+  async deleteComment(data: FacilityReportCommentIdDTO) {
+    const comment = await safeFindOne<FacilityReportComment>(
+      this.facilityReportCommentRepository,
+      data.id,
+    );
+
+    return await this.facilityReportCommentRepository.remove(comment);
+  }
+
+  async changeType(data: ChangeFacilityReportTypeDTO) {
+    const report = await safeFindOne<FacilityReport>(this.facilityReportRepository, data.id);
+
+    report.report_type = data.type;
+    return await this.facilityReportRepository.save(report);
+  }
+
+  async changeStatus(data: ChangeFacilityReportStatusDTO) {
+    const report = await safeFindOne<FacilityReport>(this.facilityReportRepository, data.id);
+
+    report.status = data.status;
+    return await this.facilityReportRepository.save(report);
   }
 }
