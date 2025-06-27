@@ -55,14 +55,15 @@ export class AuthController {
 
   @ApiOperation({
     summary: "로그인 - 구글",
-    description: "구글 OAuth2 로그인 화면으로 리다이렉트하는 엔드포인트입니다.",
+    description: "구글 OAuth2 로그인 화면으로 리다이렉트하는 Uri을 반환하는 엔드포인트입니다.",
   })
   @ApiResponseFormat({
     status: HttpStatus.FOUND,
   })
   @Get("/login/google")
   async googleLogin(@Res() res, @Query() data: RedirectUriDTO) {
-    return res.redirect(await this.authService.getGoogleLoginUrl(data));
+    // return res.redirect(await this.authService.getGoogleLoginUrl(data));
+    return await this.authService.getGoogleLoginUrl(data);
   }
 
   @ApiOperation({
@@ -73,8 +74,8 @@ export class AuthController {
     status: HttpStatus.FOUND,
     type: JWTResponse,
   })
-  @Get("/login/google/callback")
-  async googleLoginCallback(@Res({ passthrough: true }) res, @Query() data: GoogleLoginDTO) {
+  @Post("/login/google/callback")
+  async googleLoginCallback(@Res({ passthrough: true }) res, @Body() data: GoogleLoginDTO) {
     const token = await this.authService.loginByGoogle(data.code);
     this.generateCookie(res, token);
     return token;

@@ -144,9 +144,6 @@ export class AuthService {
       refreshToken: crypto.randomBytes(128).toString("hex"),
     };
 
-    // TODO: separate to redis
-    // Oh i think we don't need that.
-    // new TODO: cron that clears expired tokens
     const session = old || new Session();
     session.accessToken = keyPair.accessToken;
     session.refreshToken = keyPair.refreshToken;
