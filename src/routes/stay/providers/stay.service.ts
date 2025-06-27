@@ -7,7 +7,7 @@ import { Grade, UserJWT } from "../../../common/mapper/types";
 import { safeFindOne } from "../../../common/utils/safeFindOne.util";
 import { isInRange } from "../../../common/utils/staySeat.util";
 import { Stay, StayApply, StayOuting, StaySeatPreset, User } from "../../../schemas";
-import { CreateStayApplyDTO, StayApplyIdDTO, StayIdDTO } from "../dto/stay.dto";
+import { CreateUserStayApplyDTO, StayApplyIdDTO, StayIdDTO } from "../dto/stay.dto";
 
 @Injectable()
 export class StayService {
@@ -39,7 +39,7 @@ export class StayService {
     return await this.stayApplyRepository.find({ where: { user: { id: user.id } } });
   }
 
-  async createStayApply(user: UserJWT, data: CreateStayApplyDTO) {
+  async createStayApply(user: UserJWT, data: CreateUserStayApplyDTO) {
     const target = await safeFindOne<User>(this.userRepository, user.id);
     const stay = await safeFindOne<Stay>(this.stayRepository, {
       where: {
@@ -87,7 +87,7 @@ export class StayService {
     return await this.stayApplyRepository.save(stayApply);
   }
 
-  async updateStayApply(user: UserJWT, data: CreateStayApplyDTO) {
+  async updateStayApply(user: UserJWT, data: CreateUserStayApplyDTO) {
     const dbUser = await safeFindOne<User>(this.userRepository, user.id);
     const stayApply = await safeFindOne<StayApply>(this.stayApplyRepository, {
       where: { user: dbUser, stay: { id: data.stay } },

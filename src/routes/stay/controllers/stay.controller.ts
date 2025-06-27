@@ -7,7 +7,7 @@ import { UseGuardsWithSwagger } from "../../../auth/guards/useGuards";
 import { ApiResponseFormat } from "../../../common/dto/response_format.dto";
 import { PermissionEnum } from "../../../common/mapper/permissions";
 import { Stay, StayApply } from "../../../schemas";
-import { CreateStayApplyDTO, StayIdDTO } from "../dto/stay.dto";
+import { CreateUserStayApplyDTO, StayIdDTO } from "../dto/stay.dto";
 import { StayService } from "../providers";
 
 @ApiTags("Stay")
@@ -51,7 +51,7 @@ export class StayController {
     type: StayApply,
   })
   @Post("/apply")
-  async createStayApply(@Req() req, @Body() data: CreateStayApplyDTO) {
+  async createStayApply(@Req() req, @Body() data: CreateUserStayApplyDTO) {
     return await this.stayService.createStayApply(req.user, data);
   }
 
@@ -64,7 +64,7 @@ export class StayController {
     type: StayApply,
   })
   @Patch("/apply")
-  async updateStayApply(@Req() req, @Body() data: CreateStayApplyDTO) {
+  async updateStayApply(@Req() req, @Body() data: CreateUserStayApplyDTO) {
     return await this.stayService.updateStayApply(req.user, data);
   }
 

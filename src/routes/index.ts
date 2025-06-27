@@ -3,3 +3,4 @@ export * from "./stay";
 export * from "./laundry";
 export * from "./frigo";
 export * from "./facility";
+export * from "./wakeup";

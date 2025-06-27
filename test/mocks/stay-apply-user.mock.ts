@@ -1,7 +1,7 @@
-import { CreateStayApplyDTO, OutingDTO } from "../../src/routes/stay/dto/stay.dto";
+import { CreateUserStayApplyDTO, OutingDTO } from "../../src/routes/stay/dto/stay.dto";
 
 export const StayApplyMock_User = (stayId: string) => {
-  const data = new CreateStayApplyDTO();
+  const data = new CreateUserStayApplyDTO();
 
   const outing = new OutingDTO();
   outing.reason = "자기계발외출";

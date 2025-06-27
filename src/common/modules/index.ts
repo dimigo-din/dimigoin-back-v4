@@ -1,3 +1,4 @@
+import { CustomCacheModule } from "./cache.module";
 import { CustomConfigModule } from "./config.module";
 import { CustomDatabaseModule } from "./database.module";
 import { CustomJWTModule } from "./jwt.module";
@@ -10,4 +11,5 @@ export const CustomEssentialModules = [
   CustomDatabaseModule,
   CustomJWTModule,
   ValidationModule,
+  CustomCacheModule,
 ];

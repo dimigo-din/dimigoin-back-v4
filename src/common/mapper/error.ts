@@ -30,4 +30,6 @@ export const ErrorMsg = {
   LaundryMachine_AlreadyTaken: () => "이미 해당 세탁/건조기가 신청된 상태입니다.",
 
   GoogleOauthCode_Invalid: () => "제공하신 OAuth 인증 코드가 유효하지 않습니다.",
+
+  RateLimit_Exceeded: () => "초당 최대 요청 건수에 도달하였습니다. 잠시후에 다시 시도해주세요.",
 };

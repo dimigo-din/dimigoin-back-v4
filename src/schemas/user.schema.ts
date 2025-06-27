@@ -10,6 +10,7 @@ import { FacilityReport, FacilityReportComment } from "./facility.schema";
 import { FrigoApply } from "./frigo.schema";
 import { LaundryApply } from "./laundry.schema";
 import { StayApply } from "./stay.schema";
+import { WakeupSongApplication, WakeupSongVote } from "./wakeup.schema";
 
 @Entity()
 export class User {
@@ -50,4 +51,10 @@ export class User {
 
   @OneToMany(() => FacilityReportComment, (facilityReportComment) => facilityReportComment.user)
   facilityReportComment: FacilityReportComment[];
+
+  @OneToMany(() => WakeupSongApplication, (wakeupSongApplication) => wakeupSongApplication.user)
+  wakeupSongApplication: WakeupSongApplication;
+
+  @OneToMany(() => WakeupSongVote, (wakeupSongVote) => wakeupSongVote.user)
+  wakeupSongVote: WakeupSongVote;
 }

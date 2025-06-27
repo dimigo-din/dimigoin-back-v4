@@ -15,7 +15,10 @@ async function bootstrap() {
 
   const configService = app.get(ConfigService);
 
-  app.enableCors();
+  app.enableCors({
+    origin: ["http://localhost:5173", "https://dimigo.in"],
+    credentials: true,
+  });
   app.use(cookieParser());
   app.use(json({ limit: "5000mb" }));
   app.useGlobalPipes(new ValidationPipe());

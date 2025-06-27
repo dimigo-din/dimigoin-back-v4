@@ -13,7 +13,7 @@ export class PasswordLoginDTO {
 
 export class RedirectUriDTO {
   @ApiProperty()
-  @IsString({ optional: true })
+  @IsString()
   redirect_uri?: string;
 }
 

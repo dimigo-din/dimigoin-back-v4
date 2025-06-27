@@ -20,6 +20,7 @@ import { JWTResponse, RedirectUriDTO } from "./auth.dto";
 
 @Injectable()
 export class AuthService {
+  genURLOauthClient: OAuth2Client;
   googleOauthClient: OAuth2Client;
 
   constructor(
@@ -34,10 +35,11 @@ export class AuthService {
     @InjectRepository(Session)
     private readonly sessionRepository: Repository<Session>,
   ) {
+    this.genURLOauthClient = new google.auth.OAuth2(configService.get<string>("GCP_OAUTH_ID"));
     this.googleOauthClient = new google.auth.OAuth2(
       configService.get<string>("GCP_OAUTH_ID"),
       configService.get<string>("GCP_OAUTH_SECRET"),
-      `${configService.get<string>("APPLICATION_HOST")}/auth/login/google/callback`,
+      `${configService.get<string>("APPLICATION_HOST")}/callback`,
     );
   }
 
@@ -61,7 +63,7 @@ export class AuthService {
       "https://www.googleapis.com/auth/userinfo.email",
       "https://www.googleapis.com/auth/userinfo.profile",
     ];
-    return this.googleOauthClient.generateAuthUrl({
+    return this.genURLOauthClient.generateAuthUrl({
       response_type: "code",
       access_type: "online",
       prompt: "consent",
@@ -80,6 +82,7 @@ export class AuthService {
       });
       ticketPayload = ticket.getPayload();
     } catch (e) {
+      console.log(e);
       throw new HttpException(ErrorMsg.GoogleOauthCode_Invalid(), HttpStatus.BAD_REQUEST);
     }
 
