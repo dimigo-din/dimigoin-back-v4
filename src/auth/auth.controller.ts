@@ -61,7 +61,7 @@ export class AuthController {
     status: HttpStatus.FOUND,
   })
   @Get("/login/google")
-  async googleLogin(@Res() res, @Query() data: RedirectUriDTO) {
+  async googleLogin(@Query() data: RedirectUriDTO) {
     // return res.redirect(await this.authService.getGoogleLoginUrl(data));
     return await this.authService.getGoogleLoginUrl(data);
   }
