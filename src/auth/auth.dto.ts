@@ -37,3 +37,9 @@ export class JWTResponse {
   @IsString()
   refreshToken: string;
 }
+
+export class RunPersonalInformationVerifyTokenDTO {
+  @ApiProperty()
+  @IsString()
+  token: string;
+}

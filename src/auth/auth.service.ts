@@ -8,11 +8,13 @@ import { InjectRepository } from "@nestjs/typeorm";
 import * as bcrypt from "bcrypt";
 import { OAuth2Client } from "google-auth-library";
 import { google } from "googleapis";
+import * as jwt from "jsonwebtoken";
 import * as moment from "moment";
 import { LessThan, Repository } from "typeorm";
 
 import { ErrorMsg } from "../common/mapper/error";
 import { UserJWT } from "../common/mapper/types";
+import { CacheService } from "../common/modules/cache.module";
 import { UserManageService } from "../routes/user/providers";
 import { Login, Session, User } from "../schemas";
 
@@ -25,6 +27,7 @@ export class AuthService {
 
   constructor(
     private readonly jwtService: JwtService,
+    private readonly cacheService: CacheService,
     private readonly configService: ConfigService,
     @Inject(forwardRef(() => UserManageService))
     private readonly userManageService: UserManageService,
@@ -39,7 +42,7 @@ export class AuthService {
     this.googleOauthClient = new google.auth.OAuth2(
       configService.get<string>("GCP_OAUTH_ID"),
       configService.get<string>("GCP_OAUTH_SECRET"),
-      `${configService.get<string>("APPLICATION_HOST")}/callback`,
+      `${configService.get<string>("APPLICATION_HOST")}/login`,
     );
   }
 
@@ -129,6 +132,17 @@ export class AuthService {
     return session;
   }
 
+  async generatePersonalInformationVerifyToken(user: UserJWT) {
+    return this.jwtService.signAsync(
+      { email: user.email },
+      {
+        expiresIn: "1m",
+        algorithm: "HS512",
+        secret: await this.cacheService.getPersonalInformationVerifyTokenSecret(),
+      },
+    );
+  }
+
   async generateJWTKeyPair(
     user: User,
     accessExpire: string,
@@ -148,7 +162,6 @@ export class AuthService {
     };
 
     const session = old || new Session();
-    session.accessToken = keyPair.accessToken;
     session.refreshToken = keyPair.refreshToken;
     session.sessionIdentifier = sessionIdentifier;
     session.user = user;

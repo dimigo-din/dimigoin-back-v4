@@ -49,10 +49,6 @@ export class Session {
 
   @ApiProperty()
   @Column()
-  accessToken: string = null;
-
-  @ApiProperty()
-  @Column()
   refreshToken: string = null;
 
   @ApiProperty()

@@ -1,11 +1,7 @@
 import { HttpException, Injectable, HttpStatus } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PassportStrategy } from "@nestjs/passport";
-import { InjectRepository } from "@nestjs/typeorm";
 import { ExtractJwt, Strategy, VerifiedCallback } from "passport-jwt";
-import { Repository } from "typeorm";
-
-import { Session } from "../schemas";
 
 const cookieExtractor = (req: any): string | null => {
   const cookieHeader = req.cookies;

@@ -7,6 +7,7 @@ import { ApiOperation, ApiTags } from "@nestjs/swagger";
 import { ApiResponseFormat } from "src/common/dto/response_format.dto";
 
 import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE } from "../common/mapper/constants";
+import { PermissionEnum } from "../common/mapper/permissions";
 
 import {
   GoogleLoginDTO,
@@ -14,9 +15,12 @@ import {
   PasswordLoginDTO,
   RedirectUriDTO,
   RefreshTokenDTO,
+  RunPersonalInformationVerifyTokenDTO,
 } from "./auth.dto";
 import { AuthService } from "./auth.service";
 import { CustomJwtAuthGuard } from "./guards";
+import { PermissionGuard } from "./guards/permission.guard";
+import { PersonalInformationVerifyTokenAuthGuard } from "./guards/personalInformationVerifyToken.guard";
 import { UseGuardsWithSwagger } from "./guards/useGuards";
 
 @ApiTags("Auth")
@@ -113,6 +117,36 @@ export class AuthController {
   @Get("/logout")
   async logout(@Req() req) {
     return await this.authService.logout(req.user);
+  }
+
+  @ApiOperation({
+    summary: "신원확인 토큰 발급",
+    description:
+      "개인정보 서버에 개인정보 제공 요청을 넣을때 신원을 확인하기 위한 토큰을 발급합니다.",
+  })
+  @ApiResponseFormat({
+    status: HttpStatus.OK,
+  })
+  @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.STUDENT]))
+  @Get("/personalInformationVerifyToken")
+  async getPersonalInformationVerifyToken(@Req() req) {
+    return await this.authService.generatePersonalInformationVerifyToken(req.user);
+  }
+
+  @ApiOperation({
+    summary: "신원확인",
+    description: "발급된 신원확인 토큰을 검증합니다.",
+  })
+  @ApiResponseFormat({
+    status: HttpStatus.CREATED,
+  })
+  @UseGuardsWithSwagger(PersonalInformationVerifyTokenAuthGuard)
+  @Post("/personalInformationVerifyToken")
+  async runPersonalInformationVerifyToken(
+    @Req() req,
+    @Body() data: RunPersonalInformationVerifyTokenDTO,
+  ) {
+    return req.user.email;
   }
 
   generateCookie(res: any, token) {
