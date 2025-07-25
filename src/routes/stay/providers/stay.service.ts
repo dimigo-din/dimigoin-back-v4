@@ -24,15 +24,48 @@ export class StayService {
 
   // just give all stay?
   async getStayList(user: UserJWT) {
-    return await this.stayRepository.find({
-      where: {
-        stay_apply_period: {
-          grade: user.grade as Grade,
-          apply_start: LessThanOrEqual(new Date().toISOString()),
-          apply_end: MoreThanOrEqual(new Date().toISOString()),
-        },
-      },
-    });
+    const now = new Date().toISOString();
+
+    const stays = await this.stayRepository
+      .createQueryBuilder("stay")
+      .innerJoin(
+        "stay.stay_apply_period",
+        "stay_apply_period",
+        "stay_apply_period.grade = :grade AND stay_apply_period.apply_start <= :now AND stay_apply_period.apply_end >= :now",
+        { grade: user.grade as Grade, now },
+      )
+      .leftJoin("stay.stay_apply", "stay_apply")
+      .leftJoin("stay_apply.user", "user")
+      .leftJoin("stay.stay_seat_preset", "stay_seat_preset")
+      .leftJoin("stay_seat_preset.stay_seat", "stay_seat")
+      .select([
+        "stay.id",
+        "stay.name",
+        "stay.stay_from",
+        "stay.stay_to",
+        "stay.outing_day",
+        "stay_apply.stay_seat",
+        "stay_seat_preset",
+        "stay_seat",
+        "stay_apply_period",
+        "user.id",
+        "user.name",
+      ])
+      .getMany();
+
+    return stays.map((stay) => ({
+      id: stay.id,
+      name: stay.name,
+      stay_from: stay.stay_from,
+      stay_to: stay.stay_to,
+      outing_day: stay.outing_day,
+      stay_seat_preset: stay.stay_seat_preset,
+      stay_apply_period: stay.stay_apply_period,
+      stay_apply: stay.stay_apply.map((stay_apply) => ({
+        stay_seat: stay_apply.stay_seat,
+        user: { id: stay_apply.user.id, name: stay_apply.user.name },
+      })),
+    }));
   }
 
   async getStayApplies(user: UserJWT) {
@@ -53,12 +86,12 @@ export class StayService {
     });
 
     const exists = await this.stayApplyRepository.findOne({
-      where: { user: { id: user.id }, stay: stay },
+      where: { user: target, stay: { id: data.stay } },
     });
-    if (exists) throw new HttpException(ErrorMsg.StaySeat_Duplication(), HttpStatus.BAD_REQUEST);
+    if (exists) throw new HttpException(ErrorMsg.Stay_AlreadyApplied(), HttpStatus.BAD_REQUEST);
 
     const staySeatCheck = await this.stayApplyRepository.findOne({
-      where: { stay_seat: data.stay_seat.toUpperCase(), stay: stay },
+      where: { stay_seat: data.stay_seat.toUpperCase(), stay: { id: data.stay } },
     });
     if (staySeatCheck)
       throw new HttpException(ErrorMsg.StaySeat_Duplication(), HttpStatus.BAD_REQUEST);
@@ -96,7 +129,7 @@ export class StayService {
       throw new HttpException(ErrorMsg.PermissionDenied_Resource(), HttpStatus.FORBIDDEN);
 
     const staySeatCheck = await this.stayApplyRepository.findOne({
-      where: { stay_seat: data.stay_seat.toUpperCase(), stay: stayApply.stay },
+      where: { stay_seat: data.stay_seat.toUpperCase(), stay: { id: stayApply.stay.id } },
     });
     if (staySeatCheck && staySeatCheck.id !== stayApply.id)
       throw new HttpException(ErrorMsg.StaySeat_Duplication(), HttpStatus.BAD_REQUEST);

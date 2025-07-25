@@ -10,6 +10,7 @@ import {
   PrimaryGeneratedColumn,
   OneToOne,
   DeleteDateColumn,
+  Unique,
 } from "typeorm";
 
 import { Grade, StaySeatTargets } from "../common/mapper/types";
@@ -72,7 +73,7 @@ export class StaySchedule {
 
   /** key */
   @ApiProperty()
-  @Column()
+  @Column({ unique: true })
   name: string;
 
   @ApiProperty({ type: () => [StayApplyPeriod_StaySchedule] })
@@ -86,17 +87,17 @@ export class StaySchedule {
   stay_apply_period: StayApplyPeriod_StaySchedule[];
 
   /** weekday (sunday is 0) */
-  @ApiProperty()
+  @ApiProperty({ description: "weekday (sunday is 0)" })
   @Column()
   stay_from: number;
 
   /** weekday (sunday is 0) */
-  @ApiProperty()
+  @ApiProperty({ description: "weekday (sunday is 0)" })
   @Column()
   stay_to: number;
 
   /** ex) 0,1,2 <= sunday, monday, tuesday */
-  @ApiProperty()
+  @ApiProperty({ description: "ex) 0,1,2 <= sunday, monday, tuesday" })
   @Column("int", { array: true })
   outing_day: number[];
 
@@ -117,13 +118,14 @@ export class StaySchedule {
 }
 
 @Entity()
+@Unique(["name", "stay_from", "stay_to"])
 export class Stay {
   @ApiProperty()
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
   @ApiProperty()
-  @Column({ unique: true })
+  @Column()
   name: string;
 
   /** YYYY-MM-DD */
@@ -156,12 +158,12 @@ export class Stay {
   })
   stay_seat_preset: StaySeatPreset;
 
-  @ApiProperty({ type: () => StayApply })
+  // @ApiProperty({ type: () => StayApply })
   @OneToMany(() => StayApply, (stay_apply) => stay_apply.stay)
   stay_apply: StayApply[];
 
-  @ApiProperty({ type: () => StaySchedule, nullable: true })
-  @ManyToOne(() => StaySchedule, (schedule) => schedule.children, { nullable: true, eager: true })
+  // @ApiProperty({ type: () => StaySchedule, nullable: true })
+  @ManyToOne(() => StaySchedule, (schedule) => schedule.children, { nullable: true })
   parent: StaySchedule;
 
   @DeleteDateColumn()
@@ -233,6 +235,7 @@ export class StayApplyPeriod_Stay {
 }
 
 @Entity()
+@Unique(["stay", "user"])
 export class StayApply {
   @ApiProperty()
   @PrimaryGeneratedColumn("uuid")
@@ -283,6 +286,7 @@ export class StayOuting {
   @Column("boolean")
   lunch_cancel: boolean;
 
+  @ApiProperty()
   @Column("boolean")
   dinner_cancel: boolean;
 

@@ -1,3 +1,5 @@
+import * as crypto from "crypto";
+
 import { Cache, CACHE_MANAGER, CacheModule } from "@nestjs/cache-manager";
 import { Inject, Injectable, Module } from "@nestjs/common";
 
@@ -8,6 +10,7 @@ const cacheModule = CacheModule.register();
 export class CacheService {
   private RATELIMIT_PREFIX = "ratelimit_";
   private YOUTUBESEARCH_PREFIX = "youtubeSearch_";
+  private PERSONALINFORMATIONVERIFY_SECRET = "PersonalInformationVerifyTokenSecret";
 
   constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {}
 
@@ -36,6 +39,18 @@ export class CacheService {
   async getCachedVideo(videoId: string) {
     console.log(this.YOUTUBESEARCH_PREFIX + videoId);
     return await this.cacheManager.get<YoutubeVideoItem>(this.YOUTUBESEARCH_PREFIX + videoId);
+  }
+
+  async getPersonalInformationVerifyTokenSecret(): Promise<string> {
+    const secret = await this.cacheManager.get<string>(this.PERSONALINFORMATIONVERIFY_SECRET);
+    if (secret) return secret;
+
+    await this.cacheManager.set(
+      this.PERSONALINFORMATIONVERIFY_SECRET,
+      crypto.randomBytes(128).toString("hex"),
+    );
+
+    return await this.getPersonalInformationVerifyTokenSecret();
   }
 }
 

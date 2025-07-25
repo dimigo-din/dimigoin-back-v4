@@ -425,7 +425,8 @@ export class StayManageService {
     return target;
   }
 
-  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  @Cron(CronExpression.EVERY_10_SECONDS)
+  // @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async syncStay() {
     // register stay
     const schedules = await this.stayScheduleRepository.find({
@@ -446,11 +447,14 @@ export class StayManageService {
             apply_end: MoreThanOrEqual(new Date().toISOString()),
           },
         },
+        relations: ["parent"],
       })
     ).map((x) => x.parent.id);
 
     const targetSchedules = schedules.filter((x) => !existingStay.find((y) => y === x.id));
     for (const target of targetSchedules) {
+      if (existingStay.includes(target.id)) continue;
+
       const now = moment().startOf("day");
 
       const stay = new Stay();
@@ -481,7 +485,7 @@ export class StayManageService {
 
       const applyEnd = moment.max(stay.stay_apply_period.map((p) => moment(p.apply_end)));
       const from = this.weekday2date(now, target.stay_from);
-      const to = this.weekday2date(now, target.stay_to);
+      const to = this.weekday2date(now, target.stay_to).add("1", "d").subtract("1", "s");
       if (applyEnd.isAfter(from)) from.add("1", "w");
       if (applyEnd.isAfter(to)) to.add("1", "w");
       if (from.isAfter(to)) to.add("1", "w");
@@ -493,7 +497,6 @@ export class StayManageService {
       stay.outing_day = target.outing_day.map((day) => {
         const out = this.weekday2date(now, day);
         if (!out.isBetween(from, to)) {
-          out.add("1", "w");
           if (!out.isBetween(from, to)) {
             console.error(`Error. Invalid outing range on ${target.name}`);
             success = false;

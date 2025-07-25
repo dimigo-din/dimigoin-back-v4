@@ -35,8 +35,10 @@ export class CreateStaySeatPresetDTO {
   @IsBoolean()
   only_readingRoom: boolean;
 
-  @ApiProperty()
+  @ApiProperty({ type: () => [CreateStaySeatPresetRangeDTO] })
   @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateStaySeatPresetRangeDTO)
   mappings: CreateStaySeatPresetRangeDTO[];
 }
 
@@ -54,6 +56,7 @@ export class UpdateStaySeatPresetDTO {
   only_readingRoom: boolean;
 
   @ApiProperty()
+  @IsArray()
   @ValidateNested({ each: true })
   @Type(() => CreateStaySeatPresetRangeDTO)
   mappings: CreateStaySeatPresetRangeDTO[];
@@ -82,22 +85,22 @@ export class CreateStayScheduleDTO {
   @IsString()
   name: string;
 
-  @ApiProperty()
+  @ApiProperty({ type: () => [StayApplyPeriodPerGrade] })
   @ValidateNested({ each: true })
   @Type(() => StayApplyPeriodPerGrade)
   stayApplyPeriod: StayApplyPeriodPerGrade[];
 
-  @ApiProperty()
+  @ApiProperty({ description: "weekday (sunday is 0)" })
   @IsNumber()
   /** weekday (sunday is 0) */
   stay_from: number;
 
-  @ApiProperty()
+  @ApiProperty({ description: "weekday (sunday is 0)" })
   @IsNumber()
   /** weekday (sunday is 0) */
   stay_to: number;
 
-  @ApiProperty()
+  @ApiProperty({ type: Number, description: "weekday (sunday is 0)" })
   @IsNumber({}, { each: true })
   outing_day: number[];
 
