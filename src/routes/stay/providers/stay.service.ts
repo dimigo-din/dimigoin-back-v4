@@ -44,6 +44,7 @@ export class StayService {
         "stay.stay_from",
         "stay.stay_to",
         "stay.outing_day",
+        "stay_apply.id",
         "stay_apply.stay_seat",
         "stay_seat_preset",
         "stay_seat",
@@ -62,6 +63,7 @@ export class StayService {
       stay_seat_preset: stay.stay_seat_preset,
       stay_apply_period: stay.stay_apply_period,
       stay_apply: stay.stay_apply.map((stay_apply) => ({
+        ...(user.id === stay_apply.user.id ? { id: stay_apply.id } : {}),
         stay_seat: stay_apply.stay_seat,
         user: { id: stay_apply.user.id, name: stay_apply.user.name },
       })),
