@@ -98,12 +98,11 @@ export class AuthController {
     let token;
     if (!data || !data.refreshToken) {
       token = await this.authService.refresh(req.cookies[REFRESH_TOKEN_COOKIE]);
+      this.generateCookie(res, token);
     } else {
       token = await this.authService.refresh(data.refreshToken);
+      return token;
     }
-    this.generateCookie(res, token);
-
-    return token;
   }
 
   @ApiOperation({
@@ -150,7 +149,7 @@ export class AuthController {
   }
 
   generateCookie(res: any, token) {
-    const sameSite = process.env.NODE_ENV === "prod" ? "none" : undefined;
+    const sameSite = process.env.NODE_ENV === "prod" ? "Strict" : undefined;
     const domain =
       process.env.NODE_ENV === "prod" ? `.${this.configService.get<string>("DOMAIN")}` : undefined;
     res.cookie(ACCESS_TOKEN_COOKIE, token.accessToken, {
