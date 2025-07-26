@@ -56,3 +56,31 @@ export class CreateUserStayApplyDTO {
   @Type(() => OutingDTO)
   outing: OutingDTO[];
 }
+
+export class AddStayOutingDTO {
+  @ApiProperty()
+  @IsString()
+  apply_id: string;
+
+  @ApiProperty({ type: () => OutingDTO })
+  @ValidateNested()
+  @Type(() => OutingDTO)
+  outing: OutingDTO;
+}
+
+export class EditStayOutingDTO {
+  @ApiProperty()
+  @IsString()
+  outing_id: string;
+
+  @ApiProperty({ type: () => OutingDTO })
+  @ValidateNested()
+  @Type(() => OutingDTO)
+  outing: OutingDTO;
+}
+
+export class StayOutingIdDTO {
+  @ApiProperty()
+  @IsString()
+  id: string;
+}

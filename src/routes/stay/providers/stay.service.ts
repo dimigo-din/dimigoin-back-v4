@@ -7,7 +7,14 @@ import { Grade, UserJWT } from "../../../common/mapper/types";
 import { safeFindOne } from "../../../common/utils/safeFindOne.util";
 import { isInRange } from "../../../common/utils/staySeat.util";
 import { Stay, StayApply, StayOuting, StaySeatPreset, User } from "../../../schemas";
-import { CreateUserStayApplyDTO, StayApplyIdDTO, StayIdDTO } from "../dto/stay.dto";
+import {
+  AddStayOutingDTO,
+  CreateUserStayApplyDTO,
+  EditStayOutingDTO,
+  StayApplyIdDTO,
+  StayIdDTO,
+  StayOutingIdDTO,
+} from "../dto/stay.dto";
 
 @Injectable()
 export class StayService {
@@ -108,6 +115,7 @@ export class StayService {
 
     stayApply.outing = [];
     for (const outingData of data.outing) {
+      // TODO[high]: validate outing range
       const outing = new StayOuting();
       outing.reason = outingData.reason;
       outing.breakfast_cancel = outingData.breakfast_cancel;
@@ -142,9 +150,7 @@ export class StayService {
     stayApply.stay_seat = data.stay_seat.toUpperCase();
     stayApply.user = dbUser;
 
-    await this.stayOutingRepository.remove(stayApply.outing);
-
-    stayApply.outing = [];
+    const outings = [];
     for (const outingData of data.outing) {
       const outing = new StayOuting();
       outing.reason = outingData.reason;
@@ -155,9 +161,11 @@ export class StayService {
       outing.to = outingData.to;
       outing.audit_reason = null;
       outing.approved = null;
-      stayApply.outing.push(outing);
+      outings.push(outing);
     }
 
+    await this.stayOutingRepository.remove(stayApply.outing);
+    stayApply.outing = outings;
     await this.stayOutingRepository.save(stayApply.outing);
     return await this.stayApplyRepository.save(stayApply);
   }
@@ -168,6 +176,75 @@ export class StayService {
       throw new HttpException(ErrorMsg.PermissionDenied_Resource(), HttpStatus.FORBIDDEN);
 
     return this.stayApplyRepository.remove(stayApply);
+  }
+
+  async getStayOuting(user: UserJWT, data: StayIdDTO) {
+    const target = await safeFindOne<User>(this.userRepository, user.id);
+
+    return await this.stayOutingRepository.find({
+      where: { stay_apply: { id: data.id, user: target } },
+    });
+  }
+
+  async addStayOuting(user: UserJWT, data: AddStayOutingDTO) {
+    const target = await safeFindOne<User>(this.userRepository, user.id);
+    const apply = await safeFindOne<StayApply>(this.stayApplyRepository, data.apply_id);
+
+    console.log(apply.user.id);
+    if (apply.user.id !== target.id)
+      throw new HttpException(ErrorMsg.PermissionDenied_Resource(), HttpStatus.FORBIDDEN);
+
+    const outing = new StayOuting();
+    outing.reason = data.outing.reason;
+    outing.breakfast_cancel = data.outing.breakfast_cancel;
+    outing.lunch_cancel = data.outing.lunch_cancel;
+    outing.dinner_cancel = data.outing.dinner_cancel;
+    outing.from = data.outing.from;
+    outing.to = data.outing.to;
+    outing.audit_reason = null;
+    outing.approved = null;
+    outing.stay_apply = apply;
+
+    return await this.stayOutingRepository.save(outing);
+  }
+
+  async editStayOuting(user: UserJWT, data: EditStayOutingDTO) {
+    const target = await safeFindOne<User>(this.userRepository, user.id);
+    const outing = await safeFindOne<StayOuting>(this.stayOutingRepository, {
+      where: { id: data.outing_id },
+      relations: { stay_apply: { user: true } },
+      loadEagerRelations: false,
+    });
+
+    console.log(outing.stay_apply.user.id);
+    if (outing.stay_apply.user.id !== target.id)
+      throw new HttpException(ErrorMsg.PermissionDenied_Resource(), HttpStatus.FORBIDDEN);
+
+    outing.reason = data.outing.reason;
+    outing.breakfast_cancel = data.outing.breakfast_cancel;
+    outing.lunch_cancel = data.outing.lunch_cancel;
+    outing.dinner_cancel = data.outing.dinner_cancel;
+    outing.from = data.outing.from;
+    outing.to = data.outing.to;
+    outing.audit_reason = null;
+    outing.approved = null;
+
+    return await this.stayOutingRepository.save(outing);
+  }
+
+  async removeStayOuting(user: UserJWT, data: StayOutingIdDTO) {
+    const target = await safeFindOne<User>(this.userRepository, user.id);
+    const outing = await safeFindOne<StayOuting>(this.stayOutingRepository, {
+      where: { id: data.id },
+      relations: { stay_apply: { user: true } },
+      loadEagerRelations: false,
+    });
+
+    console.log(outing.stay_apply.user.id);
+    if (outing.stay_apply.user.id !== target.id)
+      throw new HttpException(ErrorMsg.PermissionDenied_Resource(), HttpStatus.FORBIDDEN);
+
+    return await this.stayOutingRepository.remove(outing);
   }
 
   // pass if only_readingRoom false, pass if it's true and seat is in available range
