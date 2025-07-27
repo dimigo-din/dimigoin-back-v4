@@ -57,6 +57,10 @@ export class FrigoService {
 
     // apply
     const dbUser = await safeFindOne<User>(this.userRepository, user.id);
+    const exists = await this.frigoApplyRepository.findOne({
+      where: { week: moment().startOf("week").format("YYYY-MM-DD"), user: dbUser },
+    });
+    if (exists) throw new HttpException(ErrorMsg.Frigo_AlreadyApplied(), HttpStatus.BAD_REQUEST);
 
     const apply = new FrigoApply();
     apply.timing = data.timing;
