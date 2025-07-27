@@ -1,9 +1,10 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, Index, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 import { User } from "./user.schema";
 
 @Entity()
+@Index(["video_id", "week"], { unique: true })
 export class WakeupSongApplication {
   @ApiProperty()
   @PrimaryGeneratedColumn("uuid")
@@ -39,6 +40,7 @@ export class WakeupSongApplication {
 }
 
 @Entity()
+@Index(["user", "wakeupSongApplication"], { unique: true })
 export class WakeupSongVote {
   @ApiProperty()
   @PrimaryGeneratedColumn("uuid")

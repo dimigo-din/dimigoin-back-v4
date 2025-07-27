@@ -149,13 +149,14 @@ export class AuthController {
   }
 
   generateCookie(res: any, token) {
-    const sameSite = process.env.NODE_ENV === "prod" ? "Strict" : undefined;
+    const sameSite = process.env.NODE_ENV === "prod" ? "None" : undefined;
     const domain =
       process.env.NODE_ENV === "prod" ? `.${this.configService.get<string>("DOMAIN")}` : undefined;
     res.cookie(ACCESS_TOKEN_COOKIE, token.accessToken, {
       path: "/",
       maxAge: 1000 * 60 * 30,
       httpOnly: true,
+      secure: process.env.NODE_ENV === "prod",
       sameSite,
       domain,
     });
@@ -163,6 +164,7 @@ export class AuthController {
       path: "/",
       maxAge: 1000 * 60 * 60 * 24 * 30,
       httpOnly: true,
+      secure: process.env.NODE_ENV === "prod",
       sameSite,
       domain,
     });
