@@ -40,4 +40,4 @@ jobs:
           tags: ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
 
       - name: Recreate Container
-        run: curl "https://portainer.dimigo.site/api/stacks/webhooks/e86a849e-092d-4dcf-934c-4140f4824c64"
+        run: curl -X POST "https://portainer.dimigo.site/api/stacks/webhooks/e86a849e-092d-4dcf-934c-4140f4824c64"
