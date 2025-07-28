@@ -32,8 +32,8 @@ WORKDIR /usr/src/app
 COPY --chown=node:node .env ./
 COPY --chown=node:node package.json ./
 COPY --chown=node:node --from=build /usr/src/app/node_modules ./node_modules
-COPY --chown=node:node --from=build /usr/src/app/dist ./
+COPY --chown=node:node --from=build /usr/src/app/dist ./dist
 
 ENV NODE_ENV="prod"
 
-ENTRYPOINT ["node", "src/main.js"]
+ENTRYPOINT ["npm", "run", "start:prod"]
