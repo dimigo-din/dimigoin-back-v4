@@ -20,7 +20,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Prepare
-        run: echo "${{ secrets.ENV }}" > .env
+        run: echo "${{ secrets.ENV }}" > .env.prod
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3

@@ -1,3 +1,5 @@
+import * as process from "node:process";
+
 import { Module } from "@nestjs/common";
 import { ConfigModule, type ConfigModuleOptions } from "@nestjs/config";
 
@@ -8,7 +10,9 @@ export const options: ConfigModuleOptions = {
       ? ".env.test"
       : process.env.NODE_ENV === "dev"
         ? ".env.dev"
-        : ".env",
+        : process.env.NODE_ENV === "prod"
+          ? ".env.prod"
+          : ".env",
 };
 
 @Module({ imports: [ConfigModule.forRoot(options)] })
