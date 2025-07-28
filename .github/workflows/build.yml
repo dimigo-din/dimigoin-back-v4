@@ -5,6 +5,7 @@ on:
     branches:
       - main  # or your deployment branch
   workflow_call:
+  workflow_dispatch:
 
 env:
   IMAGE_NAME: dimigoin-back-v4
