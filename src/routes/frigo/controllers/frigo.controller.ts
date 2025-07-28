@@ -7,7 +7,7 @@ import { UseGuardsWithSwagger } from "../../../auth/guards/useGuards";
 import { ApiResponseFormat } from "../../../common/dto/response_format.dto";
 import { PermissionEnum } from "../../../common/mapper/permissions";
 import { FrigoApply } from "../../../schemas";
-import { FrigoApplyDTO } from "../dto/frigo.dto";
+import { ClientFrigoApplyDTO } from "../dto/frigo.dto";
 import { FrigoService } from "../providers";
 
 @ApiTags("Frigo")
@@ -38,7 +38,7 @@ export class FrigoController {
     type: FrigoApply,
   })
   @Post("/")
-  async apply(@Req() req, @Body() data: FrigoApplyDTO) {
+  async apply(@Req() req, @Body() data: ClientFrigoApplyDTO) {
     return await this.frigoService.frigoApply(req.user, data);
   }
 

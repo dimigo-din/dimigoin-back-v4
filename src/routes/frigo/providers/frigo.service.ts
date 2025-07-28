@@ -8,7 +8,7 @@ import { UserJWT } from "../../../common/mapper/types";
 import { DayNumber2String } from "../../../common/utils/date.util";
 import { safeFindOne } from "../../../common/utils/safeFindOne.util";
 import { FrigoApply, FrigoApplyPeriod, User } from "../../../schemas";
-import { FrigoApplyDTO } from "../dto/frigo.dto";
+import { ClientFrigoApplyDTO } from "../dto/frigo.dto";
 
 @Injectable()
 export class FrigoService {
@@ -30,7 +30,7 @@ export class FrigoService {
   }
 
   // fuck you consistency
-  async frigoApply(user: UserJWT, data: FrigoApplyDTO) {
+  async frigoApply(user: UserJWT, data: ClientFrigoApplyDTO) {
     // validation
     const period = await safeFindOne<FrigoApplyPeriod>(
       this.frigoApplyPeriodRepository,
