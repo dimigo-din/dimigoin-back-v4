@@ -61,6 +61,11 @@ export class WakeupService {
   }
 
   async registerVideo(user: UserJWT, data: RegisterVideoDTO) {
+    const exists = await this.wakeupSongApplicationRepository.findOne({
+      where: { video_id: data.videoId },
+    });
+    if (exists) throw new HttpException(ErrorMsg.ResourceAlreadyExists(), HttpStatus.BAD_REQUEST);
+
     let videoData: YoutubeVideoItem;
 
     const cache = await this.cacheService.getCachedVideo(data.videoId);
@@ -105,6 +110,7 @@ export class WakeupService {
 
     return await this.wakeupSongVoteRepository.find({
       where: { user: dbUser, wakeupSongApplication: { week: week } },
+      relations: { wakeupSongApplication: true },
     });
   }
 
