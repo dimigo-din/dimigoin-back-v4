@@ -8,6 +8,7 @@ import {
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
+  Unique,
 } from "typeorm";
 
 import { Gender, Grade, LaundryMachineType, LaundryTimelineTrigger } from "../common/mapper/types";
@@ -78,6 +79,7 @@ export class LaundryTime {
 // Ahhhhhhhhhhh!!!!! this should be better!!! but.... i have no idea....
 // hahaha but i have intellij idea!
 @Entity()
+@Unique(["type", "name"])
 export class LaundryMachine {
   @ApiProperty()
   @PrimaryGeneratedColumn("uuid")
@@ -88,7 +90,7 @@ export class LaundryMachine {
   type: LaundryMachineType;
 
   @ApiProperty()
-  @Column({ unique: true })
+  @Column()
   name: string;
 
   @ApiProperty()
