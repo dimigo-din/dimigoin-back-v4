@@ -15,7 +15,7 @@ import {
 } from "../dto";
 import { UserManageService } from "../providers";
 
-@ApiTags("User")
+@ApiTags("User Manage")
 @Controller("/manage/user")
 export class UserManageController {
   constructor(private readonly userManageService: UserManageService) {}
