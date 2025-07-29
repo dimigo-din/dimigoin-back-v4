@@ -88,7 +88,7 @@ export class LaundryMachine {
   type: LaundryMachineType;
 
   @ApiProperty()
-  @Column()
+  @Column({ unique: true })
   name: string;
 
   @ApiProperty()

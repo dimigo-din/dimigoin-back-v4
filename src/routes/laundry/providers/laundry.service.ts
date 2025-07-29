@@ -1,13 +1,12 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import * as moment from "moment";
-import { FindOneOptions, Repository } from "typeorm";
+import { Repository } from "typeorm";
 
 import { ErrorMsg } from "../../../common/mapper/error";
 import { UserJWT } from "../../../common/mapper/types";
 import { safeFindOne } from "../../../common/utils/safeFindOne.util";
 import { LaundryApply, LaundryMachine, LaundryTime, LaundryTimeline, User } from "../../../schemas";
-import { UserManageService } from "../../user/providers";
 import { LaundryApplyDTO } from "../dto/laundry.dto";
 
 @Injectable()
@@ -28,19 +27,23 @@ export class LaundryService {
   async getTimeline() {
     return await safeFindOne<LaundryTimeline>(this.laundryTimelineRepository, {
       where: { enabled: true },
+      relations: { times: { assigns: true } },
     });
   }
 
   async getApplies() {
     return await this.laundryApplyRepository.find({
       where: { laundryTimeline: { enabled: true }, date: moment().format("YYYY-MM-DD") },
+      relations: { laundryTime: true, laundryMachine: true, user: true },
     });
   }
 
   async createApply(user: UserJWT, data: LaundryApplyDTO) {
     const dbUser = await safeFindOne<User>(this.userRepository, user.id);
 
-    const applyExists = await this.laundryApplyRepository.findOne({ where: { user: dbUser } });
+    const applyExists = await this.laundryApplyRepository.findOne({
+      where: { user: dbUser, date: moment().format("YYYY-MM-DD") },
+    });
     if (applyExists)
       throw new HttpException(ErrorMsg.LaundryApply_AlreadyExists(), HttpStatus.BAD_REQUEST);
 
