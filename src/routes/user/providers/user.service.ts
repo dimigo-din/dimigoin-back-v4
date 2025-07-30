@@ -1,9 +1,37 @@
 import { Injectable } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
 import axios from "axios";
+import { Repository } from "typeorm";
+
+import { UserJWT } from "../../../common/mapper/types";
+import { safeFindOne } from "../../../common/utils/safeFindOne.util";
+import { LaundryApply, StayApply, User } from "../../../schemas";
 
 @Injectable()
 export class UserService {
-  constructor() {}
+  constructor(
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+    @InjectRepository(StayApply)
+    private readonly stayApplyRepository: Repository<StayApply>,
+    @InjectRepository(LaundryApply)
+    private readonly laundryApplyRepository: Repository<LaundryApply>,
+  ) {}
+
+  async getMyApplies(user: UserJWT) {
+    const dbUser = await safeFindOne<User>(this.userRepository, user.id);
+
+    const stayApply = await this.stayApplyRepository.findOne({ where: { user: dbUser } });
+    const laundryApply = await this.laundryApplyRepository.findOne({
+      where: { user: dbUser },
+      relations: { laundryTime: true, laundryMachine: true },
+    });
+
+    return {
+      stayApply: stayApply,
+      laundryApply: laundryApply,
+    };
+  }
 
   async getTimeTable(grade: number, klass: number, opts: any = {}) {
     const rawData = (await axios.get("http://comci.net:4082/36179?NzM2MjlfMjkxNzVfMF8x")).data;
