@@ -39,7 +39,7 @@ export class UserService {
 
     const DIV = data["분리"] ?? 100; // division value (100 or 1000)
     const subjects = data["자료492"]; // subject array
-    const teachers = data.자료446; // teacher array
+    const teachers = data["자료446"]; // teacher array
     const MAX_P = 8; // 1~8 periods
     const MAX_D = 5; // Mon~Fri
 
@@ -49,7 +49,6 @@ export class UserService {
         .map(() => ({ content: "", temp: false })),
     );
 
-    // Implementation of original mTh, mSb, mTime functions
     const mTh = (mm: number, m2: number) => {
       if (m2 === 100) {
         return Math.floor(mm / m2);
@@ -193,8 +192,8 @@ export class UserService {
           timePrefix = mTime(subjectIndex, DIV);
           subjectIndex = subjectIndex % DIV;
 
-          if (teacherIndex < data.자료446.length) {
-            teacherName = data.자료446[teacherIndex].substr(0, 2);
+          if (teacherIndex < data["자료446"].length) {
+            teacherName = data["자료446"][teacherIndex].substr(0, 2);
           }
 
           if (timePrefix === "") {
