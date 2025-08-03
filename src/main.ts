@@ -16,7 +16,7 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
 
   app.enableCors({
-    origin: ["http://localhost:5173", "https://dimigo.in", "https://in.dimigo.site"],
+    origin: ["http://localhost:5173", "https://dimigoin.io", "https://in.dimigo.site"],
     credentials: true,
   });
   app.use(cookieParser());
