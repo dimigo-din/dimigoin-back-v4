@@ -51,17 +51,7 @@ export class FrigoManageService {
 
   async getApplyList() {
     const week = moment().startOf("week").format("YYYY-MM-DD");
-    const applies = await this.frigoApplyRepository.find({ where: { week: week } });
-
-    const personalData = await this.userManageService.fetchUserDetail(
-      ...applies.map((a) => a.user.email),
-    );
-    return applies.map((a, i) => {
-      return {
-        ...a,
-        user: { ...a.user, ...personalData[i] },
-      };
-    });
+    return await this.frigoApplyRepository.find({ where: { week: week } });
   }
 
   // considering: separate update and apply

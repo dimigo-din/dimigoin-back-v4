@@ -13,7 +13,6 @@ import {
   StayApply,
   StayOuting,
   Login,
-  PersonalInformationSchema,
 } from "../../schemas";
 import { UserManageService } from "../user/providers";
 
@@ -33,7 +32,6 @@ import * as providers from "./providers";
       StaySeatPresetRange,
       StayApplyPeriod_Stay,
       StayApplyPeriod_StaySchedule,
-      PersonalInformationSchema, // temporally
     ]),
   ],
   controllers: importToArray(controllers),

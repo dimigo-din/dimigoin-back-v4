@@ -1,4 +1,4 @@
-import { User, PersonalInformationSchema, FacilityReport } from "../../schemas";
+import { User } from "../../schemas";
 
 export const LoginTypeValues = ["password", "google"] as const;
 export type LoginType = (typeof LoginTypeValues)[number];
@@ -54,15 +54,7 @@ export const FacilityReportStatusValues = [
 ] as const;
 export type FacilityReportStatus = (typeof FacilityReportStatusValues)[number];
 
-export type PersonalData = {
-  gender: string;
-  grade: Grade;
-  class: Class;
-  number: number;
-  hakbun: string;
-};
-
-export type UserJWT = User & PersonalData & { sessionIdentifier?: string };
+export type UserJWT = User & { sessionIdentifier?: string };
 
 export interface YoutubeVideoItem {
   kind: string;

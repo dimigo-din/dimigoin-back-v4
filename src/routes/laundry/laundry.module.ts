@@ -4,7 +4,6 @@ import importToArray from "import-to-array";
 
 import {
   Login,
-  PersonalInformationSchema,
   User,
   LaundryMachine,
   LaundryTime,
@@ -27,7 +26,6 @@ import * as providers from "./providers";
       LaundryApply,
       LaundryMachine,
       LaundryTimeline,
-      PersonalInformationSchema, // temporally
     ]),
   ],
   controllers: importToArray(controllers),

@@ -70,13 +70,7 @@ export class FacilityManageService {
       .where("report.id = :id", { id: data.id })
       .getOne();
 
-    return {
-      ...report,
-      user: {
-        ...report.user,
-        ...(await this.userManageService.fetchUserDetail(report.user.email)),
-      },
-    };
+    return report;
   }
 
   async createReport(user: UserJWT, data: ReportFacilityDTO, files: Array<Express.Multer.File>) {

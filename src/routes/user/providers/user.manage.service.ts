@@ -1,53 +1,75 @@
-import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { InjectRepository } from "@nestjs/typeorm";
+import axios, { AxiosInstance } from "axios";
 import * as bcrypt from "bcrypt";
 import { Repository } from "typeorm";
 
-import { ErrorMsg } from "../../../common/mapper/error";
 import { PermissionType } from "../../../common/mapper/permissions";
-import { PersonalData } from "../../../common/mapper/types";
+import { Grade } from "../../../common/mapper/types";
 import { numberPermission, parsePermission } from "../../../common/utils/permission.util";
 import { Login, User } from "../../../schemas";
-import { PersonalInformationSchema } from "../../../schemas/personal-information.schema";
 import { AddPermissionDTO, CreateUserDTO, RemovePermissionDTO, SetPermissionDTO } from "../dto";
 
 // this chuck of code need to be refactored
 @Injectable()
 export class UserManageService {
+  private client: AxiosInstance;
+
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     @InjectRepository(Login)
     private readonly loginRepository: Repository<Login>,
-    @InjectRepository(PersonalInformationSchema)
-    private readonly personalInformationRepository: Repository<PersonalInformationSchema>,
-  ) {}
+    private readonly configService: ConfigService,
+  ) {
+    this.client = axios.create({
+      baseURL: this.configService.get<string>("PERSONAL_INFORMATION_SERVER"),
+    });
+    this.client.interceptors.request.use((config) => {
+      config.headers.setAuthorization(this.configService.get<string>("PERSONAL_INFORMATION_TOKEN"));
+      return config;
+    });
+  }
 
   async getUserById(id: string): Promise<User> {
     return await this.userRepository.findOne({ where: { id } });
   }
 
   // TODO: get from array like fetchUserDetail(...email)
-  async fetchUserDetail(...emails: string[]): Promise<PersonalData[]> {
-    const data: PersonalData[] = [];
+  // async fetchUserDetail(...emails: string[]): Promise<PersonalData[]> {
+  //   const data: PersonalData[] = [];
+  //
+  //   for (const email of emails) {
+  //     const personalInformation = await this.personalInformationRepository.findOne({
+  //       where: { email: email },
+  //     });
+  //
+  //     if (personalInformation)
+  //       data.push({
+  //         gender: personalInformation.gender,
+  //         grade: personalInformation.grade,
+  //         class: personalInformation.class,
+  //         number: personalInformation.number,
+  //         hakbun: personalInformation.hakbun,
+  //       });
+  //     else data.push(null);
+  //   }
+  //
+  //   return data;
+  // }
 
-    for (const email of emails) {
-      const personalInformation = await this.personalInformationRepository.findOne({
-        where: { email: email },
-      });
+  async checkUserDetail(
+    email: string,
+    config: { gender?: "male" | "female"; grade?: Grade },
+  ): Promise<boolean | null> {
+    const res = await axios.post("/personalInformation/check", {
+      email: email,
+      ...config,
+    });
 
-      if (personalInformation)
-        data.push({
-          gender: personalInformation.gender,
-          grade: personalInformation.grade,
-          class: personalInformation.class,
-          number: personalInformation.number,
-          hakbun: personalInformation.hakbun,
-        });
-      else data.push(null);
-    }
-
-    return data;
+    if (res.status === 404) return null;
+    else return res.data as boolean;
   }
 
   async createUser(data: CreateUserDTO): Promise<User> {

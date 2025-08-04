@@ -3,14 +3,16 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { FindOneOptions, LessThanOrEqual, MoreThanOrEqual, Repository } from "typeorm";
 
 import { ErrorMsg } from "../../../common/mapper/error";
-import { Grade, UserJWT } from "../../../common/mapper/types";
+import { Gender, Grade, UserJWT } from "../../../common/mapper/types";
 import { safeFindOne } from "../../../common/utils/safeFindOne.util";
 import { isInRange } from "../../../common/utils/staySeat.util";
 import { Stay, StayApply, StayOuting, StaySeatPreset, User } from "../../../schemas";
+import { UserManageService } from "../../user/providers";
 import {
   AddStayOutingDTO,
   CreateUserStayApplyDTO,
   EditStayOutingDTO,
+  GetStayListDTO,
   StayApplyIdDTO,
   StayIdDTO,
   StayOutingIdDTO,
@@ -27,10 +29,11 @@ export class StayService {
     private readonly stayApplyRepository: Repository<StayApply>,
     @InjectRepository(StayOuting)
     private readonly stayOutingRepository: Repository<StayOuting>,
+    private readonly userManageService: UserManageService,
   ) {}
 
   // just give all stay?
-  async getStayList(user: UserJWT) {
+  async getStayList(user: UserJWT, data: GetStayListDTO) {
     const now = new Date().toISOString();
 
     const stays = await this.stayRepository
@@ -39,7 +42,7 @@ export class StayService {
         "stay.stay_apply_period",
         "stay_apply_period",
         "stay_apply_period.grade = :grade AND stay_apply_period.apply_start <= :now AND stay_apply_period.apply_end >= :now",
-        { grade: user.grade as Grade, now },
+        { grade: data.grade, now },
       )
       .leftJoin("stay.stay_apply", "stay_apply")
       .leftJoin("stay_apply.user", "user")
@@ -87,7 +90,7 @@ export class StayService {
       where: {
         id: data.stay,
         stay_apply_period: {
-          grade: user.grade as Grade,
+          grade: data.grade,
           apply_start: LessThanOrEqual(new Date().toISOString()),
           apply_end: MoreThanOrEqual(new Date().toISOString()),
         },
@@ -105,7 +108,15 @@ export class StayService {
     if (staySeatCheck)
       throw new HttpException(ErrorMsg.StaySeat_Duplication(), HttpStatus.BAD_REQUEST);
 
-    if (!this.isAvailableSeat(user, stay.stay_seat_preset, data.stay_seat))
+    if (
+      !(await this.isAvailableSeat(
+        user,
+        stay.stay_seat_preset,
+        data.stay_seat,
+        data.grade,
+        data.gender,
+      ))
+    )
       throw new HttpException(ErrorMsg.StaySeat_NotAllowed(), HttpStatus.BAD_REQUEST);
 
     const stayApply = new StayApply();
@@ -144,7 +155,15 @@ export class StayService {
     if (staySeatCheck && staySeatCheck.id !== stayApply.id)
       throw new HttpException(ErrorMsg.StaySeat_Duplication(), HttpStatus.BAD_REQUEST);
 
-    if (!this.isAvailableSeat(user, stayApply.stay.stay_seat_preset, data.stay_seat))
+    if (
+      !(await this.isAvailableSeat(
+        user,
+        stayApply.stay.stay_seat_preset,
+        data.stay_seat,
+        data.grade,
+        data.gender,
+      ))
+    )
       throw new HttpException(ErrorMsg.StaySeat_NotAllowed(), HttpStatus.BAD_REQUEST);
 
     stayApply.stay_seat = data.stay_seat.toUpperCase();
@@ -248,13 +267,21 @@ export class StayService {
   }
 
   // pass if only_readingRoom false, pass if it's true and seat is in available range
-  private isAvailableSeat(user: UserJWT, preset: StaySeatPreset, target: string) {
-    return preset.stay_seat
-      .filter((stay_seat) => stay_seat.target === `${user.grade}_${user.gender}`)
-      .some(
-        (range) =>
-          (preset.only_readingRoom && isInRange(range.range.split(":"), target)) ||
-          !preset.only_readingRoom,
-      );
+  private async isAvailableSeat(
+    user: UserJWT,
+    preset: StaySeatPreset,
+    target: string,
+    grade: Grade,
+    gender: Gender,
+  ) {
+    return (
+      preset.stay_seat
+        .filter((stay_seat) => stay_seat.target === `${grade}_${gender}`)
+        .some(
+          (range) =>
+            (preset.only_readingRoom && isInRange(range.range.split(":"), target)) ||
+            !preset.only_readingRoom,
+        ) && (await this.userManageService.checkUserDetail(user.email, { gender, grade }))
+    );
   }
 }

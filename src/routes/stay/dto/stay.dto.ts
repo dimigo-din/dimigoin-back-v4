@@ -1,6 +1,8 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsBoolean, IsDateString, IsOptional, IsString, ValidateNested } from "class-validator";
+import { IsBoolean, IsDateString, IsIn, IsString, ValidateNested } from "class-validator";
+
+import { Gender, GenderValues, Grade, GradeValues } from "../../../common/mapper/types";
 
 import { CreateStayDTO } from "./stay.manage.dto";
 
@@ -51,6 +53,14 @@ export class CreateUserStayApplyDTO {
   @IsString()
   stay_seat: string;
 
+  @ApiProperty()
+  @IsIn(GradeValues)
+  grade: Grade;
+
+  @ApiProperty()
+  @IsIn(GenderValues)
+  gender: Gender;
+
   @ApiProperty({ type: () => OutingDTO, isArray: true })
   @ValidateNested({ each: true })
   @Type(() => OutingDTO)
@@ -83,4 +93,10 @@ export class StayOutingIdDTO {
   @ApiProperty()
   @IsString()
   id: string;
+}
+
+export class GetStayListDTO {
+  @ApiProperty()
+  @IsIn(GradeValues)
+  grade: Grade;
 }

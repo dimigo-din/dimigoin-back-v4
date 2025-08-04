@@ -6,4 +6,3 @@ export * from "./laundry.schema";
 export * from "./frigo.schema";
 export * from "./facility.schema";
 export * from "./wakeup.schema";
-export * from "./personal-information.schema";

@@ -295,17 +295,7 @@ export class StayManageService {
 
     const applies = await this.stayApplyRepository.find({ where: { stay: stay } });
 
-    const personalData = await this.userManageService.fetchUserDetail(
-      ...applies.map((a) => a.user.email),
-    );
-
-    return applies.map((e, i) => {
-      return {
-        id: e.id,
-        user: { ...e.user, ...personalData[i] },
-        stay: e.stay,
-      };
-    });
+    return applies;
   }
 
   async getStayApply(data: StayApplyIdDTO) {
@@ -314,7 +304,6 @@ export class StayManageService {
       ...stayApply,
       user: {
         ...stayApply.user,
-        ...(await this.userManageService.fetchUserDetail(stayApply.user.email)),
       },
     };
   }

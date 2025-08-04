@@ -7,6 +7,7 @@ import { ErrorMsg } from "../../../common/mapper/error";
 import { UserJWT } from "../../../common/mapper/types";
 import { safeFindOne } from "../../../common/utils/safeFindOne.util";
 import { LaundryApply, LaundryMachine, LaundryTime, LaundryTimeline, User } from "../../../schemas";
+import { UserManageService } from "../../user/providers";
 import { LaundryApplyDTO } from "../dto/laundry.dto";
 
 @Injectable()
@@ -22,6 +23,7 @@ export class LaundryService {
     private readonly laundryMachineRepository: Repository<LaundryMachine>,
     @InjectRepository(LaundryTimeline)
     private readonly laundryTimelineRepository: Repository<LaundryTimeline>,
+    private readonly userManageService: UserManageService,
   ) {}
 
   async getTimeline() {
@@ -53,7 +55,7 @@ export class LaundryService {
     const time = await safeFindOne<LaundryTime>(this.laundryTimeRepository, data.time);
     const machine = await safeFindOne<LaundryMachine>(this.laundryMachineRepository, data.machine);
 
-    if (time.grade !== user.grade)
+    if (!(await this.userManageService.checkUserDetail(user.email, { grade: time.grade })))
       throw new HttpException(ErrorMsg.PermissionDenied_Resource_Grade(), HttpStatus.FORBIDDEN);
 
     const machineTaken = await this.laundryApplyRepository.findOne({

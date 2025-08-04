@@ -24,6 +24,7 @@ export class ResponseWrapperInterceptor implements NestInterceptor {
       catchError((err) => {
         let status: number;
         let error: any;
+        let code: any;
 
         if (err instanceof HttpException) {
           status = err.getStatus();
@@ -31,6 +32,10 @@ export class ResponseWrapperInterceptor implements NestInterceptor {
         } else {
           status = 500;
           error = err.message || err;
+          if (Array.isArray(err.message) && err.message.length > 1) {
+            error = err.message[1];
+            code = err.message[0];
+          }
         }
 
         res.status(status);
@@ -38,6 +43,7 @@ export class ResponseWrapperInterceptor implements NestInterceptor {
           ok: false,
           status: status,
           error: error,
+          code,
         });
       }),
     );

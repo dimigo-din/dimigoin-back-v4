@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsIn, IsString } from "class-validator";
+import { IsIn, IsNumber, IsString } from "class-validator";
 
-import { FrigoTiming, FrigoTimingValues } from "../../../common/mapper/types";
+import { FrigoTiming, FrigoTimingValues, Grade, GradeValues } from "../../../common/mapper/types";
 
 export class ClientFrigoApplyDTO {
   @ApiProperty()
@@ -11,4 +11,8 @@ export class ClientFrigoApplyDTO {
   @ApiProperty()
   @IsString()
   reason: string;
+
+  @ApiProperty()
+  @IsIn(GradeValues)
+  grade: Grade;
 }

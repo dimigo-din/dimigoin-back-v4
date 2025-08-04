@@ -11,6 +11,7 @@ import {
   AddStayOutingDTO,
   CreateUserStayApplyDTO,
   EditStayOutingDTO,
+  GetStayListDTO,
   StayIdDTO,
   StayOutingIdDTO,
 } from "../dto/stay.dto";
@@ -31,8 +32,8 @@ export class StayController {
     type: [Stay],
   })
   @Get("")
-  async getStayList(@Req() req) {
-    return this.stayService.getStayList(req.user);
+  async getStayList(@Req() req, @Query() data: GetStayListDTO) {
+    return this.stayService.getStayList(req.user, data);
   }
 
   @ApiOperation({

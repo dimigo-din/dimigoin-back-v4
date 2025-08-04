@@ -8,6 +8,7 @@ import { UserJWT } from "../../../common/mapper/types";
 import { DayNumber2String } from "../../../common/utils/date.util";
 import { safeFindOne } from "../../../common/utils/safeFindOne.util";
 import { FrigoApply, FrigoApplyPeriod, User } from "../../../schemas";
+import { UserManageService } from "../../user/providers";
 import { ClientFrigoApplyDTO } from "../dto/frigo.dto";
 
 @Injectable()
@@ -19,6 +20,7 @@ export class FrigoService {
     private readonly frigoApplyRepository: Repository<FrigoApply>,
     @InjectRepository(FrigoApplyPeriod)
     private readonly frigoApplyPeriodRepository: Repository<FrigoApplyPeriod>,
+    private readonly userManageService: UserManageService,
   ) {}
 
   async getApply(user: UserJWT) {
@@ -35,10 +37,14 @@ export class FrigoService {
     const period = await safeFindOne<FrigoApplyPeriod>(
       this.frigoApplyPeriodRepository,
       {
-        where: { grade: user.grade },
+        where: { grade: data.grade },
       },
       new HttpException(ErrorMsg.FrigoPeriod_NotExistsForGrade(), HttpStatus.FORBIDDEN),
     );
+
+    if (!(await this.userManageService.checkUserDetail(user.email, { grade: data.grade }))) {
+      throw new HttpException(ErrorMsg.FrigoPeriod_NotExistsForGrade(), HttpStatus.FORBIDDEN);
+    }
 
     const now = moment();
     const start = moment().day(period.apply_start_day).hour(period.apply_start_hour);

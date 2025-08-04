@@ -5,7 +5,6 @@ import importToArray from "import-to-array";
 import { CustomCacheModule } from "../../common/modules/cache.module";
 import {
   Login,
-  PersonalInformationSchema,
   User,
   WakeupSongApplication,
   WakeupSongHistory,
@@ -24,7 +23,6 @@ import * as providers from "./providers";
       WakeupSongApplication,
       WakeupSongVote,
       WakeupSongHistory,
-      PersonalInformationSchema, // temporally
     ]),
     CustomCacheModule,
   ],

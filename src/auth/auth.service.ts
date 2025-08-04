@@ -13,8 +13,10 @@ import * as moment from "moment";
 import { LessThan, Repository } from "typeorm";
 
 import { ErrorMsg } from "../common/mapper/error";
+import { PermissionEnum } from "../common/mapper/permissions";
 import { UserJWT } from "../common/mapper/types";
 import { CacheService } from "../common/modules/cache.module";
+import { hasPermission } from "../common/utils/permission.util";
 import { UserManageService } from "../routes/user/providers";
 import { Login, Session, User } from "../schemas";
 
@@ -89,7 +91,7 @@ export class AuthService {
       throw new HttpException(ErrorMsg.GoogleOauthCode_Invalid(), HttpStatus.BAD_REQUEST);
     }
 
-    let loginUser = null;
+    let loginUser: User = null;
     const login = await this.loginRepository.findOne({
       where: { identifier1: ticketPayload.sub || "" },
     });
@@ -102,6 +104,16 @@ export class AuthService {
         name: `${ticketPayload.family_name}${ticketPayload.given_name}`,
       });
     } else loginUser = login.user;
+
+    if (!hasPermission(loginUser.permission, [PermissionEnum.TEACHER])) {
+      const detail = await this.userManageService.checkUserDetail(loginUser.email, {
+        gender: "male",
+      });
+
+      if (detail === null) {
+        throw new HttpException(ErrorMsg.PersonalInformation_NotRegistered(), HttpStatus.NOT_FOUND);
+      }
+    }
 
     return await this.generateJWTKeyPair(loginUser, "30m");
   }
@@ -150,12 +162,10 @@ export class AuthService {
   ): Promise<{ accessToken: string; refreshToken: string }> {
     const sessionIdentifier = crypto.randomBytes(30).toString("hex");
 
-    const userDetail = (await this.userManageService.fetchUserDetail(user.email))[0];
-
     // refresh expire: 1 month
     const keyPair = {
       accessToken: await this.jwtService.signAsync(
-        { sessionIdentifier, ...user, ...userDetail, refresh: false },
+        { sessionIdentifier, ...user },
         { expiresIn: accessExpire || "10m" },
       ),
       refreshToken: crypto.randomBytes(128).toString("hex"),
