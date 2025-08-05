@@ -29,13 +29,11 @@ export class ResponseWrapperInterceptor implements NestInterceptor {
         if (err instanceof HttpException) {
           status = err.getStatus();
           error = err.getResponse();
+          code = error[0];
+          error = error[1];
         } else {
           status = 500;
           error = err.message || err;
-          if (Array.isArray(err.message) && err.message.length > 1) {
-            error = err.message[1];
-            code = err.message[0];
-          }
         }
 
         res.status(status);
