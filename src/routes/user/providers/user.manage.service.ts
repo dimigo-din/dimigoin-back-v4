@@ -75,11 +75,9 @@ export class UserManageService {
     config: { gender?: "male" | "female"; grade?: Grade },
   ): Promise<boolean | null> {
     const res = await this.client.post("/personalInformation/check", {
-      email: email,
+      mail: email,
       ...config,
     });
-
-    console.log(res.data);
 
     if (res.status === 404) return null;
     else return res.data as boolean;
