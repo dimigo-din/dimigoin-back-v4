@@ -27,9 +27,20 @@ export class UserManageService {
       baseURL: this.configService.get<string>("PERSONAL_INFORMATION_SERVER"),
     });
     this.client.interceptors.request.use((config) => {
-      config.headers.setAuthorization(this.configService.get<string>("PERSONAL_INFORMATION_TOKEN"));
+      config.headers.setAuthorization(
+        `Bearer ${this.configService.get<string>("PERSONAL_INFORMATION_TOKEN")}`,
+      );
       return config;
     });
+    this.client.interceptors.response.use(
+      (res) => res,
+      (error) => {
+        if (error.response.status - 400 >= 0 && error.response.status - 400 < 100) {
+          return Promise.resolve(error.response);
+        }
+        return Promise.reject(error);
+      },
+    );
   }
 
   async getUserById(id: string): Promise<User> {
@@ -63,10 +74,12 @@ export class UserManageService {
     email: string,
     config: { gender?: "male" | "female"; grade?: Grade },
   ): Promise<boolean | null> {
-    const res = await axios.post("/personalInformation/check", {
+    const res = await this.client.post("/personalInformation/check", {
       email: email,
       ...config,
     });
+
+    console.log(res.data);
 
     if (res.status === 404) return null;
     else return res.data as boolean;
