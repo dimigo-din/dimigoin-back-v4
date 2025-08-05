@@ -37,7 +37,8 @@ export class ResponseWrapperInterceptor implements NestInterceptor {
           }
         } else {
           status = 500;
-          error = err.message || err;
+          error = "Internal Server Error";
+          console.log(err);
         }
 
         res.status(status);
