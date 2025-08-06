@@ -100,7 +100,7 @@ export class CreateStayScheduleDTO {
   /** weekday (sunday is 0) */
   stay_to: number;
 
-  @ApiProperty({ type: Number, description: "weekday (sunday is 0)" })
+  @ApiProperty({ type: Number, description: "weekday (sunday is 0) 자기계발외출날", isArray: true })
   @IsNumber({}, { each: true })
   outing_day: number[];
 
