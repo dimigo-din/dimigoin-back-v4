@@ -54,6 +54,7 @@ export class CreateUserStayApplyDTO {
   stay_seat: string;
 
   @ApiProperty()
+  @Type(() => Number)
   @IsIn(GradeValues)
   grade: Grade;
 
@@ -97,6 +98,7 @@ export class StayOutingIdDTO {
 
 export class GetStayListDTO {
   @ApiProperty()
+  @Type(() => Number)
   @IsIn(GradeValues)
   grade: Grade;
 }

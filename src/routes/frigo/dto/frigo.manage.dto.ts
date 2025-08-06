@@ -1,5 +1,6 @@
 import { Optional } from "@nestjs/common";
 import { ApiProperty } from "@nestjs/swagger";
+import { Type } from "class-transformer";
 import { IsBoolean, IsIn, IsNumber, IsString, Max, Min } from "class-validator";
 
 import { FrigoTiming, FrigoTimingValues, Grade, GradeValues } from "../../../common/mapper/types";
@@ -36,6 +37,7 @@ export class SetFrigoApplyPeriodDTO {
   apply_end_hour: number;
 
   @ApiProperty()
+  @Type(() => Number)
   @IsIn(GradeValues)
   grade: Grade;
 }

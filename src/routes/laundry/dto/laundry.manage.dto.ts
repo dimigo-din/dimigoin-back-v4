@@ -25,6 +25,7 @@ export class LaundryTimeDTO {
   time: string;
 
   @ApiProperty()
+  @Type(() => Number)
   @IsIn(GradeValues)
   grade: Grade;
 

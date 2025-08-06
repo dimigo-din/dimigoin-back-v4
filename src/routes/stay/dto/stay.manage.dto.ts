@@ -112,6 +112,7 @@ export class CreateStayScheduleDTO {
 export class StayApplyPeriodPerGrade {
   @ApiProperty()
   @IsNumber()
+  @Type(() => Number)
   @IsIn(GradeValues)
   grade: Grade;
 
@@ -177,6 +178,7 @@ export class CreateStayDTO {
 
 export class StayApplyPeriod_StayDTO {
   @ApiProperty()
+  @Type(() => Number)
   @IsIn(GradeValues)
   grade: Grade;
 
