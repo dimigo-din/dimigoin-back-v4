@@ -11,7 +11,8 @@ export class CustomLoggerMiddleware implements NestMiddleware {
     const originURL = req.originalUrl;
     const httpVersion = `HTTP/${req.httpVersion}`;
     const userAgent = req.headers["user-agent"];
-    const ipAddress = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
+    const ipAddress = req.socket.remoteAddress;
+    const forwardedFor = req.headers["x-forwarded-for"];
     let authorization = "";
     if (
       (typeof req.headers["authorization"] === "string" &&
@@ -34,14 +35,12 @@ export class CustomLoggerMiddleware implements NestMiddleware {
       authorization = "unknown";
     }
 
-    if (!ipAddress) return next();
-
     res.on("finish", () => {
       const statusCode = res.statusCode;
       const endTimestamp = Date.now() - startTimestamp;
 
       this.logger.log(
-        `${ipAddress} (${userAgent}) - "${requestMethod} ${originURL} ${httpVersion}" ${statusCode} by uid{${authorization}} +${endTimestamp}ms `,
+        `From ${forwardedFor ? `${forwardedFor} through ${ipAddress}` : ipAddress} (${userAgent}) - Requested "${requestMethod} ${originURL} ${httpVersion}" | Responded with HTTP ${statusCode} by uid{${authorization}} +${endTimestamp}ms `,
       );
 
       if (
