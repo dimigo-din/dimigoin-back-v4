@@ -72,8 +72,9 @@ export class UserManageService {
 
   async checkUserDetail(
     email: string,
-    config: { gender?: "male" | "female"; grade?: Grade },
+    config: { gender?: "male" | "female"; grade?: Grade | string },
   ): Promise<boolean | null> {
+    if (config.grade) config.grade = config.grade.toString();
     const res = await this.client.post("/personalInformation/check", {
       mail: email,
       ...config,
