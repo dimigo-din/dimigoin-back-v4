@@ -15,7 +15,6 @@ import {
   CreateStayScheduleDTO,
   CreateStaySeatPresetDTO,
   StayApplyIdDTO,
-  StayApplyListResponseDTO,
   StayIdDTO,
   StayScheduleIdDTO,
   StaySeatPresetIdDTO,
@@ -226,28 +225,15 @@ export class StayManageController {
   }
 
   @ApiOperation({
-    summary: "잔류 인원 목록",
+    summary: "잔류 인원 조회",
     description: "특정 잔류의 잔류 인원 목록을 가져옵니다.",
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: [StayApplyListResponseDTO],
-  })
-  @Get("/apply/list")
-  async StayApplyList(@Query() data: StayIdDTO) {
-    return await this.stayManageService.getStayApplyList(data);
-  }
-
-  @ApiOperation({
-    summary: "잔류 신청 정보",
-    description: "특정 잔류 신청의 디테일한 정보를 불러옵니다",
-  })
-  @ApiResponseFormat({
-    status: HttpStatus.OK,
-    type: StayApply,
+    type: [StayApply],
   })
   @Get("/apply")
-  async getStayApply(@Query() data: StayApplyIdDTO) {
+  async getStayApply(@Query() data: StayIdDTO) {
     return await this.stayManageService.getStayApply(data);
   }
 

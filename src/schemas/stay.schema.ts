@@ -245,15 +245,13 @@ export class StayApply {
   @Column()
   stay_seat: string;
 
-  @ApiProperty({ type: () => Stay })
   @ManyToOne(() => Stay, (stay) => stay.stay_apply, {
-    eager: true,
     onDelete: "CASCADE",
     onUpdate: "CASCADE",
   })
   stay: Stay;
 
-  @ApiProperty({ type: () => [StayOuting] })
+  @ApiProperty({ type: () => StayOuting, isArray: true })
   @OneToMany(() => StayOuting, (stayOuting) => stayOuting.stay_apply, {
     eager: true,
   })

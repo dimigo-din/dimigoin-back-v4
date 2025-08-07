@@ -162,7 +162,7 @@ export class CreateStayDTO {
   @IsString()
   to: string;
 
-  @ApiProperty()
+  @ApiProperty({ type: () => StayApplyPeriod_StayDTO, isArray: true })
   @ValidateNested({ each: true })
   @Type(() => StayApplyPeriod_StayDTO)
   period: StayApplyPeriod_StayDTO[];
@@ -303,15 +303,4 @@ export class UpdateOutingMealCancelDTO {
   @ApiProperty()
   @IsBoolean()
   dinner_cancel: boolean;
-}
-
-export class StayApplyListResponseDTO {
-  @ApiProperty()
-  id: string;
-
-  @ApiProperty({ type: () => User })
-  user: User;
-
-  @ApiProperty({ type: () => Stay })
-  stay: Stay;
 }

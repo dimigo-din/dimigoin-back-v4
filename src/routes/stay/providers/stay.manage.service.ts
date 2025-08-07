@@ -289,23 +289,13 @@ export class StayManageService {
     return await this.stayRepository.remove(stay);
   }
 
-  async getStayApplyList(data: StayIdDTO) {
+  async getStayApply(data: StayIdDTO) {
     const stay = await this.getStay(data);
     if (!stay) throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
 
     const applies = await this.stayApplyRepository.find({ where: { stay: stay } });
 
     return applies;
-  }
-
-  async getStayApply(data: StayApplyIdDTO) {
-    const stayApply = await this.stayApplyRepository.findOne({ where: { id: data.id } });
-    return {
-      ...stayApply,
-      user: {
-        ...stayApply.user,
-      },
-    };
   }
 
   async createStayApply(data: CreateStayApplyDTO) {
