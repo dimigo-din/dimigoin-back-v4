@@ -260,7 +260,7 @@ export class CreateStayApplyDTO {
   @IsString()
   stay_seat: string;
 
-  @ApiProperty()
+  @ApiProperty({ type: () => OutingDTO, isArray: true })
   @ValidateNested({ each: true })
   @Type(() => OutingDTO)
   outing: OutingDTO[];

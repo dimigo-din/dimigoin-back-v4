@@ -14,7 +14,7 @@ export class CustomLoggerMiddleware implements NestMiddleware {
     const ipAddress = req.socket.remoteAddress;
     const forwardedFor = Array.isArray(req.headers["x-forwarded-for"])
       ? req.headers["x-forwarded-for"].join(" > ")
-      : req.headers["x-forwarded-for"].replaceAll(",", " > ");
+      : (req.headers["x-forwarded-for"] || "").replaceAll(",", " > ");
     let authorization = "";
     if (
       (typeof req.headers["authorization"] === "string" &&

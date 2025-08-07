@@ -81,7 +81,10 @@ export class StayService {
   }
 
   async getStayApplies(user: UserJWT) {
-    return await this.stayApplyRepository.find({ where: { user: { id: user.id } } });
+    return await this.stayApplyRepository.find({
+      where: { user: { id: user.id } },
+      relations: { stay: true },
+    });
   }
 
   async createStayApply(user: UserJWT, data: CreateUserStayApplyDTO) {
