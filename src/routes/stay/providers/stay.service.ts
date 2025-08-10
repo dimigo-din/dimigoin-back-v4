@@ -94,8 +94,8 @@ export class StayService {
         id: data.stay,
         stay_apply_period: {
           grade: data.grade,
-          apply_start: LessThanOrEqual(new Date().toISOString()),
-          apply_end: MoreThanOrEqual(new Date().toISOString()),
+          apply_start: LessThanOrEqual(new Date()),
+          apply_end: MoreThanOrEqual(new Date()),
         },
       },
     });

@@ -5,6 +5,7 @@ import {
   IsBoolean,
   IsDateString,
   IsIn,
+  IsISO8601,
   IsNumber,
   IsOptional,
   IsString,
@@ -183,12 +184,12 @@ export class StayApplyPeriod_StayDTO {
   grade: Grade;
 
   @ApiProperty()
-  @IsString()
+  @IsISO8601()
   /** YYYY-MM-DDTHH:mm */
   start: string;
 
   @ApiProperty()
-  @IsString()
+  @IsISO8601()
   /** YYYY-MM-DDTHH:mm */
   end: string;
 }

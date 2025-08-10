@@ -244,8 +244,8 @@ export class StayManageService {
     for (const period of data.period) {
       const stayApplyPeriod = new StayApplyPeriod_Stay();
       stayApplyPeriod.grade = period.grade;
-      stayApplyPeriod.apply_start = period.start;
-      stayApplyPeriod.apply_end = period.end;
+      stayApplyPeriod.apply_start = new Date(period.start);
+      stayApplyPeriod.apply_end = new Date(period.end);
 
       stay.stay_apply_period.push(stayApplyPeriod);
     }
@@ -273,8 +273,8 @@ export class StayManageService {
     for (const period of data.period) {
       const stayApplyPeriod = new StayApplyPeriod_Stay();
       stayApplyPeriod.grade = period.grade;
-      stayApplyPeriod.apply_start = period.start;
-      stayApplyPeriod.apply_end = period.end;
+      stayApplyPeriod.apply_start = new Date(period.start);
+      stayApplyPeriod.apply_end = new Date(period.end);
 
       stay.stay_apply_period.push(stayApplyPeriod);
     }
@@ -407,8 +407,6 @@ export class StayManageService {
   @Cron(CronExpression.EVERY_10_SECONDS)
   // @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async syncStay() {
-    const now = moment().tz("Asia/seoul").startOf("day");
-
     // register stay
     const schedules = await this.stayScheduleRepository.find({
       where: {
@@ -424,8 +422,8 @@ export class StayManageService {
         where: {
           parent: Not(IsNull()),
           stay_apply_period: {
-            apply_start: MoreThanOrEqual(now.format("YYYY-MM-DD HH:mm:ss")),
-            apply_end: MoreThanOrEqual(now.format("YYYY-MM-DD HH:mm:ss")),
+            apply_start: LessThanOrEqual(new Date()),
+            apply_end: MoreThanOrEqual(new Date()),
           },
         },
         relations: ["parent"],
@@ -441,6 +439,7 @@ export class StayManageService {
       stay.stay_seat_preset = target.stay_seat_preset;
       stay.parent = target;
 
+      const now = moment().tz("Asia/Seoul").startOf("day");
       stay.stay_apply_period = target.stay_apply_period.map((period) => {
         const p = new StayApplyPeriod_Stay();
         p.grade = period.grade;
@@ -451,14 +450,14 @@ export class StayManageService {
           .hour(period.apply_start_hour)
           .minute(0)
           .second(0)
-          .format("YYYY-MM-DD HH:mm:ss");
+          .toDate();
         p.apply_end = now
           .clone()
           .weekday(period.apply_end_day)
           .hour(period.apply_end_hour)
           .minute(0)
           .second(0)
-          .format("YYYY-MM-DD HH:mm:ss");
+          .toDate();
         return p;
       });
 

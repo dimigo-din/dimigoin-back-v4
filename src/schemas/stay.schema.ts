@@ -218,13 +218,13 @@ export class StayApplyPeriod_Stay {
 
   /** YYYY-MM-DDTHH:mm */
   @ApiProperty()
-  @Column("timestamp")
-  apply_start: string;
+  @Column("timestamptz")
+  apply_start: Date;
 
   /** YYYY-MM-DDTHH:mm */
   @ApiProperty()
-  @Column("timestamp")
-  apply_end: string;
+  @Column("timestamptz")
+  apply_end: Date;
 
   @ManyToOne(() => Stay, (stay) => stay.stay_apply_period, {
     onDelete: "CASCADE",
