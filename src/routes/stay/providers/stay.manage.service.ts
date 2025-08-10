@@ -407,6 +407,8 @@ export class StayManageService {
   @Cron(CronExpression.EVERY_10_SECONDS)
   // @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async syncStay() {
+    const now = moment().tz("Asia/seoul").startOf("day");
+
     // register stay
     const schedules = await this.stayScheduleRepository.find({
       where: {
@@ -422,8 +424,8 @@ export class StayManageService {
         where: {
           parent: Not(IsNull()),
           stay_apply_period: {
-            apply_start: LessThanOrEqual(new Date().toISOString()),
-            apply_end: MoreThanOrEqual(new Date().toISOString()),
+            apply_start: MoreThanOrEqual(now.format("YYYY-MM-DD HH:mm:ss")),
+            apply_end: MoreThanOrEqual(now.format("YYYY-MM-DD HH:mm:ss")),
           },
         },
         relations: ["parent"],
@@ -433,8 +435,6 @@ export class StayManageService {
     const targetSchedules = schedules.filter((x) => !existingStay.find((y) => y === x.id));
     for (const target of targetSchedules) {
       if (existingStay.includes(target.id)) continue;
-
-      const now = moment().startOf("day");
 
       const stay = new Stay();
       stay.name = target.name;
@@ -451,14 +451,14 @@ export class StayManageService {
           .hour(period.apply_start_hour)
           .minute(0)
           .second(0)
-          .toISOString();
+          .format("YYYY-MM-DD HH:mm:ss");
         p.apply_end = now
           .clone()
           .weekday(period.apply_end_day)
           .hour(period.apply_end_hour)
           .minute(0)
           .second(0)
-          .toISOString();
+          .format("YYYY-MM-DD HH:mm:ss");
         return p;
       });
 
@@ -476,6 +476,7 @@ export class StayManageService {
       stay.outing_day = target.outing_day.map((day) => {
         const out = this.weekday2date(now, day);
         if (!out.isBetween(from, to)) {
+          out.add(1, "w");
           if (!out.isBetween(from, to)) {
             console.error(`Error. Invalid outing range on ${target.name}`);
             success = false;
