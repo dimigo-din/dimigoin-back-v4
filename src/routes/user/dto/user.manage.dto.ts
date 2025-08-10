@@ -24,6 +24,10 @@ export class CreateUserDTO {
   @ApiProperty()
   @IsString()
   name: string;
+
+  @ApiProperty()
+  @IsString()
+  picture: string;
 }
 
 export class SetUserDetailDTO {

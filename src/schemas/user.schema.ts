@@ -28,6 +28,10 @@ export class User {
   name: string;
 
   @ApiProperty()
+  @Column()
+  picture: string;
+
+  @ApiProperty()
   @Column("varchar", { default: numberPermission(...StudentUserPermission) })
   permission: string;
 

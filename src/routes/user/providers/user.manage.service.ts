@@ -88,6 +88,7 @@ export class UserManageService {
     const user = new User();
     user.email = data.email;
     user.name = data.name;
+    user.picture = data.picture;
 
     const login = new Login();
     login.type = data.loginType;

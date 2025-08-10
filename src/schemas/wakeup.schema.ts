@@ -35,7 +35,10 @@ export class WakeupSongApplication {
   @OneToMany(() => WakeupSongVote, (wakeupSongVote) => wakeupSongVote.wakeupSongApplication)
   wakeupSongVote: WakeupSongVote[];
 
-  @ManyToOne(() => User, (user) => user.wakeupSongApplication)
+  @ManyToOne(() => User, (user) => user.wakeupSongApplication, {
+    onUpdate: "CASCADE",
+    onDelete: "CASCADE",
+  })
   user: User;
 }
 
@@ -54,10 +57,14 @@ export class WakeupSongVote {
   @ManyToOne(
     () => WakeupSongApplication,
     (wakeupSongApplication) => wakeupSongApplication.wakeupSongVote,
+    { onUpdate: "CASCADE", onDelete: "CASCADE" },
   )
   wakeupSongApplication: WakeupSongApplication;
 
-  @ManyToOne(() => User, (user) => user.wakeupSongVote)
+  @ManyToOne(() => User, (user) => user.wakeupSongVote, {
+    onUpdate: "CASCADE",
+    onDelete: "CASCADE",
+  })
   user: User;
 }
 
