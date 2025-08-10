@@ -87,7 +87,6 @@ export class AuthService {
       });
       ticketPayload = ticket.getPayload();
     } catch (e) {
-      console.log(e);
       throw new HttpException(ErrorMsg.GoogleOauthCode_Invalid(), HttpStatus.BAD_REQUEST);
     }
 
