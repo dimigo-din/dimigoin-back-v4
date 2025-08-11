@@ -2,8 +2,8 @@ name: Build and push
 
 on:
   push:
-    branches:
-      - main  # or your deployment branch
+    tags:
+      - deploy
   workflow_call:
   workflow_dispatch:
 
