@@ -171,6 +171,7 @@ export class StayManageService {
 
       staySchedule.stay_apply_period.push(stayApplyPeriod);
     }
+
     const saved = await this.stayScheduleRepository.save(staySchedule);
     return await safeFindOne<StaySchedule>(this.stayScheduleRepository, saved.id);
   }

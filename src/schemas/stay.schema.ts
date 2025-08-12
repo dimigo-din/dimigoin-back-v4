@@ -79,6 +79,7 @@ export class StaySchedule {
     (stayApplyPeriod_StaySchedule) => stayApplyPeriod_StaySchedule.stay_schedule,
     {
       eager: true,
+      cascade: ["insert", "update"],
     },
   )
   stay_apply_period: StayApplyPeriod_StaySchedule[];
