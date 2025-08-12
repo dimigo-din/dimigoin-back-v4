@@ -82,10 +82,8 @@ export class LaundryManageService {
       laundryTimeline.times.push(laundryTime);
     }
 
-    const id = (await this.laundryTimelineRepository.save(laundryTimeline)).id;
-    await this.laundryTimeRepository.save(laundryTimeline.times);
-
-    return await safeFindOne<LaundryTimeline>(this.laundryTimelineRepository, id);
+    const saved = await this.laundryTimelineRepository.save(laundryTimeline);
+    return await safeFindOne<LaundryTimeline>(this.laundryTimelineRepository, saved.id);
   }
 
   async updateLaundryTimeline(data: UpdateLaundryTimelineDTO) {
@@ -110,10 +108,8 @@ export class LaundryManageService {
       laundryTimeline.times.push(laundryTime);
     }
 
-    const id = (await this.laundryTimelineRepository.save(laundryTimeline)).id;
-    await this.laundryTimeRepository.save(laundryTimeline.times);
-
-    return await safeFindOne<LaundryTimeline>(this.laundryTimelineRepository, id);
+    const saved = await this.laundryTimelineRepository.save(laundryTimeline);
+    return await safeFindOne<LaundryTimeline>(this.laundryTimelineRepository, saved.id);
   }
 
   async deleteLaundryTimeline(data: LaundryTimelineIdDTO) {
@@ -143,7 +139,8 @@ export class LaundryManageService {
     laundryMachine.gender = data.gender;
     laundryMachine.enabled = data.enabled;
 
-    return await this.laundryMachineRepository.save(laundryMachine);
+    const saved = await this.laundryMachineRepository.save(laundryMachine);
+    return await safeFindOne<LaundryMachine>(this.laundryMachineRepository, saved.id);
   }
 
   async updateLaundryMachine(data: UpdateLaundryMachineDTO) {
@@ -156,7 +153,8 @@ export class LaundryManageService {
     laundryMachine.gender = data.gender;
     laundryMachine.enabled = data.enabled;
 
-    return await this.laundryMachineRepository.save(laundryMachine);
+    const saved = await this.laundryMachineRepository.save(laundryMachine);
+    return await safeFindOne<LaundryMachine>(this.laundryMachineRepository, saved.id);
   }
 
   async deleteLaundryMachine(data: LaundryMachineIdDTO) {
@@ -206,7 +204,8 @@ export class LaundryManageService {
     laundryApply.laundryMachine = laundryMachine;
     laundryApply.user = user;
 
-    return await this.laundryApplyRepository.save(laundryApply);
+    const saved = await this.laundryApplyRepository.save(laundryApply);
+    return await safeFindOne<LaundryApply>(this.laundryApplyRepository, saved.id);
   }
 
   async updateLaundryApply(data: UpdateLaundryApplyDTO) {
@@ -215,7 +214,8 @@ export class LaundryManageService {
 
     laundryApply.user = user;
 
-    return await this.laundryApplyRepository.save(laundryApply);
+    const saved = await this.laundryApplyRepository.save(laundryApply);
+    return await safeFindOne<LaundryApply>(this.laundryApplyRepository, saved.id);
   }
 
   async deleteLaundryApply(data: LaundryApplyIdDTO) {

@@ -1,14 +1,11 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Exclude } from "class-transformer";
 import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinColumn,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
-  OneToOne,
   DeleteDateColumn,
   Unique,
 } from "typeorm";
@@ -57,8 +54,8 @@ export class StaySeatPresetRange {
   range: string;
 
   @ManyToOne(() => StaySeatPreset, (staySeatPreset) => staySeatPreset.stay_seat, {
-    onDelete: "CASCADE",
     onUpdate: "CASCADE",
+    onDelete: "CASCADE",
   })
   stay_seat_preset: StaySeatPreset;
 }
@@ -108,12 +105,13 @@ export class StaySchedule {
   @ApiProperty({ type: () => StaySeatPreset })
   @ManyToOne(() => StaySeatPreset, (staySeatPreset) => staySeatPreset.stay_schedule, {
     eager: true,
-    onUpdate: "CASCADE",
   })
   stay_seat_preset: StaySeatPreset;
 
   @ApiProperty({ type: () => [Stay] })
-  @OneToMany(() => Stay, (stay) => stay.parent)
+  @OneToMany(() => Stay, (stay) => stay.parent, {
+    cascade: ["insert", "update"],
+  })
   children: Stay[];
 }
 
@@ -145,6 +143,7 @@ export class Stay {
 
   @ApiProperty({ type: () => [StayApplyPeriod_Stay] })
   @OneToMany(() => StayApplyPeriod_Stay, (stayApplyPeriod_Stay) => stayApplyPeriod_Stay.stay, {
+    cascade: ["insert", "update"],
     eager: true,
   })
   stay_apply_period: StayApplyPeriod_Stay[];
@@ -201,12 +200,13 @@ export class StayApplyPeriod_StaySchedule {
   apply_end_hour: number;
 
   @ManyToOne(() => StaySchedule, (staySchedule) => staySchedule.stay_apply_period, {
-    onDelete: "CASCADE",
     onUpdate: "CASCADE",
+    onDelete: "CASCADE",
   })
   stay_schedule: StaySchedule;
 }
 @Entity()
+@Unique(["stay", "grade"])
 export class StayApplyPeriod_Stay {
   @ApiProperty()
   @PrimaryGeneratedColumn("uuid")
@@ -227,8 +227,8 @@ export class StayApplyPeriod_Stay {
   apply_end: Date;
 
   @ManyToOne(() => Stay, (stay) => stay.stay_apply_period, {
-    onDelete: "CASCADE",
     onUpdate: "CASCADE",
+    onDelete: "CASCADE",
     nullable: true,
   })
   stay: Stay;
@@ -246,21 +246,22 @@ export class StayApply {
   stay_seat: string;
 
   @ManyToOne(() => Stay, (stay) => stay.stay_apply, {
-    onDelete: "CASCADE",
     onUpdate: "CASCADE",
+    onDelete: "CASCADE",
   })
   stay: Stay;
 
   @ApiProperty({ type: () => StayOuting, isArray: true })
   @OneToMany(() => StayOuting, (stayOuting) => stayOuting.stay_apply, {
+    cascade: ["insert", "update"],
     eager: true,
   })
   outing: StayOuting[];
 
   @ApiProperty({ type: () => User })
   @ManyToOne(() => User, (user) => user.stay_apply, {
-    onDelete: "CASCADE",
     onUpdate: "CASCADE",
+    onDelete: "CASCADE",
     eager: true,
   })
   user: User;
@@ -307,8 +308,8 @@ export class StayOuting {
   audit_reason?: string;
 
   @ManyToOne(() => StayApply, (stayApply) => stayApply.outing, {
-    onDelete: "CASCADE",
     onUpdate: "CASCADE",
+    onDelete: "CASCADE",
   })
   stay_apply: StayApply;
 }

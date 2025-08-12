@@ -3,18 +3,12 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinTable,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
-  JoinColumn,
 } from "typeorm";
 
-import {
-  FacilityReportStatus,
-  FacilityReportStatusValues,
-  FacilityReportType,
-} from "../common/mapper/types";
+import { FacilityReportStatus, FacilityReportType } from "../common/mapper/types";
 
 import { User } from "./user.schema";
 
@@ -49,10 +43,15 @@ export class FacilityReport {
   comment: FacilityReportComment[];
 
   @ApiProperty({ type: () => [FacilityImg] })
-  @OneToMany(() => FacilityImg, (facilityImg) => facilityImg.parent)
+  @OneToMany(() => FacilityImg, (facilityImg) => facilityImg.parent, {
+    cascade: ["insert", "update"],
+  })
   file: FacilityImg[];
 
-  @ManyToOne(() => User, (user) => user.facilityReport)
+  @ManyToOne(() => User, (user) => user.facilityReport, {
+    onUpdate: "CASCADE",
+    onDelete: "CASCADE",
+  })
   user: User;
 }
 

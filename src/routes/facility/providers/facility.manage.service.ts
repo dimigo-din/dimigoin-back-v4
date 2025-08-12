@@ -92,11 +92,8 @@ export class FacilityManageService {
       imgs.push(img);
     }
 
-    const report_id = (await this.facilityReportRepository.save(facilityReport)).id;
-    await this.facilityImgRepository.save(imgs);
-    console.log(report_id);
-
-    return await this.facilityReportRepository.findOne({ where: { id: report_id } });
+    const saved = await this.facilityReportRepository.save(facilityReport);
+    return await safeFindOne<FacilityReport>(this.facilityReportRepository, saved.id);
   }
 
   async deleteReport(data: FacilityReportIdDTO) {
@@ -124,7 +121,8 @@ export class FacilityManageService {
     comment.text = data.text;
     comment.user = dbUser;
 
-    return await this.facilityReportCommentRepository.save(comment);
+    const saved = await this.facilityReportCommentRepository.save(comment);
+    return await safeFindOne<FacilityReportComment>(this.facilityReportCommentRepository, saved.id);
   }
 
   async deleteComment(data: FacilityReportCommentIdDTO) {

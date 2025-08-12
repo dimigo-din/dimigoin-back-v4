@@ -137,11 +137,13 @@ export class StayService {
       outing.dinner_cancel = outingData.dinner_cancel;
       outing.from = outingData.from;
       outing.to = outingData.to;
+      outing.stay_apply = stayApply;
+
       stayApply.outing.push(outing);
     }
 
-    await this.stayOutingRepository.save(stayApply.outing);
-    return await this.stayApplyRepository.save(stayApply);
+    const saved = await this.stayApplyRepository.save(stayApply);
+    return await safeFindOne<StayApply>(this.stayApplyRepository, saved.id);
   }
 
   async updateStayApply(user: UserJWT, data: CreateUserStayApplyDTO) {
@@ -183,13 +185,15 @@ export class StayService {
       outing.to = outingData.to;
       outing.audit_reason = null;
       outing.approved = null;
+      outing.stay_apply = stayApply;
+
       outings.push(outing);
     }
 
     await this.stayOutingRepository.remove(stayApply.outing);
     stayApply.outing = outings;
-    await this.stayOutingRepository.save(stayApply.outing);
-    return await this.stayApplyRepository.save(stayApply);
+    const saved = await this.stayApplyRepository.save(stayApply);
+    return await safeFindOne<StayApply>(this.stayApplyRepository, saved.id);
   }
 
   async deleteStayApply(user: UserJWT, data: StayIdDTO) {
@@ -227,7 +231,8 @@ export class StayService {
     outing.approved = null;
     outing.stay_apply = apply;
 
-    return await this.stayOutingRepository.save(outing);
+    const saved = await this.stayOutingRepository.save(outing);
+    return await safeFindOne<StayOuting>(this.stayOutingRepository, saved.id);
   }
 
   async editStayOuting(user: UserJWT, data: EditStayOutingDTO) {
@@ -251,7 +256,8 @@ export class StayService {
     outing.audit_reason = null;
     outing.approved = null;
 
-    return await this.stayOutingRepository.save(outing);
+    const saved = await this.stayOutingRepository.save(outing);
+    return await safeFindOne<StayOuting>(this.stayOutingRepository, saved.id);
   }
 
   async removeStayOuting(user: UserJWT, data: StayOutingIdDTO) {

@@ -90,14 +90,13 @@ export class StayManageService {
         staySeatPresetRange.target = ranges.target;
         staySeatPresetRange.range = range;
         staySeatPresetRange.stay_seat_preset = staySeatPreset;
+        staySeatPresetRange.stay_seat_preset = staySeatPreset;
+
         staySeatPresetRanges.push(staySeatPresetRange);
       }
     }
-
-    const result = await this.staySeatPresetRepository.save(staySeatPreset);
-    await this.staySeatPresetRangeRepository.save(staySeatPresetRanges);
-
-    return await this.staySeatPresetRepository.findOne({ where: { id: result.id } });
+    const saved = await this.staySeatPresetRepository.save(staySeatPreset);
+    return await safeFindOne<StaySeatPreset>(this.staySeatPresetRepository, saved.id);
   }
 
   async updateStaySeatPreset(data: UpdateStaySeatPresetDTO) {
@@ -120,9 +119,9 @@ export class StayManageService {
         staySeatPresetRanges.push(staySeatPresetRange);
       }
     }
-    await this.staySeatPresetRangeRepository.save(staySeatPresetRanges);
 
-    return await this.staySeatPresetRepository.findOne({ where: { id: data.id } });
+    await this.staySeatPresetRangeRepository.save(staySeatPresetRanges);
+    return await safeFindOne<StaySeatPreset>(this.staySeatPresetRepository, data.id);
   }
 
   async deleteStaySeatPreset(data: StaySeatPresetIdDTO) {
@@ -168,12 +167,12 @@ export class StayManageService {
       stayApplyPeriod.apply_start_hour = period.apply_start_hour;
       stayApplyPeriod.apply_end_day = period.apply_end_day;
       stayApplyPeriod.apply_end_hour = period.apply_end_hour;
+      stayApplyPeriod.stay_schedule = staySchedule;
 
       staySchedule.stay_apply_period.push(stayApplyPeriod);
     }
-
-    await this.stayApplyPeriod_StaySchedule_Repository.save(staySchedule.stay_apply_period);
-    return await this.stayScheduleRepository.save(staySchedule);
+    const saved = await this.stayScheduleRepository.save(staySchedule);
+    return await safeFindOne<StaySchedule>(this.stayScheduleRepository, saved.id);
   }
 
   // i know. quite duplicated. but.. looks better and safe!
@@ -202,12 +201,12 @@ export class StayManageService {
       stayApplyPeriod.apply_start_hour = period.apply_start_hour;
       stayApplyPeriod.apply_end_day = period.apply_end_day;
       stayApplyPeriod.apply_end_hour = period.apply_end_hour;
+      stayApplyPeriod.stay_schedule = staySchedule;
 
       staySchedule.stay_apply_period.push(stayApplyPeriod);
     }
-
-    await this.stayApplyPeriod_StaySchedule_Repository.save(staySchedule.stay_apply_period);
-    return await this.stayScheduleRepository.save(staySchedule);
+    const saved = await this.stayScheduleRepository.save(staySchedule);
+    return await safeFindOne<StaySchedule>(this.stayScheduleRepository, saved.id);
   }
 
   async deleteStaySchedule(data: StayScheduleIdDTO) {
@@ -246,12 +245,12 @@ export class StayManageService {
       stayApplyPeriod.grade = period.grade;
       stayApplyPeriod.apply_start = new Date(period.start);
       stayApplyPeriod.apply_end = new Date(period.end);
+      stayApplyPeriod.stay = stay;
 
       stay.stay_apply_period.push(stayApplyPeriod);
     }
-
-    await this.stayApplyPeriod_Stay_Repository.save(stay.stay_apply_period);
-    return await this.stayRepository.save(stay);
+    const saved = await this.stayRepository.save(stay);
+    return await safeFindOne<Stay>(this.stayRepository, saved.id);
   }
 
   async updateStay(data: UpdateStayDTO) {
@@ -275,12 +274,12 @@ export class StayManageService {
       stayApplyPeriod.grade = period.grade;
       stayApplyPeriod.apply_start = new Date(period.start);
       stayApplyPeriod.apply_end = new Date(period.end);
+      stayApplyPeriod.stay = stay;
 
       stay.stay_apply_period.push(stayApplyPeriod);
     }
-
-    await this.stayApplyPeriod_Stay_Repository.save(stay.stay_apply_period);
-    return await this.stayRepository.save(stay);
+    const saved = await this.stayRepository.save(stay);
+    return await safeFindOne<Stay>(this.stayRepository, saved.id);
   }
 
   async deleteStay(data: DeleteStayDTO) {
@@ -330,12 +329,12 @@ export class StayManageService {
       outing.to = outingData.to;
       outing.approved = outingData.approved;
       outing.audit_reason = outingData.audit_reason;
+      outing.stay_apply = stayApply;
 
       stayApply.outing.push(outing);
     }
-
-    await this.stayOutingRepository.save(stayApply.outing);
-    return await this.stayApplyRepository.save(stayApply);
+    const saved = await this.stayApplyRepository.save(stayApply);
+    return await safeFindOne<StayApply>(this.stayApplyRepository, saved.id);
   }
 
   async updateStayApply(data: UpdateStayApplyDTO) {
@@ -365,12 +364,12 @@ export class StayManageService {
       outing.to = outingData.to;
       outing.approved = outingData.approved;
       outing.audit_reason = outingData.audit_reason;
+      outing.stay_apply = stayApply;
 
       stayApply.outing.push(outing);
     }
-
-    await this.stayOutingRepository.save(stayApply.outing);
-    return await this.stayApplyRepository.save(stayApply);
+    const saved = await this.stayApplyRepository.save(stayApply);
+    return await safeFindOne<StayApply>(this.stayApplyRepository, saved.id);
   }
 
   async deleteStayApply(data: StayApplyIdDTO) {
@@ -411,7 +410,6 @@ export class StayManageService {
     const schedules = await this.stayScheduleRepository.find({
       where: {
         stay_apply_period: {
-          apply_start_day: LessThanOrEqual(moment().weekday()),
           apply_end_day: MoreThanOrEqual(moment().weekday()),
         },
       },
@@ -422,7 +420,6 @@ export class StayManageService {
         where: {
           parent: Not(IsNull()),
           stay_apply_period: {
-            apply_start: LessThanOrEqual(new Date()),
             apply_end: MoreThanOrEqual(new Date()),
           },
         },
@@ -458,6 +455,7 @@ export class StayManageService {
           .minute(0)
           .second(0)
           .toDate();
+        p.stay = stay;
         return p;
       });
 
@@ -485,7 +483,6 @@ export class StayManageService {
       });
       if (!success) continue;
 
-      await this.stayApplyPeriod_Stay_Repository.save(stay.stay_apply_period);
       await this.stayRepository.save(stay);
     }
 
