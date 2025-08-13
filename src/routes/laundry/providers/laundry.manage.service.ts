@@ -224,7 +224,7 @@ export class LaundryManageService {
     return await this.laundryApplyRepository.remove(laundryApply);
   }
 
-  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  @Cron(CronExpression.EVERY_HOUR)
   // @Cron(CronExpression.EVERY_SECOND)
   private async laundryTimelineScheduler() {
     const timelines = await this.laundryTimelineRepository.find();
