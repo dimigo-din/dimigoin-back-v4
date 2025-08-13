@@ -49,7 +49,10 @@ export const ErrorMsg = {
   ],
   Frigo_AlreadyApplied: () => ["Frigo_AlreadyApplied", "이미 금요귀가가 신청되었습니다."],
 
-  LaundryApply_AlreadyExists: () => ["LaundryApply_AlreadyExists", "이미 세탁 신청을 하셨습니다."],
+  LaundryApply_AlreadyExists: (type: "세탁" | "건조") => [
+    "LaundryApply_AlreadyExists",
+    `이미 ${type} 신청을 하셨습니다.`,
+  ],
   LaundryMachine_AlreadyTaken: () => [
     "LaundryMachine_AlreadyTaken",
     "이미 해당 세탁/건조기가 신청된 상태입니다.",

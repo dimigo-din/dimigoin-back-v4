@@ -43,17 +43,25 @@ export class LaundryService {
   async createApply(user: UserJWT, data: LaundryApplyDTO) {
     const dbUser = await safeFindOne<User>(this.userRepository, user.id);
 
+    const machine = await safeFindOne<LaundryMachine>(this.laundryMachineRepository, data.machine);
+
     const applyExists = await this.laundryApplyRepository.findOne({
-      where: { user: dbUser, date: moment().format("YYYY-MM-DD") },
+      where: {
+        user: dbUser,
+        date: moment().format("YYYY-MM-DD"),
+        laundryMachine: { type: machine.type },
+      },
     });
     if (applyExists)
-      throw new HttpException(ErrorMsg.LaundryApply_AlreadyExists(), HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        ErrorMsg.LaundryApply_AlreadyExists(machine.type === "washer" ? "세탁" : "건조"),
+        HttpStatus.BAD_REQUEST,
+      );
 
     const timeline = await safeFindOne<LaundryTimeline>(this.laundryTimelineRepository, {
       where: { times: { id: data.time } },
     });
     const time = await safeFindOne<LaundryTime>(this.laundryTimeRepository, data.time);
-    const machine = await safeFindOne<LaundryMachine>(this.laundryMachineRepository, data.machine);
 
     if (!(await this.userManageService.checkUserDetail(user.email, { grade: time.grade })))
       throw new HttpException(ErrorMsg.PermissionDenied_Resource_Grade(), HttpStatus.FORBIDDEN);
