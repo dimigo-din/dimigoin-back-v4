@@ -9,7 +9,6 @@ on:
 
 env:
   IMAGE_NAME: dimigoin-back-v4
-  IMAGE_TAG: latest
 
 jobs:
   build-and-push:
@@ -37,7 +36,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+          tags: ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}:${GITHUB_REF_NAME}
 
       - name: Recreate Container
         run: curl -X POST "https://portainer.dimigoin.io/api/stacks/webhooks/e86a849e-092d-4dcf-934c-4140f4824c64"
