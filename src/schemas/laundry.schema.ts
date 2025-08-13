@@ -68,6 +68,7 @@ export class LaundryTime {
   @ManyToOne(() => LaundryTimeline, (laundryTimeline) => laundryTimeline.times, {
     onUpdate: "CASCADE",
     onDelete: "CASCADE",
+    cascade: ["insert", "update"],
   })
   timeline: LaundryTimeline;
 
