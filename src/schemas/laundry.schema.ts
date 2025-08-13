@@ -34,7 +34,10 @@ export class LaundryTimeline {
   enabled: boolean;
 
   @ApiProperty({ type: () => [LaundryTime] })
-  @OneToMany(() => LaundryTime, (laundryTime) => laundryTime.timeline, { eager: true })
+  @OneToMany(() => LaundryTime, (laundryTime) => laundryTime.timeline, {
+    eager: true,
+    cascade: ["insert", "update"],
+  })
   times: LaundryTime[];
 
   @ApiProperty({ type: () => LaundryApply })
