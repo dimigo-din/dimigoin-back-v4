@@ -127,6 +127,7 @@ export class LaundryApply {
 
   @ApiProperty({ type: () => LaundryTimeline })
   @ManyToOne(() => LaundryTimeline, (laundryTimeline) => laundryTimeline.applies, {
+    onUpdate: "CASCADE",
     onDelete: "CASCADE",
   })
   laundryTimeline: LaundryTimeline;
