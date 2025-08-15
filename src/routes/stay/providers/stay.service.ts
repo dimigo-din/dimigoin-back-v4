@@ -1,7 +1,12 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
+import * as moment from "moment";
 import { FindOneOptions, LessThanOrEqual, MoreThanOrEqual, Repository } from "typeorm";
 
+import {
+  SelfDevelopment_Outing_From,
+  SelfDevelopment_Outing_To,
+} from "../../../common/mapper/constants";
 import { ErrorMsg } from "../../../common/mapper/error";
 import { Gender, Grade, UserJWT } from "../../../common/mapper/types";
 import { safeFindOne } from "../../../common/utils/safeFindOne.util";
@@ -138,6 +143,17 @@ export class StayService {
       outing.from = outingData.from;
       outing.to = outingData.to;
       outing.stay_apply = stayApply;
+      outing.approved =
+        (outingData.reason === "자기계발외출" &&
+          !outingData.breakfast_cancel &&
+          !outingData.dinner_cancel &&
+          stay.outing_day.every((d) =>
+            moment(SelfDevelopment_Outing_From(d)).isSame(outingData.from),
+          ) &&
+          stay.outing_day.every((d) =>
+            moment(SelfDevelopment_Outing_To(d)).isSame(outingData.to),
+          )) ||
+        null;
 
       stayApply.outing.push(outing);
     }
@@ -150,6 +166,7 @@ export class StayService {
     const dbUser = await safeFindOne<User>(this.userRepository, user.id);
     const stayApply = await safeFindOne<StayApply>(this.stayApplyRepository, {
       where: { user: dbUser, stay: { id: data.stay } },
+      relations: { stay: true },
     });
     if (stayApply.user.id !== user.id)
       throw new HttpException(ErrorMsg.PermissionDenied_Resource(), HttpStatus.FORBIDDEN);
@@ -186,6 +203,17 @@ export class StayService {
       outing.audit_reason = null;
       outing.approved = null;
       outing.stay_apply = stayApply;
+      outing.approved =
+        (outingData.reason === "자기계발외출" &&
+          !outingData.breakfast_cancel &&
+          !outingData.dinner_cancel &&
+          stayApply.stay.outing_day.every((d) =>
+            moment(SelfDevelopment_Outing_From(d)).isSame(outingData.from),
+          ) &&
+          stayApply.stay.outing_day.every((d) =>
+            moment(SelfDevelopment_Outing_To(d)).isSame(outingData.to),
+          )) ||
+        null;
 
       outings.push(outing);
     }
@@ -214,7 +242,12 @@ export class StayService {
 
   async addStayOuting(user: UserJWT, data: AddStayOutingDTO) {
     const target = await safeFindOne<User>(this.userRepository, user.id);
-    const apply = await safeFindOne<StayApply>(this.stayApplyRepository, data.apply_id);
+    const apply = await safeFindOne<StayApply>(this.stayApplyRepository, {
+      where: {
+        id: data.apply_id,
+      },
+      relations: { stay: true },
+    });
 
     console.log(apply.user.id);
     if (apply.user.id !== target.id)
@@ -228,8 +261,18 @@ export class StayService {
     outing.from = data.outing.from;
     outing.to = data.outing.to;
     outing.audit_reason = null;
-    outing.approved = null;
     outing.stay_apply = apply;
+    outing.approved =
+      (data.outing.reason === "자기계발외출" &&
+        !data.outing.breakfast_cancel &&
+        !data.outing.dinner_cancel &&
+        apply.stay.outing_day.every((d) =>
+          moment(SelfDevelopment_Outing_From(d)).isSame(data.outing.from),
+        ) &&
+        apply.stay.outing_day.every((d) =>
+          moment(SelfDevelopment_Outing_To(d)).isSame(data.outing.to),
+        )) ||
+      null;
 
     const saved = await this.stayOutingRepository.save(outing);
     return await safeFindOne<StayOuting>(this.stayOutingRepository, saved.id);
@@ -239,7 +282,7 @@ export class StayService {
     const target = await safeFindOne<User>(this.userRepository, user.id);
     const outing = await safeFindOne<StayOuting>(this.stayOutingRepository, {
       where: { id: data.outing_id },
-      relations: { stay_apply: { user: true } },
+      relations: { stay_apply: { user: true, stay: true } },
       loadEagerRelations: false,
     });
 
@@ -254,7 +297,17 @@ export class StayService {
     outing.from = data.outing.from;
     outing.to = data.outing.to;
     outing.audit_reason = null;
-    outing.approved = null;
+    outing.approved =
+      (data.outing.reason === "자기계발외출" &&
+        !data.outing.breakfast_cancel &&
+        !data.outing.dinner_cancel &&
+        outing.stay_apply.stay.outing_day.every((d) =>
+          moment(SelfDevelopment_Outing_From(d)).isSame(data.outing.from),
+        ) &&
+        outing.stay_apply.stay.outing_day.every((d) =>
+          moment(SelfDevelopment_Outing_To(d)).isSame(data.outing.to),
+        )) ||
+      null;
 
     const saved = await this.stayOutingRepository.save(outing);
     return await safeFindOne<StayOuting>(this.stayOutingRepository, saved.id);

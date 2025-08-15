@@ -15,3 +15,6 @@ export const Allowed_Image_Signatures = [
   "FF D8 FF E0", // 	JPEG raw or in the JFIF or Exif file format
   "00 00 00 0C 6A 50 20 20 0D 0A 87 0A", // JPEG 2000 format
 ].map((sig) => sig.replaceAll(" ", "").toLowerCase());
+
+export const SelfDevelopment_Outing_From = (date: string) => `${date}T10:20:00.000+09:00`;
+export const SelfDevelopment_Outing_To = (date: string) => `${date}T14:00:00.000+09:00`;
