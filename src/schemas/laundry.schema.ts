@@ -57,7 +57,7 @@ export class LaundryTime {
   time: string;
 
   @ApiProperty()
-  @Column("int")
+  @Column()
   grade: Grade;
 
   @ApiProperty({ type: () => [LaundryMachine] })
@@ -71,7 +71,6 @@ export class LaundryTime {
   @ManyToOne(() => LaundryTimeline, (laundryTimeline) => laundryTimeline.times, {
     onUpdate: "CASCADE",
     onDelete: "CASCADE",
-    cascade: ["insert", "update"],
   })
   timeline: LaundryTimeline;
 
@@ -128,7 +127,6 @@ export class LaundryApply {
 
   @ApiProperty({ type: () => LaundryTimeline })
   @ManyToOne(() => LaundryTimeline, (laundryTimeline) => laundryTimeline.applies, {
-    onUpdate: "CASCADE",
     onDelete: "CASCADE",
   })
   laundryTimeline: LaundryTimeline;

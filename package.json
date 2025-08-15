@@ -19,7 +19,6 @@
     "pretest:e2e": "npm run migration:test",
     "test:e2e": "jest --config ./test/jest-e2e.json -i",
     "truncate": "npx ts-node -r tsconfig-paths/register src/scripts/truncate-all.ts",
-    "truncate:prod": "NODE_ENV=prod npx ts-node -r tsconfig-paths/register src/scripts/truncate-all.ts",
     "truncate:test": "NODE_ENV=test npx ts-node -r tsconfig-paths/register src/scripts/truncate-all.ts",
     "truncate:dev": "NODE_ENV=dev npx ts-node -r tsconfig-paths/register src/scripts/truncate-all.ts",
     "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
@@ -27,9 +26,9 @@
     "typeorm:test": "NODE_ENV=test ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
     "typeorm:dev": "NODE_ENV=dev ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
     "migration": "$(npm run truncate && rm src/migrations/* && npm run typeorm migration:generate src/migrations/InitSchema -- -d src/scripts/data-source.ts && npm run typeorm migration:run -- -d src/scripts/data-source.ts) || true",
-    "migration:prod": "(npm run typeorm:prod migration:generate src/migrations/InitSchema -- -d src/scripts/data-source.ts && npm run typeorm:prod migration:run -- -d src/scripts/data-source.ts) || true",
+    "migration:prod": "(npm run typeorm:prod migration:run -- -d src/scripts/data-source.ts) || true",
     "migration:test": "npm run truncate:test || true; ((rm -f src/migrations/* && npm run typeorm:test migration:generate src/migrations/InitSchema -- -d src/scripts/data-source.ts && npm run typeorm:test migration:run -- -d src/scripts/data-source.ts) || true); npm run truncate:test",
-    "migration:dev": "(rm -f src/migrations/* && npm run typeorm:dev migration:generate src/migrations/InitSchema -- -d src/scripts/data-source.ts && npm run typeorm:dev migration:run -- -d src/scripts/data-source.ts) || true"
+    "migration:dev": "(npm run typeorm:dev migration:generate src/migrations/InitSchema -- -d src/scripts/data-source.ts && npm run typeorm:dev migration:run -- -d src/scripts/data-source.ts) || true"
   },
   "dependencies": {
     "@nestjs/axios": "^4.0.0",
