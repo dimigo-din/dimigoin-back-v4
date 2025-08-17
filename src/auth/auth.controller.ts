@@ -114,8 +114,12 @@ export class AuthController {
   })
   @UseGuardsWithSwagger(CustomJwtAuthGuard)
   @Get("/logout")
-  async logout(@Req() req) {
-    return await this.authService.logout(req.user);
+  async logout(@Req() req, @Res({ passthrough: true }) res) {
+    await this.authService.logout(req.user);
+
+    res.clearCookie(ACCESS_TOKEN_COOKIE);
+    res.clearCookie(REFRESH_TOKEN_COOKIE);
+    return { success: true };
   }
 
   @ApiOperation({
