@@ -47,4 +47,4 @@ jobs:
             ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}:latest
 
       - name: Recreate Container
-        run: curl -X POST "https://portainer.dimigoin.io/api/stacks/webhooks/e86a849e-092d-4dcf-934c-4140f4824c64"
+        run: curl -X POST "${{ secrets.REGISTRY_RECREATE_ENDPOINT }}"
