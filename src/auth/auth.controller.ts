@@ -117,8 +117,29 @@ export class AuthController {
   async logout(@Req() req, @Res({ passthrough: true }) res) {
     await this.authService.logout(req.user);
 
-    res.clearCookie(ACCESS_TOKEN_COOKIE);
-    res.clearCookie(REFRESH_TOKEN_COOKIE);
+    const sameSite = process.env.NODE_ENV === "prod" ? "None" : undefined;
+    const domain =
+      process.env.NODE_ENV === "prod" ? `.${this.configService.get<string>("DOMAIN")}` : undefined;
+    const secure = process.env.NODE_ENV === "prod";
+
+    res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+    res.set("Pragma", "no-cache");
+    res.set("Expires", "0");
+
+    res.clearCookie(ACCESS_TOKEN_COOKIE, {
+      path: "/",
+      httpOnly: true,
+      secure,
+      sameSite,
+      domain,
+    });
+    res.clearCookie(REFRESH_TOKEN_COOKIE, {
+      path: "/",
+      httpOnly: true,
+      secure,
+      sameSite,
+      domain,
+    });
     return { success: true };
   }
 
