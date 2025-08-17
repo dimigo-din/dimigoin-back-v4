@@ -488,6 +488,11 @@ export class StayManageService {
     }
 
     // remove previous stay
-    await this.stayRepository.softDelete({ stay_to: LessThan(moment().format("YYYY-MM-DD")) });
+    await this.stayRepository.softRemove(
+      await this.stayRepository.find({
+        where: { stay_to: LessThan(moment().format("YYYY-MM-DD")) },
+        relations: { stay_apply: { outing: true } },
+      }),
+    );
   }
 }

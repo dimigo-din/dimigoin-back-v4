@@ -159,7 +159,9 @@ export class Stay {
   stay_seat_preset: StaySeatPreset;
 
   // @ApiProperty({ type: () => StayApply })
-  @OneToMany(() => StayApply, (stay_apply) => stay_apply.stay)
+  @OneToMany(() => StayApply, (stay_apply) => stay_apply.stay, {
+    cascade: ["soft-remove", "recover"],
+  })
   stay_apply: StayApply[];
 
   // @ApiProperty({ type: () => StaySchedule, nullable: true })
@@ -254,7 +256,7 @@ export class StayApply {
 
   @ApiProperty({ type: () => StayOuting, isArray: true })
   @OneToMany(() => StayOuting, (stayOuting) => stayOuting.stay_apply, {
-    cascade: ["insert", "update"],
+    cascade: ["insert", "update", "soft-remove", "recover"],
     eager: true,
   })
   outing: StayOuting[];
@@ -266,6 +268,9 @@ export class StayApply {
     eager: true,
   })
   user: User;
+
+  @DeleteDateColumn()
+  deletedAt!: Date | null;
 }
 
 @Entity()
@@ -313,4 +318,7 @@ export class StayOuting {
     onDelete: "CASCADE",
   })
   stay_apply: StayApply;
+
+  @DeleteDateColumn()
+  deletedAt!: Date | null;
 }
