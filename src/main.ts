@@ -1,3 +1,5 @@
+import * as process from "node:process";
+
 import { ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { NestFactory } from "@nestjs/core";
@@ -16,7 +18,16 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
 
   app.enableCors({
-    origin: ["http://localhost:5173", "https://dimigoin.io", "https://admin.dimigoin.io"],
+    origin:
+      process.env.NODE_ENV === "prod"
+        ? configService
+            .get<string>("ALLOWED_DOMAIN")
+            .split(",")
+            .map((d) => `https://${d}`)
+        : configService
+            .get<string>("ALLOWED_DOMAIN")
+            .split(",")
+            .map((d) => `http://${d}`),
     credentials: true,
   });
   app.use(cookieParser());
