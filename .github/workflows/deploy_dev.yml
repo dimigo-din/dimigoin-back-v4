@@ -22,7 +22,7 @@ jobs:
           fetch-tags: true
 
       - name: Prepare
-        run: echo '${{ secrets.DEV_ENV }}' > .env.dev
+        run: echo '${{ secrets.DEV_ENV }}' > .env.prod
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
