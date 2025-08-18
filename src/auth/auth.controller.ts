@@ -178,6 +178,9 @@ export class AuthController {
   }
 
   generateCookie(res: any, token) {
+    res.clearCookie(ACCESS_TOKEN_COOKIE);
+    res.clearCookie(REFRESH_TOKEN_COOKIE);
+
     const sameSite = process.env.NODE_ENV === "prod" ? "None" : undefined;
     const domains =
       process.env.NODE_ENV === "prod"
