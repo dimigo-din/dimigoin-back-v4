@@ -118,28 +118,32 @@ export class AuthController {
     await this.authService.logout(req.user);
 
     const sameSite = process.env.NODE_ENV === "prod" ? "None" : undefined;
-    const domain =
-      process.env.NODE_ENV === "prod" ? `.${this.configService.get<string>("DOMAIN")}` : undefined;
+    const domains =
+      process.env.NODE_ENV === "prod"
+        ? this.configService.get<string>("ALLOWED_DOMAIN").split(",")
+        : [undefined];
     const secure = process.env.NODE_ENV === "prod";
 
     res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
     res.set("Pragma", "no-cache");
     res.set("Expires", "0");
 
-    res.clearCookie(ACCESS_TOKEN_COOKIE, {
-      path: "/",
-      httpOnly: true,
-      secure,
-      sameSite,
-      domain,
-    });
-    res.clearCookie(REFRESH_TOKEN_COOKIE, {
-      path: "/",
-      httpOnly: true,
-      secure,
-      sameSite,
-      domain,
-    });
+    for (const domain of domains) {
+      res.clearCookie(ACCESS_TOKEN_COOKIE, {
+        path: "/",
+        httpOnly: true,
+        secure,
+        sameSite,
+        domain,
+      });
+      res.clearCookie(REFRESH_TOKEN_COOKIE, {
+        path: "/",
+        httpOnly: true,
+        secure,
+        sameSite,
+        domain,
+      });
+    }
     return { success: true };
   }
 
@@ -175,23 +179,28 @@ export class AuthController {
 
   generateCookie(res: any, token) {
     const sameSite = process.env.NODE_ENV === "prod" ? "None" : undefined;
-    const domain =
-      process.env.NODE_ENV === "prod" ? `.${this.configService.get<string>("DOMAIN")}` : undefined;
-    res.cookie(ACCESS_TOKEN_COOKIE, token.accessToken, {
-      path: "/",
-      maxAge: 1000 * 60 * 30,
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "prod",
-      sameSite,
-      domain,
-    });
-    res.cookie(REFRESH_TOKEN_COOKIE, token.refreshToken, {
-      path: "/",
-      maxAge: 1000 * 60 * 60 * 24 * 30,
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "prod",
-      sameSite,
-      domain,
-    });
+    const domains =
+      process.env.NODE_ENV === "prod"
+        ? this.configService.get<string>("ALLOWED_DOMAIN").split(",")
+        : [undefined];
+
+    for (const domain of domains) {
+      res.cookie(ACCESS_TOKEN_COOKIE, token.accessToken, {
+        path: "/",
+        maxAge: 1000 * 60 * 30,
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "prod",
+        sameSite,
+        domain,
+      });
+      res.cookie(REFRESH_TOKEN_COOKIE, token.refreshToken, {
+        path: "/",
+        maxAge: 1000 * 60 * 60 * 24 * 30,
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "prod",
+        sameSite,
+        domain,
+      });
+    }
   }
 }
