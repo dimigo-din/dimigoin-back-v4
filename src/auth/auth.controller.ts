@@ -80,7 +80,7 @@ export class AuthController {
   })
   @Post("/login/google/callback")
   async googleLoginCallback(@Res({ passthrough: true }) res, @Body() data: GoogleLoginDTO) {
-    const token = await this.authService.loginByGoogle(data.code);
+    const token = await this.authService.loginByGoogle(data.code, data.redirect_uri);
     this.generateCookie(res, token);
     return token;
   }

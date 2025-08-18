@@ -21,6 +21,10 @@ export class GoogleLoginDTO {
   @ApiProperty()
   @IsString()
   code: string;
+
+  @ApiProperty()
+  @IsString()
+  redirect_uri: string;
 }
 
 export class RefreshTokenDTO {
