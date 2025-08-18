@@ -44,7 +44,6 @@ export class AuthService {
     this.googleOauthClient = new google.auth.OAuth2(
       configService.get<string>("GCP_OAUTH_ID"),
       configService.get<string>("GCP_OAUTH_SECRET"),
-      `${configService.get<string>("APPLICATION_HOST")}/login`,
     );
   }
 
@@ -77,11 +76,14 @@ export class AuthService {
     });
   }
 
-  async loginByGoogle(code: string): Promise<JWTResponse> {
+  async loginByGoogle(code: string, redirect_uri: string): Promise<JWTResponse> {
     // google OAuth process
     let ticketPayload;
     try {
-      const tokenRes = await this.googleOauthClient.getToken(code);
+      const tokenRes = await this.googleOauthClient.getToken({
+        code,
+        ...(redirect_uri ? { redirect_uri } : {}),
+      });
       const ticket = await this.googleOauthClient.verifyIdToken({
         idToken: tokenRes.tokens.id_token,
       });

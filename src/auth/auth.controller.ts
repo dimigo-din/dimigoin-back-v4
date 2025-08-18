@@ -80,7 +80,7 @@ export class AuthController {
   })
   @Post("/login/google/callback")
   async googleLoginCallback(@Res({ passthrough: true }) res, @Body() data: GoogleLoginDTO) {
-    const token = await this.authService.loginByGoogle(data.code);
+    const token = await this.authService.loginByGoogle(data.code, data.redirect_uri);
     this.generateCookie(res, token);
     return token;
   }
@@ -118,28 +118,32 @@ export class AuthController {
     await this.authService.logout(req.user);
 
     const sameSite = process.env.NODE_ENV === "prod" ? "None" : undefined;
-    const domain =
-      process.env.NODE_ENV === "prod" ? `.${this.configService.get<string>("DOMAIN")}` : undefined;
+    const domains =
+      process.env.NODE_ENV === "prod"
+        ? this.configService.get<string>("ALLOWED_DOMAIN").split(",")
+        : [undefined];
     const secure = process.env.NODE_ENV === "prod";
 
     res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
     res.set("Pragma", "no-cache");
     res.set("Expires", "0");
 
-    res.clearCookie(ACCESS_TOKEN_COOKIE, {
-      path: "/",
-      httpOnly: true,
-      secure,
-      sameSite,
-      domain,
-    });
-    res.clearCookie(REFRESH_TOKEN_COOKIE, {
-      path: "/",
-      httpOnly: true,
-      secure,
-      sameSite,
-      domain,
-    });
+    for (const domain of domains) {
+      res.clearCookie(ACCESS_TOKEN_COOKIE, {
+        path: "/",
+        httpOnly: true,
+        secure,
+        sameSite,
+        domain,
+      });
+      res.clearCookie(REFRESH_TOKEN_COOKIE, {
+        path: "/",
+        httpOnly: true,
+        secure,
+        sameSite,
+        domain,
+      });
+    }
     return { success: true };
   }
 
@@ -174,24 +178,32 @@ export class AuthController {
   }
 
   generateCookie(res: any, token) {
+    res.clearCookie(ACCESS_TOKEN_COOKIE);
+    res.clearCookie(REFRESH_TOKEN_COOKIE);
+
     const sameSite = process.env.NODE_ENV === "prod" ? "None" : undefined;
-    const domain =
-      process.env.NODE_ENV === "prod" ? `.${this.configService.get<string>("DOMAIN")}` : undefined;
-    res.cookie(ACCESS_TOKEN_COOKIE, token.accessToken, {
-      path: "/",
-      maxAge: 1000 * 60 * 30,
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "prod",
-      sameSite,
-      domain,
-    });
-    res.cookie(REFRESH_TOKEN_COOKIE, token.refreshToken, {
-      path: "/",
-      maxAge: 1000 * 60 * 60 * 24 * 30,
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "prod",
-      sameSite,
-      domain,
-    });
+    const domains =
+      process.env.NODE_ENV === "prod"
+        ? this.configService.get<string>("ALLOWED_DOMAIN").split(",")
+        : [undefined];
+
+    for (const domain of domains) {
+      res.cookie(ACCESS_TOKEN_COOKIE, token.accessToken, {
+        path: "/",
+        maxAge: 1000 * 60 * 30,
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "prod",
+        sameSite,
+        domain,
+      });
+      res.cookie(REFRESH_TOKEN_COOKIE, token.refreshToken, {
+        path: "/",
+        maxAge: 1000 * 60 * 60 * 24 * 30,
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "prod",
+        sameSite,
+        domain,
+      });
+    }
   }
 }
