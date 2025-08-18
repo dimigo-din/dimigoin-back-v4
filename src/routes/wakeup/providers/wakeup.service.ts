@@ -10,6 +10,7 @@ import { UserJWT, YoutubeVideoItem, YoutubeSearchResults } from "../../../common
 import { CacheService } from "../../../common/modules/cache.module";
 import { safeFindOne } from "../../../common/utils/safeFindOne.util";
 import { User, WakeupSongApplication, WakeupSongVote } from "../../../schemas";
+import { UserManageService } from "../../user/providers";
 import { VoteIdDTO, RegisterVideoDTO, SearchVideoDTO, VoteVideoDTO } from "../dto/wakeup.dto";
 
 @Injectable()
@@ -21,6 +22,7 @@ export class WakeupService {
     private readonly wakeupSongApplicationRepository: Repository<WakeupSongApplication>,
     @InjectRepository(WakeupSongVote)
     private readonly wakeupSongVoteRepository: Repository<WakeupSongVote>,
+    private readonly userManageService: UserManageService,
     private readonly configService: ConfigService,
     private readonly cacheService: CacheService,
   ) {}
@@ -43,7 +45,7 @@ export class WakeupService {
     return search.data;
   }
 
-  async getApplications() {
+  async getApplications(user: UserJWT) {
     const week = moment().startOf("week").format("YYYY-MM-DD");
 
     const applications = await this.wakeupSongApplicationRepository
@@ -54,7 +56,12 @@ export class WakeupService {
       .loadRelationCountAndMap("application.down", "application.wakeupSongVote", "app", (qb) =>
         qb.andWhere("app.upvote = false"),
       )
-      .where("application.week = :week", { week: week })
+      .where("application.week = :week AND application.gender = :gender", {
+        week: week,
+        gender: (await this.userManageService.checkUserDetail(user.email, { gender: "male" }))
+          ? "male"
+          : "female",
+      })
       .getMany();
 
     return applications;
@@ -95,6 +102,11 @@ export class WakeupService {
     ).url;
     application.video_channel = videoData.snippet.channelTitle;
     application.week = moment().startOf("week").format("YYYY-MM-DD");
+    application.gender = (await this.userManageService.checkUserDetail(user.email, {
+      gender: "male",
+    }))
+      ? "male"
+      : "female";
     application.user = dbUser;
 
     try {
@@ -118,7 +130,14 @@ export class WakeupService {
     const dbUser = await safeFindOne<User>(this.userRepository, user.id);
     const application = await safeFindOne<WakeupSongApplication>(
       this.wakeupSongApplicationRepository,
-      data.songId,
+      {
+        where: {
+          id: data.songId,
+          gender: (await this.userManageService.checkUserDetail(user.email, { gender: "male" }))
+            ? "male"
+            : "female",
+        },
+      },
     );
 
     const exists = await this.wakeupSongVoteRepository.findOne({

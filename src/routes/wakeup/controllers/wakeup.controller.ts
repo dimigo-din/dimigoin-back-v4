@@ -44,8 +44,8 @@ export class WakeupController {
     type: ApplicationsResponseDTO,
   })
   @Get("/")
-  async getApplications() {
-    return await this.wakeupService.getApplications();
+  async getApplications(@Req() req) {
+    return await this.wakeupService.getApplications(req.user);
   }
 
   @ApiOperation({

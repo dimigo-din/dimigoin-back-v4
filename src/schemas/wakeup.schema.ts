@@ -1,6 +1,8 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Column, Entity, Index, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
+import { Gender } from "../common/mapper/types";
+
 import { User } from "./user.schema";
 
 @Entity()
@@ -31,6 +33,10 @@ export class WakeupSongApplication {
   @ApiProperty()
   @Column()
   week: string;
+
+  @ApiProperty()
+  @Column()
+  gender: Gender;
 
   @OneToMany(() => WakeupSongVote, (wakeupSongVote) => wakeupSongVote.wakeupSongApplication)
   wakeupSongVote: WakeupSongVote[];
