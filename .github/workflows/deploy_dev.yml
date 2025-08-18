@@ -50,4 +50,4 @@ jobs:
             ${{ secrets.REGISTRY_URL }}/${{ env.IMAGE_NAME }}:dev
 
       - name: Recreate Container
-        run: curl -X POST "${{ secrets.REGISTRY_RECREATE_ENDPOINT }}"
+        run: curl -X POST "${{ secrets.REGISTRY_DEV_RECREATE_ENDPOINT }}"
