@@ -37,7 +37,6 @@ export class CacheService {
   }
 
   async getCachedVideo(videoId: string) {
-    console.log(this.YOUTUBESEARCH_PREFIX + videoId);
     return await this.cacheManager.get<YoutubeVideoItem>(this.YOUTUBESEARCH_PREFIX + videoId);
   }
 
