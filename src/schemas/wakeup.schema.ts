@@ -1,5 +1,13 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Column, Entity, Index, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import {
+  Column,
+  DeleteDateColumn,
+  Entity,
+  Index,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from "typeorm";
 
 import { Gender } from "../common/mapper/types";
 
@@ -38,7 +46,9 @@ export class WakeupSongApplication {
   @Column()
   gender: Gender;
 
-  @OneToMany(() => WakeupSongVote, (wakeupSongVote) => wakeupSongVote.wakeupSongApplication)
+  @OneToMany(() => WakeupSongVote, (wakeupSongVote) => wakeupSongVote.wakeupSongApplication, {
+    cascade: ["soft-remove", "recover"],
+  })
   wakeupSongVote: WakeupSongVote[];
 
   @ManyToOne(() => User, (user) => user.wakeupSongApplication, {
@@ -46,6 +56,9 @@ export class WakeupSongApplication {
     onDelete: "CASCADE",
   })
   user: User;
+
+  @DeleteDateColumn()
+  deletedAt!: Date | null;
 }
 
 @Entity()
@@ -72,6 +85,9 @@ export class WakeupSongVote {
     onDelete: "CASCADE",
   })
   user: User;
+
+  @DeleteDateColumn()
+  deletedAt!: Date | null;
 }
 
 @Entity()
@@ -88,4 +104,16 @@ export class WakeupSongHistory {
   @ApiProperty()
   @Column("date")
   date: string;
+
+  @ApiProperty()
+  @Column()
+  gender: Gender;
+
+  @ApiProperty()
+  @Column("int")
+  up: number;
+
+  @ApiProperty()
+  @Column("int")
+  down: number;
 }
