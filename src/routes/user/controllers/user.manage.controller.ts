@@ -1,4 +1,4 @@
-import { Body, Controller, HttpStatus, Post, Req } from "@nestjs/common";
+import { Body, Controller, Get, HttpStatus, Param, Post, Query, Req } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
 
 import { CustomJwtAuthGuard } from "../../../auth/guards";
@@ -11,6 +11,7 @@ import {
   AddPasswordLoginDTO,
   AddPermissionDTO,
   RemovePermissionDTO,
+  SearchUserDTO,
   SetPermissionDTO,
 } from "../dto";
 import { UserManageService } from "../providers";
@@ -76,5 +77,19 @@ export class UserManageController {
   @Post("/permission/remove")
   async removePermission(@Body() data: RemovePermissionDTO) {
     return await this.userManageService.removePermission(data);
+  }
+
+  @ApiOperation({
+    summary: "유저 검색",
+    description: "이름을 통하여 유저를 검색합니다.",
+  })
+  @ApiResponseFormat({
+    status: HttpStatus.OK,
+    type: [User],
+  })
+  @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.TEACHER]))
+  @Get("/search")
+  async searchUser(@Query() data: SearchUserDTO) {
+    return await this.userManageService.searchUser(data);
   }
 }

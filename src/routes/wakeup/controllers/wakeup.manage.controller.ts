@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpStatus, Param, Post } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpStatus, Post, Query } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
 
 import { CustomJwtAuthGuard } from "../../../auth/guards";
@@ -55,7 +55,7 @@ export class WakeupManageController {
     type: WakeupSongApplication,
   })
   @Delete("/")
-  async deleteApply(@Param() data: WakeupSongDeleteDTO) {
+  async deleteApply(@Query() data: WakeupSongDeleteDTO) {
     return await this.wakeupManageService.deleteApply(data);
   }
 }
