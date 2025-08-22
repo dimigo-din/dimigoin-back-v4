@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { Cron, CronExpression } from "@nestjs/schedule";
 import { InjectRepository } from "@nestjs/typeorm";
 import * as moment from "moment";
-import { IsNull, LessThan, LessThanOrEqual, MoreThanOrEqual, Not, Repository } from "typeorm";
+import { IsNull, LessThan, MoreThan, MoreThanOrEqual, Not, Repository } from "typeorm";
 
 import { ErrorMsg } from "../../../common/mapper/error";
 import { safeFindOne } from "../../../common/utils/safeFindOne.util";
@@ -411,7 +411,7 @@ export class StayManageService {
     const schedules = await this.stayScheduleRepository.find({
       where: {
         stay_apply_period: {
-          apply_end_day: MoreThanOrEqual(moment().weekday()),
+          apply_end_day: MoreThan(moment().weekday()),
         },
       },
     });
