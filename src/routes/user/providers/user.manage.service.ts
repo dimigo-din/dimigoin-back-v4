@@ -3,13 +3,19 @@ import { ConfigService } from "@nestjs/config";
 import { InjectRepository } from "@nestjs/typeorm";
 import axios, { AxiosInstance } from "axios";
 import * as bcrypt from "bcrypt";
-import { Repository } from "typeorm";
+import { Like, Repository } from "typeorm";
 
 import { PermissionType } from "../../../common/mapper/permissions";
 import { Grade } from "../../../common/mapper/types";
 import { numberPermission, parsePermission } from "../../../common/utils/permission.util";
 import { Login, User } from "../../../schemas";
-import { AddPermissionDTO, CreateUserDTO, RemovePermissionDTO, SetPermissionDTO } from "../dto";
+import {
+  AddPermissionDTO,
+  CreateUserDTO,
+  RemovePermissionDTO,
+  SearchUserDTO,
+  SetPermissionDTO,
+} from "../dto";
 
 // this chuck of code need to be refactored
 @Injectable()
@@ -69,6 +75,16 @@ export class UserManageService {
   //
   //   return data;
   // }
+
+  async searchUser(data: SearchUserDTO) {
+    const users = await this.userRepository.find({
+      where: {
+        name: Like(`%${data.name}%`),
+      },
+    });
+
+    return users;
+  }
 
   async checkUserDetail(
     email: string,

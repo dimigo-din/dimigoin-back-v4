@@ -67,3 +67,9 @@ export class SetPermissionDTO {
 }
 export class AddPermissionDTO extends SetPermissionDTO {}
 export class RemovePermissionDTO extends SetPermissionDTO {}
+
+export class SearchUserDTO {
+  @ApiProperty()
+  @IsString()
+  name: string;
+}
