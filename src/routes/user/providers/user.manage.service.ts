@@ -3,6 +3,7 @@ import { ConfigService } from "@nestjs/config";
 import { InjectRepository } from "@nestjs/typeorm";
 import axios, { AxiosInstance } from "axios";
 import * as bcrypt from "bcrypt";
+import puppeteer from "puppeteer";
 import { Like, Repository } from "typeorm";
 
 import { PermissionType } from "../../../common/mapper/permissions";
@@ -13,6 +14,7 @@ import {
   AddPermissionDTO,
   CreateUserDTO,
   RemovePermissionDTO,
+  RenderHTMLDTO,
   SearchUserDTO,
   SetPermissionDTO,
 } from "../dto";
@@ -172,5 +174,52 @@ export class UserManageService {
     user.permission = numberPermission(...resultPermissions).toString();
 
     return await this.userRepository.save(user);
+  }
+
+  async renderHtml(data: RenderHTMLDTO) {
+    const browser = await puppeteer.launch({ executablePath: "/usr/bin/chromium-browser" });
+    const page = await browser.newPage();
+
+    await page.setContent(
+      `
+    <html>
+      <head>
+        <style>
+          body {
+            margin: 0;
+            padding: 0;
+          }
+          .pdf-container {
+            width: 210mm;
+            height: auto;
+            padding: 10mm 15mm;
+            display: flex;
+            justify-content: center;
+          }
+          .pdf-inner {
+            width: fit-content;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="pdf-container">
+          <div class="pdf-inner">
+            ${data.html}
+          </div>
+        </div>
+      </body>
+    </html>
+  `,
+      { waitUntil: "networkidle0" },
+    );
+
+    const buffer = await page.pdf({
+      format: "A4",
+      printBackground: true,
+    });
+
+    await browser.close();
+
+    return buffer;
   }
 }

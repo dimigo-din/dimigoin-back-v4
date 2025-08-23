@@ -1,4 +1,15 @@
-import { Body, Controller, Get, HttpStatus, Param, Post, Query, Req } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  HttpStatus,
+  Param,
+  Post,
+  Query,
+  Req,
+  Res,
+  StreamableFile,
+} from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
 
 import { CustomJwtAuthGuard } from "../../../auth/guards";
@@ -11,6 +22,7 @@ import {
   AddPasswordLoginDTO,
   AddPermissionDTO,
   RemovePermissionDTO,
+  RenderHTMLDTO,
   SearchUserDTO,
   SetPermissionDTO,
 } from "../dto";
@@ -91,5 +103,28 @@ export class UserManageController {
   @Get("/search")
   async searchUser(@Query() data: SearchUserDTO) {
     return await this.userManageService.searchUser(data);
+  }
+
+  @ApiOperation({
+    summary: "HTML 렌더",
+    description: "HTML을 렌더하여 pdf 파일로 출력합니다.",
+  })
+  @ApiResponseFormat({
+    status: HttpStatus.OK,
+    type: StreamableFile,
+  })
+  @Post("/renderHtml")
+  async renderHtml(@Res() res, @Body() data: RenderHTMLDTO) {
+    const buffer = await this.userManageService.renderHtml(data);
+
+    res.set({
+      "Content-Type": "application/pdf",
+      "Content-Disposition": `attachment; filename="${encodeURIComponent(data.filename)}"`,
+      "Content-Length": buffer.length,
+    });
+
+    console.log(buffer);
+
+    res.end(buffer);
   }
 }

@@ -48,7 +48,8 @@ export class CustomLoggerMiddleware implements NestMiddleware {
       if (
         req.body &&
         Object.keys(req.body).length > 0 &&
-        Buffer.byteLength(JSON.stringify(req.body), "utf8") < 1024 * 1024 // 1mb
+        Buffer.byteLength(JSON.stringify(req.body), "utf8") < 1024 * 1024 && // 1mb
+        req.path !== "/manage/user/renderHtml"
       )
         this.logger.log(`Request Body: ${JSON.stringify(req.body)}`);
 
