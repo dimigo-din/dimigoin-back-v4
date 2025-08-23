@@ -4,7 +4,7 @@ import { ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { NestFactory } from "@nestjs/core";
 import * as cookieParser from "cookie-parser";
-import { json } from "express";
+import { json, urlencoded } from "express";
 import importToArray from "import-to-array";
 
 import { AppModule } from "./app";
@@ -32,6 +32,7 @@ async function bootstrap() {
   });
   app.use(cookieParser());
   app.use(json({ limit: "5000mb" }));
+  app.use(urlencoded({ limit: "5000mb" }));
   app.useGlobalPipes(new ValidationPipe());
   app.useGlobalInterceptors(...importToArray(interceptors).map((i) => new i()));
 

@@ -36,7 +36,9 @@ COPY --chown=node:node --from=build /usr/src/app/ ./
 ENV NODE_ENV="prod"
 ENV TZ="Asia/Seoul"
 
+RUN apk add chromium
 RUN apk add tzdata
+
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 ENTRYPOINT ["npm", "run", "start:prod"]
