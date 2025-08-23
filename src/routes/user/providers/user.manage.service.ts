@@ -1,3 +1,5 @@
+import * as process from "node:process";
+
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -177,7 +179,13 @@ export class UserManageService {
   }
 
   async renderHtml(data: RenderHTMLDTO) {
-    const browser = await puppeteer.launch({ executablePath: "/usr/bin/chromium-browser" });
+    const browser =
+      process.env.NODE_ENV === "dev"
+        ? await puppeteer.launch()
+        : await puppeteer.launch({
+            executablePath: "/usr/bin/chromium-browser",
+            args: ["--disable-gpu", "--no-sandbox", "--js-flags=--noexpose_wasm,--jitless"],
+          });
     const page = await browser.newPage();
 
     await page.setContent(
