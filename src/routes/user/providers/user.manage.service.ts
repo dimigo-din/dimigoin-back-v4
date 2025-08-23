@@ -193,6 +193,10 @@ export class UserManageService {
     <html>
       <head>
         <style>
+          @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR&display=swap');
+          * {
+            font-family: 'Noto Sans KR', sans-serif !important;
+          }
           body {
             margin: 0;
             padding: 0;
