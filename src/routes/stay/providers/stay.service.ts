@@ -302,6 +302,10 @@ export class StayService {
           moment(SelfDevelopment_Outing_To(d)).isSame(data.outing.to),
         )) ||
       null;
+    
+    if(outing.from >= outing.to) {
+      throw new HttpException(ErrorMsg.ProvidedTime_Invalid(), HttpStatus.BAD_REQUEST);
+    }
 
     const saved = await this.stayOutingRepository.save(outing);
     return await safeFindOne<StayOuting>(this.stayOutingRepository, saved.id);
@@ -346,6 +350,10 @@ export class StayService {
           moment(SelfDevelopment_Outing_To(d)).isSame(data.outing.to),
         )) ||
       null;
+    
+    if(outing.from >= outing.to) {
+      throw new HttpException(ErrorMsg.ProvidedTime_Invalid(), HttpStatus.BAD_REQUEST);
+    }
 
     const saved = await this.stayOutingRepository.save(outing);
     return await safeFindOne<StayOuting>(this.stayOutingRepository, saved.id);
