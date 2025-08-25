@@ -218,7 +218,7 @@ export class StayManageService {
 
   async getStayList() {
     return (await this.stayRepository.find()).map((e) => {
-      return { id: e.id, name: e.name };
+      return { id: e.id, name: e.name, stay_from: e.stay_from, stay_to: e.stay_to };
     });
   }
 
