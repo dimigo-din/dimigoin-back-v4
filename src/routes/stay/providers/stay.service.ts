@@ -315,6 +315,11 @@ export class StayService {
       loadEagerRelations: false,
     });
 
+    
+    console.log(outing.stay_apply.user.id);
+    if (outing.stay_apply.user.id !== target.id)
+      throw new HttpException(ErrorMsg.PermissionDenied_Resource(), HttpStatus.FORBIDDEN);
+
     // verification period
     if (!await this.validateStayPeriod(data.grade, outing.stay_apply.stay.stay_apply_period)) {
       throw new HttpException(
@@ -322,10 +327,6 @@ export class StayService {
         HttpStatus.FORBIDDEN
       );
     }
-
-    console.log(outing.stay_apply.user.id);
-    if (outing.stay_apply.user.id !== target.id)
-      throw new HttpException(ErrorMsg.PermissionDenied_Resource(), HttpStatus.FORBIDDEN);
 
     outing.reason = data.outing.reason;
     outing.breakfast_cancel = data.outing.breakfast_cancel;
@@ -357,6 +358,10 @@ export class StayService {
       relations: { stay_apply: { user: true, stay: { stay_apply_period: true } } },
       loadEagerRelations: false,
     });
+    
+    console.log(outing.stay_apply.user.id);
+    if (outing.stay_apply.user.id !== target.id)
+      throw new HttpException(ErrorMsg.PermissionDenied_Resource(), HttpStatus.FORBIDDEN);
 
     // verification period
     if (!await this.validateStayPeriod(data.grade, outing.stay_apply.stay.stay_apply_period)) {
@@ -365,11 +370,6 @@ export class StayService {
         HttpStatus.FORBIDDEN
       );
     }
-
-    console.log(outing.stay_apply.user.id);
-    if (outing.stay_apply.user.id !== target.id)
-      throw new HttpException(ErrorMsg.PermissionDenied_Resource(), HttpStatus.FORBIDDEN);
-
     return await this.stayOutingRepository.remove(outing);
   }
 
@@ -394,11 +394,23 @@ export class StayService {
 
   private async validateStayPeriod(grade: Grade, stay_apply_period: StayApplyPeriod_Stay[]) {
     const now = new Date();
-    return stay_apply_period.find(
+
+    console.log(stay_apply_period, grade);
+
+    console.log(stay_apply_period.find(
       (p) =>
-        p.grade === grade &&
+        p.grade === Number(grade) &&
+        p.apply_start <= now &&
+        p.apply_end >= now
+    ));
+
+    const validPeriod = stay_apply_period.find(
+      (p) =>
+        p.grade === Number(grade) &&
         p.apply_start <= now &&
         p.apply_end >= now
     );
+
+    return !!validPeriod;
   }
 }
