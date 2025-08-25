@@ -24,6 +24,7 @@ export const ErrorMsg = {
 
   InvalidParameter: () => ["InvalidParameter", "잘못된 매개변수가 있습니다."],
 
+  Stay_NotInApplyPeriod: () => ["Stay_NotInApplyPeriod", "해당 잔류 신청 기간이 아닙니다."],
   Stay_AlreadyApplied: () => ["Stay_AlreadyApplied", "이미 해당 잔류를 신청하였습니다."],
   StaySeat_Duplication: () => ["StaySeat_Duplication", "이미 해당 좌석을 선택한 사람이 있습니다."],
   StaySeat_NotAllowed: () => ["StaySeat_NotAllowed", "해당 좌석을 사용할 수 없습니다."],

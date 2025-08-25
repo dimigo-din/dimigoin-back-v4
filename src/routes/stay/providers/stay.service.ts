@@ -11,7 +11,7 @@ import { ErrorMsg } from "../../../common/mapper/error";
 import { Gender, Grade, UserJWT } from "../../../common/mapper/types";
 import { safeFindOne } from "../../../common/utils/safeFindOne.util";
 import { isInRange } from "../../../common/utils/staySeat.util";
-import { Stay, StayApply, StayOuting, StaySeatPreset, User } from "../../../schemas";
+import { Stay, StayApply, StayOuting, StaySeatPreset, User, StayApplyPeriod_Stay } from "../../../schemas";
 import { UserManageService } from "../../user/providers";
 import {
   AddStayOutingDTO,
@@ -45,9 +45,7 @@ export class StayService {
       .createQueryBuilder("stay")
       .innerJoin(
         "stay.stay_apply_period",
-        "stay_apply_period",
-        "stay_apply_period.grade = :grade AND stay_apply_period.apply_start <= :now AND stay_apply_period.apply_end >= :now",
-        { grade: data.grade, now },
+        "stay_apply_period"
       )
       .leftJoin("stay.stay_apply", "stay_apply")
       .leftJoin("stay_apply.user", "user")
@@ -67,6 +65,7 @@ export class StayService {
         "user.id",
         "user.name",
       ])
+      .orderBy("stay.stay_from", "ASC")
       .getMany();
 
     return stays.map((stay) => ({
@@ -94,7 +93,8 @@ export class StayService {
 
   async createStayApply(user: UserJWT, data: CreateUserStayApplyDTO) {
     const target = await safeFindOne<User>(this.userRepository, user.id);
-    const stay = await safeFindOne<Stay>(this.stayRepository, {
+    
+    const stay = await this.stayRepository.findOne({
       where: {
         id: data.stay,
         stay_apply_period: {
@@ -104,6 +104,7 @@ export class StayService {
         },
       },
     });
+    if (!stay) throw new HttpException(ErrorMsg.Stay_NotInApplyPeriod(), HttpStatus.NOT_FOUND);
 
     const exists = await this.stayApplyRepository.findOne({
       where: { user: target, stay: { id: data.stay } },
@@ -171,6 +172,10 @@ export class StayService {
     if (stayApply.user.id !== user.id)
       throw new HttpException(ErrorMsg.PermissionDenied_Resource(), HttpStatus.FORBIDDEN);
 
+    if (!await this.validateStayPeriod(data.grade, stayApply.stay.stay_apply_period)) {
+      throw new HttpException(ErrorMsg.Stay_NotInApplyPeriod(), HttpStatus.FORBIDDEN);
+    }
+
     const staySeatCheck = await this.stayApplyRepository.findOne({
       where: { stay_seat: data.stay_seat.toUpperCase(), stay: { id: stayApply.stay.id } },
     });
@@ -225,9 +230,25 @@ export class StayService {
   }
 
   async deleteStayApply(user: UserJWT, data: StayIdDTO) {
-    const stayApply = await safeFindOne<StayApply>(this.stayApplyRepository, data.id);
-    if (stayApply.user.id !== user.id)
+    const now = new Date();
+
+    const stayApply = await this.stayApplyRepository.findOne({
+      where: { id: data.id },
+      relations: ["stay", "stay.stay_apply_period"],
+    });
+    if (!stayApply) throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND );
+
+    if (stayApply.user.id !== user.id) throw new HttpException(ErrorMsg.PermissionDenied_Resource(), HttpStatus.FORBIDDEN);
+
+    if(!this.userManageService.checkUserDetail(user.email, { grade: data.grade }))
       throw new HttpException(ErrorMsg.PermissionDenied_Resource(), HttpStatus.FORBIDDEN);
+
+    if (!await this.validateStayPeriod(data.grade, stayApply.stay.stay_apply_period)) {
+      throw new HttpException(
+        ErrorMsg.Stay_NotInApplyPeriod(),
+        HttpStatus.FORBIDDEN
+      );
+    }
 
     return this.stayApplyRepository.remove(stayApply);
   }
@@ -248,6 +269,14 @@ export class StayService {
       },
       relations: { stay: true },
     });
+
+    // verification period
+    if (!await this.validateStayPeriod(data.grade, apply.stay.stay_apply_period)) {
+      throw new HttpException(
+        ErrorMsg.Stay_NotInApplyPeriod(),
+        HttpStatus.FORBIDDEN
+      );
+    }
 
     console.log(apply.user.id);
     if (apply.user.id !== target.id)
@@ -282,9 +311,17 @@ export class StayService {
     const target = await safeFindOne<User>(this.userRepository, user.id);
     const outing = await safeFindOne<StayOuting>(this.stayOutingRepository, {
       where: { id: data.outing_id },
-      relations: { stay_apply: { user: true, stay: true } },
+      relations: { stay_apply: { user: true, stay: { stay_apply_period: true } } },
       loadEagerRelations: false,
     });
+
+    // verification period
+    if (!await this.validateStayPeriod(data.grade, outing.stay_apply.stay.stay_apply_period)) {
+      throw new HttpException(
+        ErrorMsg.Stay_NotInApplyPeriod(),
+        HttpStatus.FORBIDDEN
+      );
+    }
 
     console.log(outing.stay_apply.user.id);
     if (outing.stay_apply.user.id !== target.id)
@@ -317,9 +354,17 @@ export class StayService {
     const target = await safeFindOne<User>(this.userRepository, user.id);
     const outing = await safeFindOne<StayOuting>(this.stayOutingRepository, {
       where: { id: data.id },
-      relations: { stay_apply: { user: true } },
+      relations: { stay_apply: { user: true, stay: { stay_apply_period: true } } },
       loadEagerRelations: false,
     });
+
+    // verification period
+    if (!await this.validateStayPeriod(data.grade, outing.stay_apply.stay.stay_apply_period)) {
+      throw new HttpException(
+        ErrorMsg.Stay_NotInApplyPeriod(),
+        HttpStatus.FORBIDDEN
+      );
+    }
 
     console.log(outing.stay_apply.user.id);
     if (outing.stay_apply.user.id !== target.id)
@@ -344,6 +389,16 @@ export class StayService {
             (preset.only_readingRoom && isInRange(range.range.split(":"), target)) ||
             !preset.only_readingRoom,
         ) && (await this.userManageService.checkUserDetail(user.email, { gender, grade }))
+    );
+  }
+
+  private async validateStayPeriod(grade: Grade, stay_apply_period: StayApplyPeriod_Stay[]) {
+    const now = new Date();
+    return stay_apply_period.find(
+      (p) =>
+        p.grade === grade &&
+        p.apply_start <= now &&
+        p.apply_end >= now
     );
   }
 }

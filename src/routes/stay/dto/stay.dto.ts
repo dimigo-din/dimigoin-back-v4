@@ -10,6 +10,11 @@ export class StayIdDTO {
   @ApiProperty()
   @IsString()
   id: string;
+  
+  @ApiProperty()
+  @Type(() => Number)
+  @IsIn(GradeValues)
+  grade: Grade;
 }
 
 export class OutingDTO {
@@ -77,6 +82,11 @@ export class AddStayOutingDTO {
   @ValidateNested()
   @Type(() => OutingDTO)
   outing: OutingDTO;
+  
+  @ApiProperty()
+  @Type(() => Number)
+  @IsIn(GradeValues)
+  grade: Grade;
 }
 
 export class EditStayOutingDTO {
@@ -88,12 +98,22 @@ export class EditStayOutingDTO {
   @ValidateNested()
   @Type(() => OutingDTO)
   outing: OutingDTO;
+  
+  @ApiProperty()
+  @Type(() => Number)
+  @IsIn(GradeValues)
+  grade: Grade;
 }
 
 export class StayOutingIdDTO {
   @ApiProperty()
   @IsString()
   id: string;
+  
+  @ApiProperty()
+  @Type(() => Number)
+  @IsIn(GradeValues)
+  grade: Grade;
 }
 
 export class GetStayListDTO {
