@@ -394,16 +394,6 @@ export class StayService {
 
   private async validateStayPeriod(grade: Grade, stay_apply_period: StayApplyPeriod_Stay[]) {
     const now = new Date();
-
-    console.log(stay_apply_period, grade);
-
-    console.log(stay_apply_period.find(
-      (p) =>
-        p.grade === Number(grade) &&
-        p.apply_start <= now &&
-        p.apply_end >= now
-    ));
-
     const validPeriod = stay_apply_period.find(
       (p) =>
         p.grade === Number(grade) &&
