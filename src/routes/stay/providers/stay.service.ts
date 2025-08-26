@@ -399,7 +399,7 @@ export class StayService {
     grade: Grade,
     stay_apply_period: StayApplyPeriod_Stay[],
   ) {
-    const isSame = true;
+    let isSame = true;
     let last = "";
     for (const period of stay_apply_period) {
       if (last === "") {
