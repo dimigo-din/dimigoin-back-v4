@@ -179,7 +179,7 @@ export class StayService {
     if (stayApply.user.id !== user.id)
       throw new HttpException(ErrorMsg.PermissionDenied_Resource(), HttpStatus.FORBIDDEN);
 
-    if (!(await this.validateStayPeriod(data.grade, stayApply.stay.stay_apply_period))) {
+    if (!(await this.validateStayPeriod(user, data.grade, stayApply.stay.stay_apply_period))) {
       throw new HttpException(ErrorMsg.Stay_NotInApplyPeriod(), HttpStatus.FORBIDDEN);
     }
 
@@ -251,7 +251,7 @@ export class StayService {
     if (!(await this.userManageService.checkUserDetail(user.email, { grade: data.grade })))
       throw new HttpException(ErrorMsg.PermissionDenied_Resource(), HttpStatus.FORBIDDEN);
 
-    if (!(await this.validateStayPeriod(data.grade, stayApply.stay.stay_apply_period))) {
+    if (!(await this.validateStayPeriod(user, data.grade, stayApply.stay.stay_apply_period))) {
       throw new HttpException(ErrorMsg.Stay_NotInApplyPeriod(), HttpStatus.FORBIDDEN);
     }
 
@@ -276,7 +276,7 @@ export class StayService {
     });
 
     // verification period
-    if (!(await this.validateStayPeriod(data.grade, apply.stay.stay_apply_period))) {
+    if (!(await this.validateStayPeriod(user, data.grade, apply.stay.stay_apply_period))) {
       throw new HttpException(ErrorMsg.Stay_NotInApplyPeriod(), HttpStatus.FORBIDDEN);
     }
 
@@ -326,7 +326,9 @@ export class StayService {
       throw new HttpException(ErrorMsg.PermissionDenied_Resource(), HttpStatus.FORBIDDEN);
 
     // verification period
-    if (!(await this.validateStayPeriod(data.grade, outing.stay_apply.stay.stay_apply_period))) {
+    if (
+      !(await this.validateStayPeriod(user, data.grade, outing.stay_apply.stay.stay_apply_period))
+    ) {
       throw new HttpException(ErrorMsg.Stay_NotInApplyPeriod(), HttpStatus.FORBIDDEN);
     }
 
@@ -369,7 +371,9 @@ export class StayService {
     if (outing.stay_apply.user.id !== target.id)
       throw new HttpException(ErrorMsg.PermissionDenied_Resource(), HttpStatus.FORBIDDEN);
 
-    if (!(await this.validateStayPeriod(data.grade, outing.stay_apply.stay.stay_apply_period))) {
+    if (
+      !(await this.validateStayPeriod(user, data.grade, outing.stay_apply.stay.stay_apply_period))
+    ) {
       throw new HttpException(ErrorMsg.Stay_NotInApplyPeriod(), HttpStatus.FORBIDDEN);
     }
     return await this.stayOutingRepository.remove(outing);
