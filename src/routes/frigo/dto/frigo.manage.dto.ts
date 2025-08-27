@@ -49,7 +49,7 @@ export class FrigoApplyIdDTO {
 }
 
 export class FrigoApplyDTO {
-  @ApiProperty()
+  @ApiProperty({ enum: FrigoTimingValues })
   @IsIn(FrigoTimingValues)
   timing: FrigoTiming;
 
