@@ -37,7 +37,7 @@ export class WakeupManageService {
     });
 
     const history = new WakeupSongHistory();
-    history.date = week;
+    history.date = moment().format("YYYY-MM-DD");
     history.video_id = apply.video_id;
     history.up = apply.wakeupSongVote.filter((v) => v.upvote).length;
     history.down = apply.wakeupSongVote.filter((v) => !v.upvote).length;
