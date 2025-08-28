@@ -14,7 +14,9 @@ export class WakeupService {
   ) {}
 
   async getDateSong(data: GetDateSongDTO) {
-    const song = await this.wakeupSongHistoryRepository.find({ where: { date: data.date } });
+    const song = await this.wakeupSongHistoryRepository.find({
+      where: { date: data.date, gender: data.gender },
+    });
     if (!song) throw new HttpException(ErrorMsg.NoWakeupInDate(), HttpStatus.NOT_FOUND);
 
     return song[song.length - 1];
