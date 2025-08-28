@@ -1,4 +1,4 @@
-import { CreateUserStayApplyDTO, OutingDTO } from "../../src/routes/stay/dto/stay.dto";
+import { CreateUserStayApplyDTO, OutingDTO } from "../../src/routes/stay/dto/stay.student.dto";
 
 export const StayApplyMock_User = (stayId: string) => {
   const data = new CreateUserStayApplyDTO();

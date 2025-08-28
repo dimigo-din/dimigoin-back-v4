@@ -8,13 +8,13 @@ import { ApiResponseFormat } from "../../../common/dto/response_format.dto";
 import { PermissionEnum } from "../../../common/mapper/permissions";
 import { FrigoApply } from "../../../schemas";
 import { ClientFrigoApplyDTO } from "../dto/frigo.dto";
-import { FrigoService } from "../providers";
+import { FrigoStudentService } from "../providers";
 
-@ApiTags("Frigo")
-@Controller("/frigo")
+@ApiTags("Frigo Student")
+@Controller("/student/frigo")
 @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.STUDENT]))
-export class FrigoController {
-  constructor(private readonly frigoService: FrigoService) {}
+export class FrigoStudentController {
+  constructor(private readonly frigoService: FrigoStudentService) {}
 
   @ApiOperation({
     summary: "신청정보 확인",

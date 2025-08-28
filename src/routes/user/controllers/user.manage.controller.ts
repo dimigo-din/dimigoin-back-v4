@@ -123,8 +123,6 @@ export class UserManageController {
       "Content-Length": buffer.length,
     });
 
-    console.log(buffer);
-
     res.end(buffer);
   }
 }

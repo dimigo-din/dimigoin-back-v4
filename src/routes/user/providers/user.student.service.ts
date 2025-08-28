@@ -9,7 +9,7 @@ import { safeFindOne } from "../../../common/utils/safeFindOne.util";
 import { LaundryApply, StayApply, User } from "../../../schemas";
 
 @Injectable()
-export class UserService {
+export class UserStudentService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,

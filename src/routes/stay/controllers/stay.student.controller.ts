@@ -14,14 +14,14 @@ import {
   GetStayListDTO,
   StayIdDTO,
   StayOutingIdDTO,
-} from "../dto/stay.dto";
-import { StayService } from "../providers";
+} from "../dto/stay.student.dto";
+import { StayStudentService } from "../providers";
 
-@ApiTags("Stay")
-@Controller("/stay")
+@ApiTags("Stay Student")
+@Controller("/student/stay")
 @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.STUDENT]))
-export class StayController {
-  constructor(private readonly stayService: StayService) {}
+export class StayStudentController {
+  constructor(private readonly stayService: StayStudentService) {}
 
   @ApiOperation({
     summary: "잔류 목록",

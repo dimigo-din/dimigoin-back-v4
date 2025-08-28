@@ -12,7 +12,7 @@ import { UserManageService } from "../../user/providers";
 import { ClientFrigoApplyDTO } from "../dto/frigo.dto";
 
 @Injectable()
-export class FrigoService {
+export class FrigoStudentService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,

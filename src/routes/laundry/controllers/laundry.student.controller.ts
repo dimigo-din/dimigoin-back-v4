@@ -7,14 +7,14 @@ import { UseGuardsWithSwagger } from "../../../auth/guards/useGuards";
 import { ApiResponseFormat } from "../../../common/dto/response_format.dto";
 import { PermissionEnum } from "../../../common/mapper/permissions";
 import { LaundryApply, LaundryTimeline } from "../../../schemas";
-import { LaundryApplyDTO } from "../dto/laundry.dto";
-import { LaundryService } from "../providers/laundry.service";
+import { LaundryApplyDTO } from "../dto/laundry.student.dto";
+import { LaundryStudentService } from "../providers/laundry.student.service";
 
-@ApiTags("Laundry")
-@Controller("/laundry")
+@ApiTags("Laundry Student")
+@Controller("/student/laundry")
 @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.STUDENT]))
-export class LaundryController {
-  constructor(private readonly laundryService: LaundryService) {}
+export class LaundryStudentController {
+  constructor(private readonly laundryService: LaundryStudentService) {}
 
   @ApiOperation({
     summary: "세탁 시간표",
