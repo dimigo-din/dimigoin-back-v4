@@ -6,14 +6,14 @@ import { PermissionGuard } from "../../../auth/guards/permission.guard";
 import { UseGuardsWithSwagger } from "../../../auth/guards/useGuards";
 import { ApiResponseFormat } from "../../../common/dto/response_format.dto";
 import { PermissionEnum } from "../../../common/mapper/permissions";
-import { ApplyResponseDTO, GetTimelineDTO } from "../dto/user.dto";
-import { UserService } from "../providers";
+import { ApplyResponseDTO, GetTimelineDTO } from "../dto/user.student.dto";
+import { UserStudentService } from "../providers";
 
-@ApiTags("User")
-@Controller("/user")
+@ApiTags("User Student")
+@Controller("/student/user")
 @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.STUDENT]))
-export class UserController {
-  constructor(private readonly userService: UserService) {}
+export class UserStudentController {
+  constructor(private readonly userService: UserStudentService) {}
 
   @ApiOperation({
     summary: "시간표 불러오기",

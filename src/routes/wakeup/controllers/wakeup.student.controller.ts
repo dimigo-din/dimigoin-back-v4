@@ -13,14 +13,14 @@ import {
   SearchVideoDTO,
   VoteIdDTO,
   VoteVideoDTO,
-} from "../dto/wakeup.dto";
-import { WakeupService } from "../providers";
+} from "../dto/wakeup.student.dto";
+import { WakeupStudentService } from "../providers";
 
-@ApiTags("Wakeup")
-@Controller("/wakeup")
+@ApiTags("Wakeup Student")
+@Controller("/student/wakeup")
 @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.STUDENT]))
-export class WakeupController {
-  constructor(private readonly wakeupService: WakeupService) {}
+export class WakeupStudentController {
+  constructor(private readonly wakeupService: WakeupStudentService) {}
 
   @ApiOperation({
     summary: "음악 검색",

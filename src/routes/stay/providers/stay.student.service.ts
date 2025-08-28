@@ -28,10 +28,10 @@ import {
   StayApplyIdDTO,
   StayIdDTO,
   StayOutingIdDTO,
-} from "../dto/stay.dto";
+} from "../dto/stay.student.dto";
 
 @Injectable()
-export class StayService {
+export class StayStudentService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,

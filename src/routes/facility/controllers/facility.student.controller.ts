@@ -5,7 +5,6 @@ import {
   Body,
   Controller,
   Get,
-  Header,
   HttpStatus,
   Post,
   Query,
@@ -30,15 +29,15 @@ import {
   GetReportListDTO,
   PostCommentDTO,
   ReportFacilityDTO,
-} from "../dto/facility.dto";
+} from "../dto/facility.student.dto";
 import { ImageUploadInterceptor } from "../interceptor/image-upload.interceptor";
-import { FacilityService } from "../providers";
+import { FacilityStudentService } from "../providers";
 
-@ApiTags("Facility")
-@Controller("/facility")
+@ApiTags("Facility Student")
+@Controller("/student/facility")
 @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.STUDENT]))
-export class FacilityController {
-  constructor(private readonly facilityService: FacilityService) {}
+export class FacilityStudentController {
+  constructor(private readonly facilityService: FacilityStudentService) {}
 
   @ApiOperation({
     summary: "이미지 불러오기",

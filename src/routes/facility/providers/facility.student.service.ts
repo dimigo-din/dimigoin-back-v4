@@ -16,10 +16,10 @@ import {
   GetReportListDTO,
   PostCommentDTO,
   ReportFacilityDTO,
-} from "../dto/facility.dto";
+} from "../dto/facility.student.dto";
 
 @Injectable()
-export class FacilityService {
+export class FacilityStudentService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,

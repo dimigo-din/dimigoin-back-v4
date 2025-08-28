@@ -8,10 +8,10 @@ import { UserJWT } from "../../../common/mapper/types";
 import { safeFindOne } from "../../../common/utils/safeFindOne.util";
 import { LaundryApply, LaundryMachine, LaundryTime, LaundryTimeline, User } from "../../../schemas";
 import { UserManageService } from "../../user/providers";
-import { LaundryApplyDTO } from "../dto/laundry.dto";
+import { LaundryApplyDTO } from "../dto/laundry.student.dto";
 
 @Injectable()
-export class LaundryService {
+export class LaundryStudentService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,

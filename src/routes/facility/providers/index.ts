@@ -1,2 +1,2 @@
 export * from "./facility.manage.service";
-export * from "./facility.service";
+export * from "./facility.student.service";
