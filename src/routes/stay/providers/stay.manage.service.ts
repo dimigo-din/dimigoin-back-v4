@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable, Logger } from "@nestjs/common";
 import { Cron, CronExpression } from "@nestjs/schedule";
 import { InjectRepository } from "@nestjs/typeorm";
 import * as moment from "moment";
@@ -38,6 +38,7 @@ import {
 
 @Injectable()
 export class StayManageService {
+  private logger = new Logger(StayManageService.name);
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
@@ -476,7 +477,7 @@ export class StayManageService {
         if (!out.isBetween(from, to)) {
           out.add(1, "w");
           if (!out.isBetween(from, to)) {
-            console.error(`Error. Invalid outing range on ${target.name}`);
+            this.logger.error(`Error. Invalid outing range on ${target.name}`);
             success = false;
           }
         }
@@ -485,6 +486,7 @@ export class StayManageService {
       if (!success) continue;
 
       await this.stayRepository.save(stay);
+      this.logger.log(`Successfully added ${stay.id}(${stay.name})`);
     }
 
     // remove previous stay
