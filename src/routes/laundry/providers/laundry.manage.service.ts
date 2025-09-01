@@ -244,6 +244,7 @@ export class LaundryManageService {
       );
     };
 
+    // returns when trigger triggered
     const stayTimeline = timelinesByTrigger.find((x) => x.triggeredOn === "stay");
     if (stayTimeline) {
       const today = moment().format("YYYY-MM-DD");
@@ -258,6 +259,7 @@ export class LaundryManageService {
       } else if (stayTimeline.enabled) return;
     }
 
+    // enable primary when function not returned so any trigger suitable for it.
     const primary = timelinesByTrigger.find((x) => x.triggeredOn === "primary");
     if (primary && !primary.enabled) {
       await disable();

@@ -77,7 +77,7 @@ export class FrigoStudentService {
     return await this.frigoApplyRepository.save(apply);
   }
 
-  async cacelApply(user: UserJWT) {
+  async cancelApply(user: UserJWT) {
     const week = moment().startOf("week").format("YYYY-MM-DD");
     const apply = await safeFindOne<FrigoApply>(this.frigoApplyRepository, {
       where: { user: { id: user.id }, week: week },

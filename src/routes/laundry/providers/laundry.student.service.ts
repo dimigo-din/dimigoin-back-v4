@@ -34,9 +34,13 @@ export class LaundryStudentService {
   }
 
   async getApplies() {
-    return await this.laundryApplyRepository.find({
-      where: { laundryTimeline: { enabled: true }, date: moment().format("YYYY-MM-DD") },
-      relations: { laundryTime: true, laundryMachine: true, user: true },
+    return (
+      await this.laundryApplyRepository.find({
+        where: { laundryTimeline: { enabled: true }, date: moment().format("YYYY-MM-DD") },
+        relations: { laundryTime: true, laundryMachine: true, user: true },
+      })
+    ).map((a) => {
+      return { ...a, user: { id: a.user.id } };
     });
   }
 
@@ -63,7 +67,12 @@ export class LaundryStudentService {
     });
     const time = await safeFindOne<LaundryTime>(this.laundryTimeRepository, data.time);
 
-    if (!(await this.userManageService.checkUserDetail(user.email, { grade: time.grade })))
+    if (
+      !(await this.userManageService.checkUserDetail(user.email, {
+        grade: time.grade,
+        gender: machine.gender,
+      }))
+    )
       throw new HttpException(ErrorMsg.PermissionDenied_Resource_Grade(), HttpStatus.FORBIDDEN);
 
     const machineTaken = await this.laundryApplyRepository.findOne({

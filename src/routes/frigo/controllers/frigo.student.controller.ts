@@ -52,6 +52,6 @@ export class FrigoStudentController {
   })
   @Delete("/")
   async cancel(@Req() req) {
-    return await this.frigoService.cacelApply(req.user);
+    return await this.frigoService.cancelApply(req.user);
   }
 }
