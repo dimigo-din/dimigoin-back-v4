@@ -34,9 +34,13 @@ export class LaundryStudentService {
   }
 
   async getApplies() {
-    return await this.laundryApplyRepository.find({
-      where: { laundryTimeline: { enabled: true }, date: moment().format("YYYY-MM-DD") },
-      relations: { laundryTime: true, laundryMachine: true, user: true },
+    return (
+      await this.laundryApplyRepository.find({
+        where: { laundryTimeline: { enabled: true }, date: moment().format("YYYY-MM-DD") },
+        relations: { laundryTime: true, laundryMachine: true, user: true },
+      })
+    ).map((a) => {
+      return { ...a, user: { id: a.user.id } };
     });
   }
 

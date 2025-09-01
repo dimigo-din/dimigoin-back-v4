@@ -42,11 +42,15 @@ export class FacilityStudentService {
   }
 
   async reportList(data: GetReportListDTO) {
-    return await this.facilityReportRepository.find({
-      relations: ["user"],
-      take: 10,
-      skip: (data.page ? data.page - 1 : 0) * 10,
-      order: { created_at: "DESC" },
+    return (
+      await this.facilityReportRepository.find({
+        relations: ["user"],
+        take: 10,
+        skip: (data.page ? data.page - 1 : 0) * 10,
+        order: { created_at: "DESC" },
+      })
+    ).map((r) => {
+      return { ...r, user: { id: r.user.id } };
     });
   }
 
