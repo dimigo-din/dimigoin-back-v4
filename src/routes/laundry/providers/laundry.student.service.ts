@@ -63,7 +63,12 @@ export class LaundryStudentService {
     });
     const time = await safeFindOne<LaundryTime>(this.laundryTimeRepository, data.time);
 
-    if (!(await this.userManageService.checkUserDetail(user.email, { grade: time.grade })))
+    if (
+      !(await this.userManageService.checkUserDetail(user.email, {
+        grade: time.grade,
+        gender: machine.gender,
+      }))
+    )
       throw new HttpException(ErrorMsg.PermissionDenied_Resource_Grade(), HttpStatus.FORBIDDEN);
 
     const machineTaken = await this.laundryApplyRepository.findOne({
