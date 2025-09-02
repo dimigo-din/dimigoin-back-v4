@@ -6,6 +6,7 @@ import { IsNull, LessThan, MoreThan, MoreThanOrEqual, Not, Repository } from "ty
 
 import { ErrorMsg } from "../../../common/mapper/error";
 import { safeFindOne } from "../../../common/utils/safeFindOne.util";
+import { isInRange } from "../../../common/utils/staySeat.util";
 import {
   Stay,
   StayApply,
@@ -311,7 +312,11 @@ export class StayManageService {
     const staySeatCheck = await this.stayApplyRepository.findOne({
       where: { stay_seat: data.stay_seat.toUpperCase(), stay: stay },
     }); // Allow if same as previous user's seat
-    if (staySeatCheck)
+    if (
+      staySeatCheck &&
+      (isInRange(["A1", "L18"], staySeatCheck.stay_seat) ||
+        isInRange(["M1", "N18"], staySeatCheck.stay_seat))
+    )
       throw new HttpException(ErrorMsg.StaySeat_Duplication(), HttpStatus.BAD_REQUEST);
 
     // teacher can force stay_seat. so, stay_seat will not be filtered.
@@ -347,7 +352,12 @@ export class StayManageService {
     const staySeatCheck = await this.stayApplyRepository.findOne({
       where: { stay_seat: data.stay_seat.toUpperCase(), stay: stay },
     }); // Allow if same as previous user's seat
-    if (staySeatCheck && stayApply.stay_seat !== data.stay_seat.toUpperCase())
+    if (
+      staySeatCheck &&
+      stayApply.stay_seat.toUpperCase() !== data.stay_seat.toUpperCase() &&
+      (isInRange(["A1", "L18"], staySeatCheck.stay_seat) ||
+        isInRange(["M1", "N18"], staySeatCheck.stay_seat))
+    )
       throw new HttpException(ErrorMsg.StaySeat_Duplication(), HttpStatus.BAD_REQUEST);
 
     stayApply.stay_seat = data.stay_seat.toUpperCase();
