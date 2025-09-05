@@ -1,7 +1,6 @@
-import { Optional } from "@nestjs/common";
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsBoolean, IsIn, IsNumber, IsString, Max, Min } from "class-validator";
+import { IsBoolean, IsIn, IsNumber, IsOptional, IsString, Max, Min } from "class-validator";
 
 import { FrigoTiming, FrigoTimingValues, Grade, GradeValues } from "../../../common/mapper/types";
 
@@ -68,12 +67,12 @@ export class AuditFrigoApply {
   id: string;
 
   @ApiProperty({ nullable: true })
-  @Optional()
+  @IsOptional()
   @IsString()
   audit_reason?: string;
 
   @ApiProperty({ nullable: true })
-  @Optional()
+  @IsOptional()
   @IsBoolean()
   approved?: boolean;
 }

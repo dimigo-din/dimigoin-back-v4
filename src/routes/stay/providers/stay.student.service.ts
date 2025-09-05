@@ -121,7 +121,11 @@ export class StayStudentService {
     const staySeatCheck = await this.stayApplyRepository.findOne({
       where: { stay_seat: data.stay_seat.toUpperCase(), stay: { id: data.stay } },
     });
-    if (staySeatCheck)
+    if (
+      staySeatCheck &&
+      (isInRange(["A1", "L18"], staySeatCheck.stay_seat) ||
+        isInRange(["M1", "N18"], staySeatCheck.stay_seat))
+    )
       throw new HttpException(ErrorMsg.StaySeat_Duplication(), HttpStatus.BAD_REQUEST);
 
     if (
@@ -186,7 +190,12 @@ export class StayStudentService {
     const staySeatCheck = await this.stayApplyRepository.findOne({
       where: { stay_seat: data.stay_seat.toUpperCase(), stay: { id: stayApply.stay.id } },
     });
-    if (staySeatCheck && staySeatCheck.id !== stayApply.id)
+    if (
+      staySeatCheck &&
+      staySeatCheck.id !== stayApply.id &&
+      (isInRange(["A1", "L18"], staySeatCheck.stay_seat) ||
+        isInRange(["M1", "N18"], staySeatCheck.stay_seat))
+    )
       throw new HttpException(ErrorMsg.StaySeat_Duplication(), HttpStatus.BAD_REQUEST);
 
     if (
