@@ -40,7 +40,6 @@ export class LaundryTimeline {
   })
   times: LaundryTime[];
 
-  @ApiProperty({ type: () => LaundryApply })
   @OneToMany(() => LaundryApply, (laundryApply) => laundryApply.laundryTimeline)
   applies: LaundryApply[];
 }
