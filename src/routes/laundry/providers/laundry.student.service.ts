@@ -8,7 +8,7 @@ import { UserJWT } from "../../../common/mapper/types";
 import { safeFindOne } from "../../../common/utils/safeFindOne.util";
 import { LaundryApply, LaundryMachine, LaundryTime, LaundryTimeline, User } from "../../../schemas";
 import { UserManageService } from "../../user/providers";
-import { LaundryApplyDTO } from "../dto/laundry.student.dto";
+import { LaundryApplyDTO, LaundryApplyIdDTO } from "../dto/laundry.student.dto";
 
 @Injectable()
 export class LaundryStudentService {
@@ -94,9 +94,9 @@ export class LaundryStudentService {
     return await this.laundryApplyRepository.save(apply);
   }
 
-  async deleteApply(user: UserJWT) {
+  async deleteApply(user: UserJWT, data: LaundryApplyIdDTO) {
     const apply = await safeFindOne<LaundryApply>(this.laundryApplyRepository, {
-      where: { user: { id: user.id } },
+      where: { user: { id: user.id }, id: data.id },
     });
 
     return await this.laundryApplyRepository.remove(apply);
