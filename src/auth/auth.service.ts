@@ -102,7 +102,9 @@ export class AuthService {
         identifier1: ticketPayload.sub,
         identifier2: null,
         email: ticketPayload.email,
-        picture: ticketPayload.picture,
+        picture:
+          ticketPayload.picture ||
+          "https://i.pinimg.com/236x/80/f6/ce/80f6ce7b8828349aa277cf3bcb19c477.jpg",
         name: `${ticketPayload.family_name || ""}${ticketPayload.given_name || ""}`,
       });
     } else loginUser = login.user;

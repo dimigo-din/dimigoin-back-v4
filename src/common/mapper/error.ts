@@ -58,6 +58,10 @@ export const ErrorMsg = {
     "LaundryMachine_AlreadyTaken",
     "이미 해당 세탁/건조기가 신청된 상태입니다.",
   ],
+  LaundryApplyIsAfterEightAM: () => [
+    "LaundryApplyIsAfterEightAM",
+    "세탁/건조 신청은 8시 이후 가능합니다.",
+  ],
 
   GoogleOauthCode_Invalid: () => [
     "GoogleOauthCode_Invalid",
