@@ -104,7 +104,7 @@ export class AuthService {
         email: ticketPayload.email,
         picture:
           ticketPayload.picture ||
-          "https://i.pinimg.com/originals/2f/55/97/2f559707c3b04a1964b37856f00ad608.jpg",
+          "https://i.pinimg.com/236x/80/f6/ce/80f6ce7b8828349aa277cf3bcb19c477.jpg",
         name: `${ticketPayload.family_name || ""}${ticketPayload.given_name || ""}`,
       });
     } else loginUser = login.user;
