@@ -52,16 +52,16 @@ export class LaundryManageService {
   ) {}
 
   async getLaundryTimelineList() {
-    return (await this.laundryTimelineRepository.find()).map((e) => {
-      return {
-        id: e.id,
-        name: e.name,
-      };
+    return await this.laundryTimelineRepository.find({
+      select: { id: true, name: true, enabled: true },
     });
   }
 
   async getLaundryTimeline(data: LaundryTimelineIdDTO) {
-    return await safeFindOne<LaundryTimeline>(this.laundryTimelineRepository, data.id);
+    return await safeFindOne<LaundryTimeline>(this.laundryTimelineRepository, {
+      where: { id: data.id },
+      relations: { times: true },
+    });
   }
 
   async createLaundryTimeline(data: CreateLaundryTimelineDTO) {
@@ -87,10 +87,10 @@ export class LaundryManageService {
   }
 
   async updateLaundryTimeline(data: UpdateLaundryTimelineDTO) {
-    const laundryTimeline = await safeFindOne<LaundryTimeline>(
-      this.laundryTimelineRepository,
-      data.id,
-    );
+    const laundryTimeline = await safeFindOne<LaundryTimeline>(this.laundryTimelineRepository, {
+      where: { id: data.id },
+      relations: { times: true },
+    });
     laundryTimeline.name = data.name;
     laundryTimeline.triggeredOn = data.triggeredOn;
 

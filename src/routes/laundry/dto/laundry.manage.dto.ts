@@ -125,4 +125,7 @@ export class LaundryTimelineListResponseDTO {
 
   @ApiProperty()
   name: string;
+
+  @ApiProperty()
+  enabled: boolean;
 }

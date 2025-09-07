@@ -35,12 +35,10 @@ export class LaundryTimeline {
 
   @ApiProperty({ type: () => [LaundryTime] })
   @OneToMany(() => LaundryTime, (laundryTime) => laundryTime.timeline, {
-    eager: true,
     cascade: ["insert", "update"],
   })
   times: LaundryTime[];
 
-  @ApiProperty({ type: () => LaundryApply })
   @OneToMany(() => LaundryApply, (laundryApply) => laundryApply.laundryTimeline)
   applies: LaundryApply[];
 }
@@ -64,6 +62,7 @@ export class LaundryTime {
   @ManyToMany(() => LaundryMachine, (laundryMachine) => laundryMachine.laundryTime, {
     onUpdate: "CASCADE",
     onDelete: "CASCADE",
+    eager: true,
   })
   assigns: LaundryMachine[];
 
@@ -74,7 +73,6 @@ export class LaundryTime {
   })
   timeline: LaundryTimeline;
 
-  @ApiProperty({ type: () => LaundryApply })
   @OneToMany(() => LaundryApply, (laundryApply) => laundryApply.laundryTime)
   applies: LaundryApply[];
 }
@@ -104,7 +102,6 @@ export class LaundryMachine {
   @Column("boolean")
   enabled: boolean;
 
-  @ApiProperty({ type: () => LaundryApply })
   @OneToMany(() => LaundryApply, (laundryApply) => laundryApply.laundryMachine)
   applies: LaundryApply[];
 
