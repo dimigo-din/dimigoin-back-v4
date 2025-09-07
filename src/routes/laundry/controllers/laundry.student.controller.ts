@@ -9,6 +9,7 @@ import { PermissionEnum } from "../../../common/mapper/permissions";
 import { LaundryApply, LaundryTimeline } from "../../../schemas";
 import { LaundryApplyDTO } from "../dto/laundry.student.dto";
 import { LaundryStudentService } from "../providers/laundry.student.service";
+import { LaundryApplyIdDTO } from "../dto/laundry.manage.dto";
 
 @ApiTags("Laundry Student")
 @Controller("/student/laundry")
@@ -64,7 +65,7 @@ export class LaundryStudentController {
     type: LaundryApply,
   })
   @Delete("/")
-  async deleteApply(@Req() req) {
-    return await this.laundryService.deleteApply(req.user);
+  async deleteApply(@Req() req, @Query() data: LaundryApplyIdDTO) {
+    return await this.laundryService.deleteApply(req.user, data);
   }
 }
