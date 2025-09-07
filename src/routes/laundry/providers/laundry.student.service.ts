@@ -45,6 +45,9 @@ export class LaundryStudentService {
   }
 
   async createApply(user: UserJWT, data: LaundryApplyDTO) {
+    if (!moment().isAfter(moment().tz("Asia/Seoul").startOf("day").add("8", "hours")))
+      throw new HttpException(ErrorMsg.LaundryApplyIsAfterEightAM(), HttpStatus.BAD_REQUEST);
+
     const dbUser = await safeFindOne<User>(this.userRepository, user.id);
 
     const machine = await safeFindOne<LaundryMachine>(this.laundryMachineRepository, data.machine);
