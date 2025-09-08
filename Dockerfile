@@ -56,15 +56,15 @@ FROM base AS production
 
 WORKDIR /usr/src/app
 
-RUN yarn global add pm2
-
 # Copy the bundled code from the build stage to the production image
 COPY --chown=node:node --from=build /usr/src/app/node_modules ./node_modules
 COPY --chown=node:node --from=build /usr/src/app/dist ./dist
-COPY --chown=node:node package.json .
-COPY --chown=node:node .env.prod .
+COPY --chown=node:node . .
+
+RUN yarn global add pm2
+RUN chmod 700 ./entrypoint.sh
 
 ENV NODE_ENV prod
 
 # Start the server using the production build
-ENTRYPOINT ["pm2-runtime", "start", "dist/src/main.js", "--name", "dimigoin-back", "-i", "12"]
+ENTRYPOINT ["./entrypoint.sh"]
