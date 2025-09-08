@@ -421,7 +421,7 @@ export class StayManageService {
       throw new HttpException(ErrorMsg.ItIsStaySeat_ShouldNotBeAllowed(), HttpStatus.BAD_REQUEST);
 
     const applies = (
-      await this.stayApplyRepository.find({ where: { stay_seat: In(data.targets) } })
+      await this.stayApplyRepository.find({ where: { id: In(data.targets) } })
     ).map((a) => {
       return { ...a, stay_seat: data.to };
     });
