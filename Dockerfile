@@ -63,6 +63,7 @@ COPY --chown=node:node --from=build /usr/src/app/node_modules ./node_modules
 COPY --chown=node:node --from=build /usr/src/app/dist ./dist
 COPY --chown=node:node .env.prod .
 
+ENV NODE_ENV prod
 
 # Start the server using the production build
 ENTRYPOINT ["pm2-runtime", "start", "dist/src/main.js", "--name", "dimigoin-back", "-i", "12"]
