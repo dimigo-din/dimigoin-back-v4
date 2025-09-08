@@ -2,6 +2,7 @@ import * as crypto from "crypto";
 
 import { Cache, CACHE_MANAGER, CacheModule } from "@nestjs/cache-manager";
 import { Inject, Injectable, Module } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 
 import { YoutubeVideoItem, YoutubeSearchResults } from "../mapper/types";
 
@@ -12,7 +13,10 @@ export class CacheService {
   private YOUTUBESEARCH_PREFIX = "youtubeSearch_";
   private PERSONALINFORMATIONVERIFY_SECRET = "PersonalInformationVerifyTokenSecret";
 
-  constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {}
+  constructor(
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    private readonly configService: ConfigService,
+  ) {}
 
   async musicSearchRateLimit(userid: string) {
     const lastRequest = await this.cacheManager.get<number>(this.RATELIMIT_PREFIX + userid);
@@ -41,7 +45,9 @@ export class CacheService {
   }
 
   async getPersonalInformationVerifyTokenSecret(): Promise<string> {
-    const secret = await this.cacheManager.get<string>(this.PERSONALINFORMATIONVERIFY_SECRET);
+    const secret =
+      this.configService.get<string>(this.PERSONALINFORMATIONVERIFY_SECRET) ||
+      (await this.cacheManager.get<string>(this.PERSONALINFORMATIONVERIFY_SECRET));
     if (secret) return secret;
 
     await this.cacheManager.set(
