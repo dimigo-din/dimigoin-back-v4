@@ -28,6 +28,10 @@ export const ErrorMsg = {
   Stay_AlreadyApplied: () => ["Stay_AlreadyApplied", "이미 해당 잔류를 신청하였습니다."],
   StaySeat_Duplication: () => ["StaySeat_Duplication", "이미 선택된 좌석입니다."],
   StaySeat_NotAllowed: () => ["StaySeat_NotAllowed", "해당 좌석을 사용할 수 없습니다."],
+  ItIsStaySeat_ShouldNotBeAllowed: () => [
+    "ItIsStaySeat_ShouldNotBeAllowed",
+    "열람실 좌석번호와 곂치는 장소는 이용 불가능합니다.",
+  ],
 
   ProvidedTime_Invalid: () => ["ProvidedTime_Invalid", "제공하신 시간이 조건에 충족하지 않습니다."],
 

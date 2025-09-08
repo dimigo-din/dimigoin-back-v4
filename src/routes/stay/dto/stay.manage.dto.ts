@@ -305,3 +305,13 @@ export class UpdateOutingMealCancelDTO {
   @IsBoolean()
   dinner_cancel: boolean;
 }
+
+export class MoveToSomewhereDTO {
+  @ApiProperty()
+  @IsString({ each: true })
+  targets: string[];
+
+  @ApiProperty()
+  @IsString()
+  to: string;
+}

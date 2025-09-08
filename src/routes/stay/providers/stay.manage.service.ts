@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Injectable, Logger } from "@nestjs/common";
 import { Cron, CronExpression } from "@nestjs/schedule";
 import { InjectRepository } from "@nestjs/typeorm";
 import * as moment from "moment";
-import { IsNull, LessThan, MoreThan, MoreThanOrEqual, Not, Repository } from "typeorm";
+import { In, IsNull, LessThan, MoreThan, MoreThanOrEqual, Not, Repository } from "typeorm";
 
 import { ErrorMsg } from "../../../common/mapper/error";
 import { safeFindOne } from "../../../common/utils/safeFindOne.util";
@@ -35,6 +35,7 @@ import {
   UpdateStaySeatPresetDTO,
   AuditOutingDTO,
   UpdateOutingMealCancelDTO,
+  MoveToSomewhereDTO,
 } from "../dto/stay.manage.dto";
 
 @Injectable()
@@ -413,6 +414,19 @@ export class StayManageService {
     const target = base.clone().weekday(weekday);
     if (target.isBefore(base)) target.add(1, "week");
     return target;
+  }
+
+  async moveToSomewhere(data: MoveToSomewhereDTO) {
+    if (isInRange(["A1", "L18"], data.to) || isInRange(["M1", "N18"], data.to))
+      throw new HttpException(ErrorMsg.ItIsStaySeat_ShouldNotBeAllowed(), HttpStatus.BAD_REQUEST);
+
+    const applies = (
+      await this.stayApplyRepository.find({ where: { stay_seat: In(data.targets) } })
+    ).map((a) => {
+      return { ...a, stay_seat: data.to };
+    });
+
+    return await this.stayApplyRepository.save(applies);
   }
 
   @Cron(CronExpression.EVERY_10_SECONDS)
