@@ -43,6 +43,7 @@ export class UserManageService {
     this.client.interceptors.response.use(
       (res) => res,
       (error) => {
+        if (!error.response) return Promise.reject(error);
         if (error.response.status - 400 >= 0 && error.response.status - 400 < 100) {
           return Promise.resolve(error.response);
         }
