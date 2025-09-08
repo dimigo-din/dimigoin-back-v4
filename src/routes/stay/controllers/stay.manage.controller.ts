@@ -22,6 +22,7 @@ import {
   UpdateStayDTO,
   UpdateStayScheduleDTO,
   UpdateStaySeatPresetDTO,
+  MoveToSomewhereDTO,
 } from "../dto/stay.manage.dto";
 import { StayManageService } from "../providers/stay.manage.service";
 
@@ -300,5 +301,18 @@ export class StayManageController {
   @Patch("/outing/meal_cancel")
   async updateOutingMealCancel(@Body() data: UpdateOutingMealCancelDTO) {
     return await this.stayManageService.updateOutingMealCancel(data);
+  }
+
+  @ApiOperation({
+    summary: "일괄 좌석 이동",
+    description: "특정 잔류들의 좌석을 일괄 이동합니다.",
+  })
+  @ApiResponseFormat({
+    status: HttpStatus.OK,
+    type: [StayApply],
+  })
+  @Post("/change_seat")
+  async moveToSomewhere(@Body() data: MoveToSomewhereDTO) {
+    return await this.stayManageService.moveToSomewhere(data);
   }
 }

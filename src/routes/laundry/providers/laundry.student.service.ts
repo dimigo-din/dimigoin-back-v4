@@ -40,7 +40,7 @@ export class LaundryStudentService {
         relations: { laundryTime: true, laundryMachine: true, user: true },
       })
     ).map((a) => {
-      return { ...a, user: { id: a.user.id } };
+      return { ...a, user: { id: a.user.id, name: a.user.name } };
     });
   }
 
