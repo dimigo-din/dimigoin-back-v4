@@ -21,6 +21,7 @@ RUN yarn build
 
 ENV NODE_ENV production
 RUN yarn --frozen-lockfile --production;
+RUN yarn build
 RUN rm -rf ./.next/cache
 
 USER node
