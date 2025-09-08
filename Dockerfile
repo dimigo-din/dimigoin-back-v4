@@ -63,6 +63,7 @@ COPY --chown=node:node . .
 
 RUN yarn global add pm2
 RUN chmod 700 ./entrypoint.sh
+RUN apk add chromium
 
 ENV NODE_ENV prod
 
