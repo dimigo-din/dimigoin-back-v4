@@ -41,4 +41,4 @@ RUN yarn global add pm2
 
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-ENTRYPOINT ["pm2-runtime", "start", "dist/main.js", "--name", "dimigoin-back", "-i", "max"]
+ENTRYPOINT ["pm2-runtime", "start", "dist/main.js", "--name", "dimigoin-back", "-i", "12"]
