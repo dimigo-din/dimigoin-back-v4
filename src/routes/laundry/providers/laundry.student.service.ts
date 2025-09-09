@@ -79,7 +79,7 @@ export class LaundryStudentService {
       throw new HttpException(ErrorMsg.PermissionDenied_Resource_Grade(), HttpStatus.FORBIDDEN);
 
     const machineTaken = await this.laundryApplyRepository.findOne({
-      where: { laundryMachine: machine, laundryTime: time, date: moment().format("YYYY-MM-DD") },
+      where: { laundryMachine: machine, date: moment().format("YYYY-MM-DD") },
     });
     if (machineTaken)
       throw new HttpException(ErrorMsg.LaundryMachine_AlreadyTaken(), HttpStatus.BAD_REQUEST);
