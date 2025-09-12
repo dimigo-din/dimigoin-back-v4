@@ -247,7 +247,8 @@ export class LaundryManageService {
     // returns when trigger triggered
     const stayTimeline = timelinesByTrigger.find((x) => x.triggeredOn === "stay");
     if (stayTimeline) {
-      const today = moment().format("YYYY-MM-DD");
+      const today = moment().tz("Asia/Seoul").format("YYYY-MM-DD");
+      console.log(moment().tz("Asia/Seoul").format("YYYY-MM-DDTHH:mm:ss"));
       const stay = await this.stayRepository.findOne({
         where: { stay_from: LessThanOrEqual(today), stay_to: MoreThanOrEqual(today) },
       });
@@ -256,7 +257,7 @@ export class LaundryManageService {
         stayTimeline.enabled = true;
         await this.laundryTimelineRepository.save(stayTimeline);
         return;
-      } else if (stayTimeline.enabled) return;
+      } else if (stay && stayTimeline.enabled) return;
     }
 
     // enable primary when function not returned so any trigger suitable for it.
