@@ -227,7 +227,7 @@ export class LaundryManageService {
     return await this.laundryApplyRepository.remove(laundryApply);
   }
 
-  @Cron(CronExpression.EVERY_10_SECONDS)
+  @Cron(CronExpression.EVERY_HOUR)
   // @Cron(CronExpression.EVERY_SECOND)
   private async laundryTimelineScheduler() {
     const timelines = await this.laundryTimelineRepository.find();
@@ -243,8 +243,6 @@ export class LaundryManageService {
         }),
       );
     };
-
-    console.log(moment().tz("Asia/Seoul").format("YYYY-MM-DDTHH:mm:ss"));
 
     // returns when trigger triggered
     const stayTimeline = timelinesByTrigger.find((x) => x.triggeredOn === "stay");
