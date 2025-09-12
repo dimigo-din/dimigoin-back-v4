@@ -24,10 +24,9 @@ export class LaundryTimeDTO {
   @Matches(/^((1[0-9])|(2[0-3])|(0[0-9])):([0-5][0-9])$/)
   time: string;
 
-  @ApiProperty()
-  @Type(() => Number)
-  @IsIn(GradeValues)
-  grade: Grade;
+  @ApiProperty({ isArray: true })
+  @IsIn(GradeValues, { each: true })
+  grade: Grade[];
 
   @ApiProperty()
   @IsString({ each: true })

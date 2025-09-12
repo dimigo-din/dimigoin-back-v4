@@ -54,9 +54,9 @@ export class LaundryTime {
   @Column()
   time: string;
 
-  @ApiProperty()
-  @Column()
-  grade: Grade;
+  @ApiProperty({ isArray: true })
+  @Column({ array: true })
+  grade: Grade[];
 
   @ApiProperty({ type: () => [LaundryMachine] })
   @ManyToMany(() => LaundryMachine, (laundryMachine) => laundryMachine.laundryTime, {
