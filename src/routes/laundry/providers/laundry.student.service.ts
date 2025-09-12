@@ -55,7 +55,7 @@ export class LaundryStudentService {
     const applyExists = await this.laundryApplyRepository.findOne({
       where: {
         user: dbUser,
-        date: moment().format("YYYY-MM-DD"),
+        date: moment().tz("Asia/Seoul").format("YYYY-MM-DD"),
         laundryMachine: { type: machine.type },
       },
     });
