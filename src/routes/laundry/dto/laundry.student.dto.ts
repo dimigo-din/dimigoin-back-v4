@@ -1,5 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsIn, IsString, Type } from "class-validator";
+import { IsIn, IsString } from "class-validator";
+import { Type } from "class-transformer";
 
 import { Grade, GradeValues } from "../../../common/mapper/types";
 
