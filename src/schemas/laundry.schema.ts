@@ -55,7 +55,7 @@ export class LaundryTime {
   time: string;
 
   @ApiProperty({ isArray: true })
-  @Column({ array: true })
+  @Column("int", { array: true })
   grade: Grade[];
 
   @ApiProperty({ type: () => [LaundryMachine] })
