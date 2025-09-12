@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsIn, IsString } from "class-validator";
+import { IsIn, IsString, Type } from "class-validator";
 
 import { Grade, GradeValues } from "../../../common/mapper/types";
 
@@ -11,6 +11,7 @@ export class LaundryApplyIdDTO {
 
 export class LaundryApplyDTO {
   @ApiProperty()
+  @Type(() => Number)
   @IsIn(GradeValues)
   grade: Grade;
 
