@@ -4,7 +4,7 @@ import * as moment from "moment";
 import { Repository } from "typeorm";
 
 import { ErrorMsg } from "../../../common/mapper/error";
-import { UserJWT } from "../../../common/mapper/types";
+import { Grade, UserJWT } from "../../../common/mapper/types";
 import { safeFindOne } from "../../../common/utils/safeFindOne.util";
 import { LaundryApply, LaundryMachine, LaundryTime, LaundryTimeline, User } from "../../../schemas";
 import { UserManageService } from "../../user/providers";
@@ -71,7 +71,7 @@ export class LaundryStudentService {
     const time = await safeFindOne<LaundryTime>(this.laundryTimeRepository, data.time);
 
     if (
-      time.grade.indexOf(data.grade) === -1 ||
+      time.grade.indexOf(Number(data.grade) as Grade) === -1 ||
       !(await this.userManageService.checkUserDetail(user.email, {
         grade: data.grade,
         gender: machine.gender,
