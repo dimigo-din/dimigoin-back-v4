@@ -100,6 +100,10 @@ export class WakeupSongHistory {
   @Column()
   video_id: string;
 
+  @ApiProperty()
+  @Column()
+  video_title: string;
+
   /** yyyy-mm-dd */
   @ApiProperty()
   @Column("date")
