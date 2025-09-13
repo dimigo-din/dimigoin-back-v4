@@ -39,6 +39,7 @@ export class WakeupManageService {
     const history = new WakeupSongHistory();
     history.date = moment().format("YYYY-MM-DD");
     history.video_id = apply.video_id;
+    history.video_title = apply.video_title;
     history.up = apply.wakeupSongVote.filter((v) => v.upvote).length;
     history.down = apply.wakeupSongVote.filter((v) => !v.upvote).length;
     history.gender = apply.gender;

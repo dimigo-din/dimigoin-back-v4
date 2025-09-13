@@ -41,6 +41,7 @@ export class WakeupStudentService {
       key: this.configService.get<string>("GCP_YOUTUBE_DATA_API_KEY"),
       part: ["snippet"],
       type: ["video"],
+      videoCategoryId: "10",
       q: data.query,
       maxResults: 10,
     });
