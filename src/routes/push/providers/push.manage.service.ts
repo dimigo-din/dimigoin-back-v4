@@ -1,4 +1,5 @@
 import { Injectable, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { Cron, CronExpression } from "@nestjs/schedule";
 import { InjectRepository } from "@nestjs/typeorm";
 import { In, Repository } from "typeorm";
@@ -11,20 +12,24 @@ import { PushNotificationPayloadDTO, PushNotificationToSpecificDTO } from "../dt
 export class PushManageService {
   private readonly logger = new Logger(PushManageService.name);
 
-  private readonly CONCURRENCY = Number(process.env.PUSH_CONCURRENCY ?? 50);
-  private readonly TTL = Number(process.env.PUSH_TTL_SEC ?? 60);
+  private readonly CONCURRENCY: number;
+  private readonly TTL: number;
 
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     @InjectRepository(PushSubscription)
     private readonly pushRepository: Repository<PushSubscription>,
+    private readonly configService: ConfigService,
   ) {
     webPush.setVapidDetails(
-      process.env.VAPID_CONTACT!,
-      process.env.VAPID_PUBLIC_KEY!,
-      process.env.VAPID_PRIVATE_KEY!,
+      configService.get<string>("VAPID_CONTACT"),
+      configService.get<string>("VAPID_PUBLIC_KEY"),
+      configService.get<string>("VAPID_PRIVATE_KEY"),
     );
+
+    this.CONCURRENCY = parseInt(configService.get<string>("PUSH_CONCURRENCY")) ?? 50;
+    this.TTL = parseInt(configService.get<string>("PUSH_TTL_SEC")) ?? 60;
   }
 
   async getSubscriptionsByUser(userId: string) {

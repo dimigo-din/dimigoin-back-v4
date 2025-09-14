@@ -12,11 +12,6 @@ import { CreateSubscriptionDTO, DeleteSubscriptionByEndpointDTO } from "../dto/p
 
 @Injectable()
 export class PushStudentService {
-  private readonly logger = new Logger(PushStudentService.name);
-
-  private readonly CONCURRENCY = Number(process.env.PUSH_CONCURRENCY ?? 50);
-  private readonly TTL = Number(process.env.PUSH_TTL_SEC ?? 60);
-
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
