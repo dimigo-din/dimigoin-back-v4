@@ -18,36 +18,36 @@ import { User } from "./user.schema";
 
 @Entity()
 export class PushSubscription {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @Column({ type: 'text' })
+  @Column()
   endpoint: string;
 
-  @Column({ type: 'text' })
+  @Column()
   p256dh: string;
 
-  @Column({ type: 'text' })
+  @Column()
   auth: string;
 
-  @ManyToOne(() => User, (user) => user.pushSubscriptions, {
-  onDelete: 'CASCADE',
-  })
-  user: User;
-  
-  @Column({ type: 'text', nullable: true })
+  @Column({ nullable: true })
   deviceName: string | null;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ nullable: true })
   userAgent: string | null;
 
   // Subscription.expirationTime (ms) or null
-  @Column({ type: 'bigint', nullable: true })
-  expirationTime: string | null;
+  @Column({ type: "int", nullable: true })
+  expirationTime: number | null;
 
-  @CreateDateColumn({ type: 'timestamptz' })
+  @CreateDateColumn()
   createdAt: Date;
 
-  @UpdateDateColumn({ type: 'timestamptz' })
+  @UpdateDateColumn()
   updatedAt: Date;
+
+  @ManyToOne(() => User, (user) => user.pushSubscriptions, {
+    onDelete: "CASCADE",
+  })
+  user: User;
 }

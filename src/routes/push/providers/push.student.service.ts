@@ -1,11 +1,14 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
-import * as webPush from 'web-push';
-import { PushSubscription, User } from '../../../schemas';
+import { Injectable, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { InjectRepository } from "@nestjs/typeorm";
+import { In, Repository } from "typeorm";
+import * as webPush from "web-push";
+
+import { safeFindOne } from "src/common/utils/safeFindOne.util";
+
 import { UserJWT } from "../../../common/mapper/types";
-import { CreateSubscriptionDto, PushPayloadDTO } from '../dto/push.dto';
-import { safeFindOne } from 'src/common/utils/safeFindOne.util';
+import { PushSubscription, User } from "../../../schemas";
+import { CreateSubscriptionDTO, DeleteSubscriptionByEndpointDTO } from "../dto/push.student.dto";
 
 @Injectable()
 export class PushStudentService {
@@ -18,42 +21,44 @@ export class PushStudentService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     @InjectRepository(PushSubscription)
-    private readonly pushRepository: Repository<PushSubscription>,
+    private readonly pushSubscriptionRepository: Repository<PushSubscription>,
+    private readonly configService: ConfigService,
   ) {
     webPush.setVapidDetails(
-      process.env.VAPID_CONTACT!,
-      process.env.VAPID_PUBLIC_KEY!,
-      process.env.VAPID_PRIVATE_KEY!,
+      configService.get<string>("VAPID_CONTACT"),
+      configService.get<string>("VAPID_PUBLIC_KEY"),
+      configService.get<string>("VAPID_PRIVATE_KEY"),
     );
   }
-  async upsertSubscription(user: UserJWT, dto: CreateSubscriptionDto) {
+  async upsertSubscription(user: UserJWT, data: CreateSubscriptionDTO) {
     const target = await safeFindOne<User>(this.userRepository, user.id);
 
-    const found = await this.pushRepository.findOne({ where: { endpoint: dto.endpoint } });
-    if (found) {
-      found.p256dh = dto.keys.p256dh;
-      found.auth = dto.keys.auth;
-      found.user = target;
-      found.expirationTime = dto.expirationTime?.toString() ?? null;
-      return this.pushRepository.save(found);
-    }
-    const sub = this.pushRepository.create({
-      endpoint: dto.endpoint,
-      p256dh: dto.keys.p256dh,
-      auth: dto.keys.auth,
-      user: target,
-      expirationTime: dto.expirationTime?.toString() ?? null,
-    });
-    return this.pushRepository.save(sub);
+    const subscription =
+      (await this.pushSubscriptionRepository.findOne({ where: { endpoint: data.endpoint } })) ||
+      new PushSubscription();
+
+    subscription.endpoint = data.endpoint;
+    subscription.p256dh = data.keys.p256dh;
+    subscription.auth = data.keys.auth;
+    subscription.user = target;
+    subscription.expirationTime = data.expirationTime;
+
+    return this.pushSubscriptionRepository.save(subscription);
   }
 
-  async removeByEndpoint(endpoint: string) {
-    await this.pushRepository.delete({ endpoint });
+  async removeByEndpoint(data: DeleteSubscriptionByEndpointDTO) {
+    const subscription = await safeFindOne<PushSubscription>(this.pushSubscriptionRepository, {
+      where: { endpoint: data.endpoint },
+    });
+
+    return await this.pushSubscriptionRepository.remove(subscription);
   }
 
   async removeAllByUser(user: UserJWT) {
-    const target = await safeFindOne<User>(this.userRepository, user.id);
+    const subscriptions = await safeFindOne<PushSubscription>(this.pushSubscriptionRepository, {
+      where: { user: { id: user.id } },
+    });
 
-    await this.pushRepository.delete({ user: target });
+    return await this.pushSubscriptionRepository.remove(subscriptions);
   }
 }

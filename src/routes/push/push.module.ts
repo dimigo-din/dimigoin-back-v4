@@ -1,17 +1,16 @@
-import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { PushSubscription } from '../../schemas';
-import { PushStudentService } from './providers/push.student.service';
-import { PushManageService } from './providers/push.manage.service';
-import { PushStudentController } from './controllers/push.student.controller';
-import { PushManageController } from './controllers/push.manage.controller';
+import { Module } from "@nestjs/common";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import importToArray from "import-to-array";
 
-import {User} from "../../schemas";
+import { PushSubscription, User } from "../../schemas";
+
+import * as controllers from "./controllers";
+import * as providers from "./providers";
 
 @Module({
   imports: [TypeOrmModule.forFeature([User, PushSubscription])],
-  controllers: [PushStudentController, PushManageController],
-  providers: [PushStudentService, PushManageService],
-  exports: [PushStudentService, PushManageService],
+  controllers: importToArray(controllers),
+  providers: importToArray(providers),
+  exports: importToArray(providers),
 })
 export class PushModule {}
