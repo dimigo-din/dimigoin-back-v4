@@ -4,3 +4,4 @@ export * from "./laundry";
 export * from "./frigo";
 export * from "./facility";
 export * from "./wakeup";
+export * from "./push";

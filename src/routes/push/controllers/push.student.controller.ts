@@ -1,0 +1,60 @@
+import { Body, Controller, Delete, HttpCode, HttpStatus, Post, Query, Req } from "@nestjs/common";
+import { ApiOperation, ApiTags } from "@nestjs/swagger";
+
+import { CustomJwtAuthGuard } from "src/auth/guards";
+import { PermissionGuard } from "src/auth/guards/permission.guard";
+import { UseGuardsWithSwagger } from "src/auth/guards/useGuards";
+import { ApiResponseFormat } from "src/common/dto/response_format.dto";
+import { PermissionEnum } from "src/common/mapper/permissions";
+
+import { PushSubscription } from "../../../schemas";
+import { CreateSubscriptionDTO, DeleteSubscriptionByEndpointDTO } from "../dto/push.student.dto";
+import { PushStudentService } from "../providers/push.student.service";
+
+@ApiTags("Push Student")
+@Controller("/student/push")
+@UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.STUDENT]))
+export class PushStudentController {
+  constructor(private readonly pushService: PushStudentService) {}
+
+  @ApiOperation({
+    summary: "푸시 구독",
+    description: "푸시 알림 구독을 생성합니다.",
+  })
+  @ApiResponseFormat({
+    status: HttpStatus.CREATED,
+    type: PushSubscription,
+  })
+  @Post("/subscribe")
+  async subscribe(@Req() req, @Body() data: CreateSubscriptionDTO) {
+    return await this.pushService.upsertSubscription(req.user, data);
+  }
+
+  @ApiOperation({
+    summary: "푸시 구독 해지",
+    description: "푸시 알림 구독을 해지합니다.",
+  })
+  @ApiResponseFormat({
+    status: HttpStatus.NO_CONTENT,
+    type: PushSubscription,
+  })
+  @Delete("/subscribe")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async unsubscribe(@Query() data: DeleteSubscriptionByEndpointDTO) {
+    return await this.pushService.removeByEndpoint(data);
+  }
+
+  @ApiOperation({
+    summary: "푸시 구독 전체 해지",
+    description: "사용자가 구독한 모든 기기의 푸시 알림 구독을 해지합니다.",
+  })
+  @ApiResponseFormat({
+    status: HttpStatus.NO_CONTENT,
+    type: [PushSubscription],
+  })
+  @Delete("/unsubscribe/all")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async unsubscribeAll(@Req() req: any) {
+    return await this.pushService.removeAllByUser(req.user);
+  }
+}

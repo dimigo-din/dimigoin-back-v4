@@ -70,7 +70,8 @@
     "ts-node": "^10.9.2",
     "tsconfig-paths": "4.2.0",
     "typeorm": "0.3.21",
-    "uuid": "^11.1.0"
+    "uuid": "^11.1.0",
+    "web-push": "^3.6.7"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.4.9",

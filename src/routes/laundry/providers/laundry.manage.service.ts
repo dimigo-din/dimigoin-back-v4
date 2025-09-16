@@ -33,6 +33,8 @@ import {
   UpdateLaundryMachineDTO,
   UpdateLaundryTimelineDTO,
 } from "../dto/laundry.manage.dto";
+import { PushManageService } from "../../push/providers";
+import { PushNotificationToSpecificDTO } from "src/routes/push/dto/push.manage.dto";
 
 @Injectable()
 export class LaundryManageService {
@@ -49,6 +51,7 @@ export class LaundryManageService {
     private readonly laundryMachineRepository: Repository<LaundryMachine>,
     @InjectRepository(LaundryTimeline)
     private readonly laundryTimelineRepository: Repository<LaundryTimeline>,
+    private readonly pushManageService: PushManageService,
   ) {}
 
   async getLaundryTimelineList() {
@@ -266,6 +269,40 @@ export class LaundryManageService {
       primary.enabled = true;
       await this.laundryTimelineRepository.save(primary);
       return;
+    }
+  }
+
+  @Cron(CronExpression.EVERY_MINUTE)
+  private async laundryNotificationScheduler() {
+    const now = moment().tz("Asia/Seoul");
+    const inTenMinutes = now.add(15, "minutes").format("HH:mm");
+    const applies = await this.laundryApplyRepository.find({
+      where: {
+        date: moment().format("YYYY-MM-DD"),
+        laundryTime: { time: inTenMinutes },
+      },
+      relations: { user: true, laundryMachine: true, laundryTime: true },
+    });
+
+    for (const apply of applies) {
+      const user = apply.user;
+
+      const machineType = apply.laundryMachine.type === "washer" ? "세탁" : "건조";
+      const title = `${machineType} 알림`;
+      const body = `15분뒤 ${apply.laundryTime.time}에 ${machineType}이 예약되어 있습니다. (${apply.laundryMachine.name})`;
+
+      const dto: PushNotificationToSpecificDTO = {
+        to: [user.id],
+        title: title,
+        body: body,
+        url: "/laundry",
+        data: undefined,
+        actions: [],
+        icon: "https://dimigoin.io/dimigoin.png",
+        badge: "https://dimigoin.io/dimigoin.png"
+      };
+
+      this.pushManageService.sendToUser(dto);
     }
   }
 }

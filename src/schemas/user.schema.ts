@@ -11,6 +11,7 @@ import { FrigoApply } from "./frigo.schema";
 import { LaundryApply } from "./laundry.schema";
 import { StayApply } from "./stay.schema";
 import { WakeupSongApplication, WakeupSongVote } from "./wakeup.schema";
+import { PushSubscription } from "./push.schema";
 
 @Entity()
 export class User {
@@ -61,4 +62,7 @@ export class User {
 
   @OneToMany(() => WakeupSongVote, (wakeupSongVote) => wakeupSongVote.user)
   wakeupSongVote: WakeupSongVote;
+
+  @OneToMany(() => PushSubscription, (pushSubscription) => pushSubscription.user)
+  pushSubscriptions: PushSubscription[];
 }
