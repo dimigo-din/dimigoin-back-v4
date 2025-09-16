@@ -28,8 +28,11 @@ export class PushManageService {
       configService.get<string>("VAPID_PRIVATE_KEY"),
     );
 
-    this.CONCURRENCY = parseInt(configService.get<string>("PUSH_CONCURRENCY")) ?? 50;
-    this.TTL = parseInt(configService.get<string>("PUSH_TTL_SEC")) ?? 60;
+    const conc = parseInt(configService.get<string>("PUSH_CONCURRENCY") ?? '', 10);
+    this.CONCURRENCY = Number.isNaN(conc) ? 50 : conc;
+
+    const ttl = parseInt(configService.get<string>("PUSH_TTL_SEC") ?? '', 10);
+    this.TTL = Number.isNaN(ttl) ? 60 : ttl;
   }
 
   async getSubscriptionsByUser(userId: string) {

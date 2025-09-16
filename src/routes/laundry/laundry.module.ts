@@ -10,8 +10,10 @@ import {
   LaundryTimeline,
   LaundryApply,
   Stay,
+  PushSubscription
 } from "../../schemas";
 import { UserManageService } from "../user/providers";
+import { PushManageService } from "../push/providers";
 
 import * as controllers from "./controllers";
 import * as providers from "./providers";
@@ -26,10 +28,11 @@ import * as providers from "./providers";
       LaundryApply,
       LaundryMachine,
       LaundryTimeline,
+      PushSubscription
     ]),
   ],
   controllers: importToArray(controllers),
-  providers: [...importToArray(providers), UserManageService],
+  providers: [...importToArray(providers), UserManageService, PushManageService],
   exports: importToArray(providers),
 })
 export class LaundryModule {}
