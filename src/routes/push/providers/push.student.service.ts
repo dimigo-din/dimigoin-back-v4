@@ -29,7 +29,7 @@ export class PushStudentService {
     const target = await safeFindOne<User>(this.userRepository, user.id);
 
     const subscription =
-      (await this.pushSubscriptionRepository.findOne({ where: { endpoint: data.endpoint } })) ||
+      (await this.pushSubscriptionRepository.findOne({ where: { user: target } })) ||
       new PushSubscription();
 
     subscription.endpoint = data.endpoint;
