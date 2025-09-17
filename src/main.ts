@@ -33,7 +33,7 @@ async function bootstrap() {
   app.use(cookieParser());
   app.use(json({ limit: "5000mb" }));
   app.use(urlencoded({ limit: "5000mb" }));
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(new ValidationPipe({ transform: true }));
   app.useGlobalInterceptors(...importToArray(interceptors).map((i) => new i()));
 
   await CustomSwaggerSetup(app);
