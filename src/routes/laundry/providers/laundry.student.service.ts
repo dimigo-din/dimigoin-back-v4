@@ -71,7 +71,7 @@ export class LaundryStudentService {
     const time = await safeFindOne<LaundryTime>(this.laundryTimeRepository, data.time);
 
     if (
-      time.grade.map(Number).indexOf(Number(data.grade) as Grade) === -1 ||
+      time.grade.indexOf(data.grade as Grade) === -1 ||
       !(await this.userManageService.checkUserDetail(user.email, {
         grade: data.grade,
         gender: machine.gender,
