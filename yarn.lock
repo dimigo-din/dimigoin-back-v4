@@ -665,6 +665,15 @@
     "@jridgewell/resolve-uri" "^3.1.0"
     "@jridgewell/sourcemap-codec" "^1.4.14"
 
+"@keyv/redis@^5.1.2":
+  version "5.1.2"
+  resolved "https://registry.yarnpkg.com/@keyv/redis/-/redis-5.1.2.tgz#d75ce3079c304e946cb3729ccfad008f486e85e7"
+  integrity sha512-ju+s33Gt8d8xW1aW69CdTvVTQBRmt82PHjcGWsbtsbOh0IcFJ2gsj3bWJVFjn/KYyoqxJSZEpUXlRyv/wq4FMA==
+  dependencies:
+    "@redis/client" "^5.8.2"
+    cluster-key-slot "^1.1.2"
+    hookified "^1.12.0"
+
 "@keyv/serialize@^1.1.0":
   version "1.1.0"
   resolved "https://registry.npmjs.org/@keyv/serialize/-/serialize-1.1.0.tgz"
@@ -933,6 +942,13 @@
     semver "^7.7.2"
     tar-fs "^3.1.0"
     yargs "^17.7.2"
+
+"@redis/client@^5.8.2":
+  version "5.8.2"
+  resolved "https://registry.yarnpkg.com/@redis/client/-/client-5.8.2.tgz#099f387b7fba99180c10e0e7093b71d022e704f8"
+  integrity sha512-WtMScno3+eBpTac1Uav2zugXEoXqaU23YznwvFgkPwBQVwEHTDgOG7uEAObtZ/Nyn8SmAMbqkEubJaMOvnqdsQ==
+  dependencies:
+    cluster-key-slot "1.1.2"
 
 "@rtsao/scc@^1.1.0":
   version "1.1.0"
@@ -2446,6 +2462,11 @@ clone@^1.0.2:
   resolved "https://registry.npmjs.org/clone/-/clone-1.0.4.tgz"
   integrity sha512-JQHZ2QMW6l3aH/j6xCqQThY/9OH4D/9ls34cgkUBiEeocRTU04tHfKPBsUK1PqZCUQM7GiA0IIXJSuXHI64Kbg==
 
+cluster-key-slot@1.1.2, cluster-key-slot@^1.1.2:
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/cluster-key-slot/-/cluster-key-slot-1.1.2.tgz#88ddaa46906e303b5de30d3153b7d9fe0a0c19ac"
+  integrity sha512-RMr0FhtfXemyinomL4hrWcYJxmX6deFdCxpJzhDttxgO1+bcCnkk+9drydLVDmAMG7NE6aN/fl4F7ucU/90gAA==
+
 co@^4.6.0:
   version "4.6.0"
   resolved "https://registry.npmjs.org/co/-/co-4.6.0.tgz"
@@ -3913,6 +3934,11 @@ helmet@^8.1.0:
   version "8.1.0"
   resolved "https://registry.npmjs.org/helmet/-/helmet-8.1.0.tgz"
   integrity sha512-jOiHyAZsmnr8LqoPGmCjYAaiuWwjAPLgY8ZX2XrmHawt99/u1y6RgrZMTeoPfpUbV96HOalYgz1qzkRbw54Pmg==
+
+hookified@^1.12.0:
+  version "1.12.1"
+  resolved "https://registry.yarnpkg.com/hookified/-/hookified-1.12.1.tgz#b0de0116ca346fd6c4e55db901f52d5cd728ef00"
+  integrity sha512-xnKGl+iMIlhrZmGHB729MqlmPoWBznctSQTYCpFKqNsCgimJQmithcW0xSQMMFzYnV2iKUh25alswn6epgxS0Q==
 
 html-escaper@^2.0.0:
   version "2.0.2"

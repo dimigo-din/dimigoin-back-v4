@@ -1,12 +1,27 @@
 import * as crypto from "crypto";
 
+import KeyvRedis from "@keyv/redis";
 import { Cache, CACHE_MANAGER, CacheModule } from "@nestjs/cache-manager";
-import { Inject, Injectable, Module } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
+import { Inject, Module } from "@nestjs/common";
+import { ConfigModule, ConfigService } from "@nestjs/config";
 
 import { YoutubeVideoItem, YoutubeSearchResults } from "../mapper/types";
 
-const cacheModule = CacheModule.register();
+const cacheModule = CacheModule.registerAsync({
+  isGlobal: true,
+  imports: [ConfigModule],
+  inject: [ConfigService],
+  useFactory: async (configService: ConfigService) => ({
+    skipMemory: true,
+    stores: [
+      await (async () => {
+        const store = new KeyvRedis(configService.get<string>("REDIS_HOST"));
+        await store.set("ok", "true");
+        return store;
+      })(),
+    ],
+  }),
+});
 
 export class CacheService {
   private RATELIMIT_PREFIX = "ratelimit_";
@@ -45,9 +60,7 @@ export class CacheService {
   }
 
   async getPersonalInformationVerifyTokenSecret(): Promise<string> {
-    const secret =
-      this.configService.get<string>(this.PERSONALINFORMATIONVERIFY_SECRET) ||
-      (await this.cacheManager.get<string>(this.PERSONALINFORMATIONVERIFY_SECRET));
+    const secret = await this.cacheManager.get<string>(this.PERSONALINFORMATIONVERIFY_SECRET);
     if (secret) return secret;
 
     await this.cacheManager.set(
