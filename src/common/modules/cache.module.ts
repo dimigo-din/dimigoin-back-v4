@@ -26,6 +26,7 @@ const cacheModule = CacheModule.registerAsync({
 export class CacheService {
   private RATELIMIT_PREFIX = "ratelimit_";
   private YOUTUBESEARCH_PREFIX = "youtubeSearch_";
+  private NOTIFICATION_PREFIX = "notification_";
   private PERSONALINFORMATIONVERIFY_SECRET = "PersonalInformationVerifyTokenSecret";
 
   constructor(
@@ -69,6 +70,12 @@ export class CacheService {
     );
 
     return await this.getPersonalInformationVerifyTokenSecret();
+  }
+
+  async isNotificationAlreadySent(id: string): Promise<boolean> {
+    if (await this.cacheManager.get<string>(this.NOTIFICATION_PREFIX + id)) return true;
+    await this.cacheManager.set<string>(this.NOTIFICATION_PREFIX + id, "sent");
+    return false;
   }
 }
 
