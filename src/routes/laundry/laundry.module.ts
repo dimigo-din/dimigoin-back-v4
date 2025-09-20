@@ -2,6 +2,7 @@ import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import importToArray from "import-to-array";
 
+import { CacheService } from "../../common/modules/cache.module";
 import {
   Login,
   User,
@@ -10,10 +11,10 @@ import {
   LaundryTimeline,
   LaundryApply,
   Stay,
-  PushSubscription
+  PushSubscription,
 } from "../../schemas";
-import { UserManageService } from "../user/providers";
 import { PushManageService } from "../push/providers";
+import { UserManageService } from "../user/providers";
 
 import * as controllers from "./controllers";
 import * as providers from "./providers";
@@ -28,11 +29,11 @@ import * as providers from "./providers";
       LaundryApply,
       LaundryMachine,
       LaundryTimeline,
-      PushSubscription
+      PushSubscription,
     ]),
   ],
   controllers: importToArray(controllers),
-  providers: [...importToArray(providers), UserManageService, PushManageService],
+  providers: [...importToArray(providers), UserManageService, PushManageService, CacheService],
   exports: importToArray(providers),
 })
 export class LaundryModule {}

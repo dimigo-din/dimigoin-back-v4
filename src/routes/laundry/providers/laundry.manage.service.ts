@@ -12,7 +12,10 @@ import {
   Repository,
 } from "typeorm";
 
+import { PushNotificationToSpecificDTO } from "src/routes/push/dto/push.manage.dto";
+
 import { ErrorMsg } from "../../../common/mapper/error";
+import { CacheService } from "../../../common/modules/cache.module";
 import { safeFindOne } from "../../../common/utils/safeFindOne.util";
 import {
   User,
@@ -22,6 +25,7 @@ import {
   LaundryApply,
   Stay,
 } from "../../../schemas";
+import { PushManageService } from "../../push/providers";
 import {
   CreateLaundryApplyDTO,
   CreateLaundryMachineDTO,
@@ -33,8 +37,6 @@ import {
   UpdateLaundryMachineDTO,
   UpdateLaundryTimelineDTO,
 } from "../dto/laundry.manage.dto";
-import { PushManageService } from "../../push/providers";
-import { PushNotificationToSpecificDTO } from "src/routes/push/dto/push.manage.dto";
 
 @Injectable()
 export class LaundryManageService {
@@ -52,6 +54,7 @@ export class LaundryManageService {
     @InjectRepository(LaundryTimeline)
     private readonly laundryTimelineRepository: Repository<LaundryTimeline>,
     private readonly pushManageService: PushManageService,
+    private readonly cacheService: CacheService,
   ) {}
 
   async getLaundryTimelineList() {
@@ -171,7 +174,7 @@ export class LaundryManageService {
   async getLaundryApplyList() {
     return await this.laundryApplyRepository.find({
       where: { laundryTimeline: { enabled: true }, date: moment().format("YYYY-MM-DD") },
-      relations: { user: true, laundryMachine: true, laundryTime: true, laundryTimeline: true }
+      relations: { user: true, laundryMachine: true, laundryTime: true, laundryTimeline: true },
     });
   }
 
@@ -286,6 +289,8 @@ export class LaundryManageService {
     });
 
     for (const apply of applies) {
+      if (await this.cacheService.isNotificationAlreadySent(apply.id)) continue;
+
       const user = apply.user;
 
       const machineType = apply.laundryMachine.type === "washer" ? "세탁" : "건조";
@@ -300,10 +305,10 @@ export class LaundryManageService {
         data: undefined,
         actions: [],
         icon: "https://dimigoin.io/dimigoin.png",
-        badge: "https://dimigoin.io/dimigoin.png"
+        badge: "https://dimigoin.io/dimigoin.png",
       };
 
-      this.pushManageService.sendToUser(dto);
+      await this.pushManageService.sendToUser(dto);
     }
   }
 }
