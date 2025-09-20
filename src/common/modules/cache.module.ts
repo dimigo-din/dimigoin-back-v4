@@ -4,6 +4,7 @@ import KeyvRedis from "@keyv/redis";
 import { Cache, CACHE_MANAGER, CacheModule } from "@nestjs/cache-manager";
 import { Inject, Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
+import Redis from "ioredis";
 
 import { YoutubeVideoItem, YoutubeSearchResults } from "../mapper/types";
 
@@ -28,11 +29,14 @@ export class CacheService {
   private YOUTUBESEARCH_PREFIX = "youtubeSearch_";
   private NOTIFICATION_PREFIX = "notification_";
   private PERSONALINFORMATIONVERIFY_SECRET = "PersonalInformationVerifyTokenSecret";
+  private redis: Redis;
 
   constructor(
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly configService: ConfigService,
-  ) {}
+  ) {
+    this.redis = new Redis(this.configService.get<string>("REDIS_HOST"));
+  }
 
   async musicSearchRateLimit(userid: string) {
     const lastRequest = await this.cacheManager.get<number>(this.RATELIMIT_PREFIX + userid);
@@ -73,9 +77,11 @@ export class CacheService {
   }
 
   async isNotificationAlreadySent(id: string): Promise<boolean> {
-    if (await this.cacheManager.get<string>(this.NOTIFICATION_PREFIX + id)) return true;
-    await this.cacheManager.set<string>(this.NOTIFICATION_PREFIX + id, "sent");
-    return false;
+    const key = this.NOTIFICATION_PREFIX + id;
+
+    const isThisCluster = crypto.randomBytes(32).toString("hex");
+    await this.redis.set(key, isThisCluster, "EX", 60 * 60 * 1, "NX");
+    return (await this.redis.get(key)) === isThisCluster;
   }
 }
 
