@@ -81,7 +81,7 @@ export class CacheService {
 
     const isThisCluster = crypto.randomBytes(32).toString("hex");
     await this.redis.set(key, isThisCluster, "EX", 60 * 60 * 1, "NX");
-    return (await this.redis.get(key)) === isThisCluster;
+    return (await this.redis.get(key)) !== isThisCluster;
   }
 }
 
