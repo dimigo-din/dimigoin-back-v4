@@ -62,11 +62,13 @@ COPY --chown=node:node --from=build /usr/src/app/dist ./dist
 COPY --chown=node:node . .
 
 RUN apk add --no-cache curl ca-certificates \
- && update-ca-certificates \
- && curl -Ls https://cli.doppler.com/install.sh
+ && update-ca-certificates
 RUN apk add chromium
 RUN yarn global add pm2
 RUN chmod 700 ./entrypoint.sh
+RUN wget -q -t3 'https://packages.doppler.com/public/cli/rsa.8004D9FF50437357.key' -O /etc/apk/keys/cli@doppler-8004D9FF50437357.rsa.pub && \
+  echo 'https://packages.doppler.com/public/cli/alpine/any-version/main' | tee -a /etc/apk/repositories && \
+  apk add doppler
 
 
 # Start the server using the production build
