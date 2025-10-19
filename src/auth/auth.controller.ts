@@ -117,12 +117,12 @@ export class AuthController {
   async logout(@Req() req, @Res({ passthrough: true }) res) {
     await this.authService.logout(req.user);
 
-    const sameSite = process.env.NODE_ENV === "prod" ? "None" : undefined;
+    const sameSite = process.env.NODE_ENV !== "dev" ? "None" : undefined;
     const domains =
-      process.env.NODE_ENV === "prod"
+      process.env.NODE_ENV !== "dev"
         ? this.configService.get<string>("ALLOWED_DOMAIN").split(",")
         : [undefined];
-    const secure = process.env.NODE_ENV === "prod";
+    const secure = process.env.NODE_ENV !== "dev";
 
     res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
     res.set("Pragma", "no-cache");
@@ -181,9 +181,9 @@ export class AuthController {
     res.clearCookie(ACCESS_TOKEN_COOKIE);
     res.clearCookie(REFRESH_TOKEN_COOKIE);
 
-    const sameSite = process.env.NODE_ENV === "prod" ? "None" : undefined;
+    const sameSite = process.env.NODE_ENV !== "dev" ? "None" : undefined;
     const domains =
-      process.env.NODE_ENV === "prod"
+      process.env.NODE_ENV !== "dev"
         ? this.configService.get<string>("ALLOWED_DOMAIN").split(",")
         : [undefined];
 
@@ -192,7 +192,7 @@ export class AuthController {
         path: "/",
         maxAge: 1000 * 60 * 30,
         httpOnly: true,
-        secure: process.env.NODE_ENV === "prod",
+        secure: process.env.NODE_ENV !== "dev",
         sameSite,
         domain,
       });
@@ -200,7 +200,7 @@ export class AuthController {
         path: "/",
         maxAge: 1000 * 60 * 60 * 24 * 30,
         httpOnly: true,
-        secure: process.env.NODE_ENV === "prod",
+        secure: process.env.NODE_ENV !== "dev",
         sameSite,
         domain,
       });

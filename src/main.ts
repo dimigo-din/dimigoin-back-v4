@@ -19,7 +19,7 @@ async function bootstrap() {
 
   app.enableCors({
     origin:
-      process.env.NODE_ENV === "prod"
+      process.env.NODE_ENV !== "dev"
         ? configService
             .get<string>("ALLOWED_DOMAIN")
             .split(",")
