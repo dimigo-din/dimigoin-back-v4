@@ -61,11 +61,13 @@ COPY --chown=node:node --from=build /usr/src/app/node_modules ./node_modules
 COPY --chown=node:node --from=build /usr/src/app/dist ./dist
 COPY --chown=node:node . .
 
+RUN apk add --no-cache curl ca-certificates \
+ && update-ca-certificates \
+ && curl -Ls https://cli.doppler.com/install.sh
+RUN apk add chromium
 RUN yarn global add pm2
 RUN chmod 700 ./entrypoint.sh
-RUN apk add chromium
 
-ENV NODE_ENV prod
 
 # Start the server using the production build
 ENTRYPOINT ["./entrypoint.sh"]
