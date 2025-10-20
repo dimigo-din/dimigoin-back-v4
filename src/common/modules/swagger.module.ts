@@ -9,7 +9,7 @@ import { AppService } from "src/app/app.service";
 export const CustomSwaggerSetup = async (app: INestApplication) => {
   const logger = new Logger(CustomSwaggerSetup.name);
 
-  if (process.env.NODE_ENV !== "dev") {
+  if (process.env.NODE_ENV === "prod") {
     logger.log("Swagger not initializing in production");
     return;
   }
