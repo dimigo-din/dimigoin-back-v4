@@ -10,7 +10,8 @@ import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE } from "../common/mapper/cons
 import { PermissionEnum } from "../common/mapper/permissions";
 
 import {
-  GoogleLoginDTO,
+  GoogleAppLoginDTO,
+  GoogleWebLoginDTO,
   JWTResponse,
   PasswordLoginDTO,
   RedirectUriDTO,
@@ -79,8 +80,22 @@ export class AuthController {
     type: JWTResponse,
   })
   @Post("/login/google/callback")
-  async googleLoginCallback(@Res({ passthrough: true }) res, @Body() data: GoogleLoginDTO) {
-    const token = await this.authService.loginByGoogle(data.code, data.redirect_uri);
+  async googleWebLoginCallback(@Res({ passthrough: true }) res, @Body() data: GoogleWebLoginDTO) {
+    const token = await this.authService.loginByGoogle(data.code, null, data.redirect_uri);
+    this.generateCookie(res, token);
+    return token;
+  }
+  @ApiOperation({
+    summary: "로그인 콜백 - 구글 앱 로그인",
+    description: "구글 앱 로그인 콜백 엔드포인트입니다.",
+  })
+  @ApiResponseFormat({
+    status: HttpStatus.FOUND,
+    type: JWTResponse,
+  })
+  @Post("/login/google/callback/app")
+  async googleAppLoginCallback(@Res({ passthrough: true }) res, @Body() data: GoogleAppLoginDTO) {
+    const token = await this.authService.loginByGoogle(null, data.idToken, null);
     this.generateCookie(res, token);
     return token;
   }

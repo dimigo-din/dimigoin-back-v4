@@ -17,7 +17,7 @@ export class RedirectUriDTO {
   redirect_uri?: string;
 }
 
-export class GoogleLoginDTO {
+export class GoogleWebLoginDTO {
   @ApiProperty()
   @IsString()
   code: string;
@@ -25,6 +25,12 @@ export class GoogleLoginDTO {
   @ApiProperty()
   @IsString()
   redirect_uri: string;
+}
+
+export class GoogleAppLoginDTO {
+  @ApiProperty()
+  @IsString()
+  idToken: string;
 }
 
 export class RefreshTokenDTO {
