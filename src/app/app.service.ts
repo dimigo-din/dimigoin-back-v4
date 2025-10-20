@@ -12,6 +12,7 @@ export class AppService {
     dev: "Development Mode",
     test: "Test Mode",
     prod: "Production Mode",
+    stg: "Stage Mode",
   };
 
   async onModuleInit() {

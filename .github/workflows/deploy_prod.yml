@@ -22,7 +22,7 @@ jobs:
           fetch-tags: true
 
       - name: Prepare
-        run: echo '${{ secrets.ENV }}' > .env.prod
+        run: echo -n 'prod' > deploy_type; echo -n '${{ secrets.PROD_DOPPLER }}' > doppler_token
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3

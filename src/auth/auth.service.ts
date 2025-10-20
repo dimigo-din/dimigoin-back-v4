@@ -49,7 +49,7 @@ export class AuthService {
 
   async loginByIdPassword(id: string, password: string) {
     const login = await this.loginRepository.findOne({
-      where: { identifier1: id || "" },
+      where: { identifier1: id || "", type: "password" },
     });
     if (!login)
       throw new HttpException(ErrorMsg.UserIdentifier_NotFound(), HttpStatus.UNAUTHORIZED);
@@ -94,7 +94,7 @@ export class AuthService {
 
     let loginUser: User = null;
     const login = await this.loginRepository.findOne({
-      where: { identifier1: ticketPayload.sub || "" },
+      where: { identifier1: ticketPayload.sub || "", type: "google" },
     });
     if (!login) {
       loginUser = await this.userManageService.createUser({

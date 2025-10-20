@@ -1,18 +1,11 @@
-import { ApiProperty } from "@nestjs/swagger";
 import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinTable,
-  ManyToMany,
   ManyToOne,
-  OneToMany,
   PrimaryGeneratedColumn,
-  Unique,
   UpdateDateColumn,
 } from "typeorm";
-
-import { Gender, Grade, LaundryMachineType, LaundryTimelineTrigger } from "../common/mapper/types";
 
 import { User } from "./user.schema";
 

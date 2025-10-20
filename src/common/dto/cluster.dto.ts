@@ -1,6 +1,6 @@
 import { IsEnum, IsString } from "nestjs-swagger-dto";
 
-export const deployment = ["prod", "dev", "test"] as const;
+export const deployment = ["prod", "stg", "dev", "test"] as const;
 export type Deployment = (typeof deployment)[number];
 
 export class ClusterDto {
