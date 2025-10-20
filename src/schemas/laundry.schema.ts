@@ -112,6 +112,7 @@ export class LaundryMachine {
 }
 
 @Entity()
+@Unique(["date", "laundry_time", "laundry_machine"])
 export class LaundryApply {
   @ApiProperty()
   @PrimaryGeneratedColumn("uuid")
