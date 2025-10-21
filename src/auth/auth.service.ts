@@ -76,18 +76,32 @@ export class AuthService {
     });
   }
 
-  async loginByGoogle(code: string, redirect_uri: string): Promise<JWTResponse> {
-    // google OAuth process
+  async loginByGoogle(
+    code?: string,
+    idToken?: string,
+    redirect_uri?: string,
+  ): Promise<JWTResponse> {
     let ticketPayload;
     try {
-      const tokenRes = await this.googleOauthClient.getToken({
-        code,
-        ...(redirect_uri ? { redirect_uri } : {}),
-      });
-      const ticket = await this.googleOauthClient.verifyIdToken({
-        idToken: tokenRes.tokens.id_token,
-      });
-      ticketPayload = ticket.getPayload();
+      if (idToken) {
+        const ticket = await this.googleOauthClient.verifyIdToken({
+          idToken: idToken,
+          audience: this.configService.get<string>("GCP_OAUTH_ID"),
+        });
+        ticketPayload = ticket.getPayload();
+      } else if (code) {
+        const tokenRes = await this.googleOauthClient.getToken({
+          code,
+          ...(redirect_uri ? { redirect_uri } : {}),
+        });
+        const ticket = await this.googleOauthClient.verifyIdToken({
+          idToken: tokenRes.tokens.id_token,
+          audience: this.configService.get<string>("GCP_OAUTH_ID"),
+        });
+        ticketPayload = ticket.getPayload();
+      } else {
+        throw new HttpException(ErrorMsg.GoogleOauthCode_Invalid(), HttpStatus.BAD_REQUEST);
+      }
     } catch (e) {
       throw new HttpException(ErrorMsg.GoogleOauthCode_Invalid(), HttpStatus.BAD_REQUEST);
     }
