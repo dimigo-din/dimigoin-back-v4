@@ -30,7 +30,7 @@ export class PushStudentService {
     const target = await safeFindOne<User>(this.userRepository, user.id);
 
     const subscription =
-      (await this.pushSubscriptionRepository.findOne({ where: { user: target } })) ||
+      (await this.pushSubscriptionRepository.findOne({ where: { user: target, tokenType: "web" } })) ||
       new PushSubscription();
 
     subscription.endpoint = data.endpoint;
@@ -63,7 +63,7 @@ export class PushStudentService {
     const target = await safeFindOne<User>(this.userRepository, user.id);
 
     const subscription =
-      (await this.pushSubscriptionRepository.findOne({ where: { user: target } })) ||
+      (await this.pushSubscriptionRepository.findOne({ where: { user: target, tokenType: "fcm" } })) ||
       new PushSubscription();
 
     subscription.fcmToken = data.token;
