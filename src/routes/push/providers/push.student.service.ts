@@ -6,9 +6,9 @@ import * as webPush from "web-push";
 
 import { safeFindOne } from "src/common/utils/safeFindOne.util";
 
-import { UserJWT } from "../../../common/mapper/types";
+import { PushTokenTypeValues, UserJWT } from "../../../common/mapper/types";
 import { PushSubscription, User } from "../../../schemas";
-import { CreateSubscriptionDTO, DeleteSubscriptionByEndpointDTO } from "../dto/push.student.dto";
+import { CreateFCMTokenDTO, CreateSubscriptionDTO, DeleteFCMTokenDTO, DeleteSubscriptionByEndpointDTO } from "../dto/push.student.dto";
 
 @Injectable()
 export class PushStudentService {
@@ -25,6 +25,7 @@ export class PushStudentService {
       configService.get<string>("VAPID_PRIVATE_KEY"),
     );
   }
+
   async upsertSubscription(user: UserJWT, data: CreateSubscriptionDTO) {
     const target = await safeFindOne<User>(this.userRepository, user.id);
 
@@ -37,6 +38,7 @@ export class PushStudentService {
     subscription.auth = data.keys.auth;
     subscription.user = target;
     subscription.expirationTime = data.expirationTime;
+    subscription.tokenType = "web";
 
     return this.pushSubscriptionRepository.save(subscription);
   }
@@ -55,5 +57,28 @@ export class PushStudentService {
     });
 
     return await this.pushSubscriptionRepository.remove(subscriptions);
+  }
+
+  async upsertFCMToken(user: UserJWT, data: CreateFCMTokenDTO) {
+    const target = await safeFindOne<User>(this.userRepository, user.id);
+
+    const subscription =
+      (await this.pushSubscriptionRepository.findOne({ where: { user: target } })) ||
+      new PushSubscription();
+
+    subscription.fcmToken = data.token;
+    subscription.deviceName = data.deviceName;
+    subscription.user = target;
+    subscription.tokenType = "fcm";
+
+    return this.pushSubscriptionRepository.save(subscription);
+  }
+
+  async removeFCMToken(data: DeleteFCMTokenDTO) {
+    const subscription = await safeFindOne<PushSubscription>(this.pushSubscriptionRepository, {
+      where: { fcmToken: data.token },
+    });
+
+    return await this.pushSubscriptionRepository.remove(subscription);
   }
 }

@@ -7,6 +7,8 @@ import {
   UpdateDateColumn,
 } from "typeorm";
 
+import { PushTokenType } from "../common/mapper/types";
+
 import { User } from "./user.schema";
 
 @Entity()
@@ -14,14 +16,20 @@ export class PushSubscription {
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @Column()
+  @Column({ nullable: true })
   endpoint: string;
 
-  @Column()
+  @Column({ nullable: true })
   p256dh: string;
 
-  @Column()
+  @Column({ nullable: true })
   auth: string;
+
+  @Column({ nullable: true })
+  fcmToken: string | null;
+
+  @Column()
+  tokenType: PushTokenType;
 
   @Column({ nullable: true })
   deviceName: string | null;

@@ -33,3 +33,20 @@ export class DeleteSubscriptionByEndpointDTO {
   @IsString()
   endpoint: string;
 }
+
+export class CreateFCMTokenDTO {
+  @ApiProperty()
+  @IsString()
+  token: string;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
+  deviceName?: string | null;
+}
+
+export class DeleteFCMTokenDTO {
+  @ApiProperty()
+  @IsString()
+  token: string;
+}

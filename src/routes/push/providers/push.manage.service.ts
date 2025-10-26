@@ -4,6 +4,7 @@ import { Cron, CronExpression } from "@nestjs/schedule";
 import { InjectRepository } from "@nestjs/typeorm";
 import { In, Repository } from "typeorm";
 import * as webPush from "web-push";
+import * as admin from 'firebase-admin';
 
 import { PushSubscription, User } from "../../../schemas";
 import { PushNotificationPayloadDTO, PushNotificationToSpecificDTO } from "../dto/push.manage.dto";
@@ -33,6 +34,16 @@ export class PushManageService {
 
     const ttl = parseInt(configService.get<string>("PUSH_TTL_SEC") ?? '', 10);
     this.TTL = Number.isNaN(ttl) ? 60 : ttl;
+
+    if (!admin.apps.length) {
+      admin.initializeApp({
+        credential: admin.credential.cert({
+          projectId: configService.get<string>("FIREBASE_PROJECT_ID"),
+          privateKey: configService.get<string>("FIREBASE_PRIVATE_KEY"),
+          clientEmail: configService.get<string>("FIREBASE_CLIENT_EMAIL"),
+        }),
+      });
+    }
   }
 
   async getSubscriptionsByUser(userId: string) {
@@ -75,9 +86,13 @@ export class PushManageService {
 
     for (const ck of chunks) {
       const results = await Promise.allSettled(
-        ck.map((row) =>
-          this.sendRaw(row.endpoint, { p256dh: row.p256dh, auth: row.auth }, payload),
-        ),
+        ck.map((row) => {
+          if (row.tokenType === "fcm") {
+            return this.sendFCM(row.fcmToken, payload);
+          } else {
+            return this.sendWebPush(row.endpoint, { p256dh: row.p256dh, auth: row.auth }, payload);
+          }
+        })
       );
       await Promise.all(
         results.map(async (r, i) => {
@@ -94,7 +109,7 @@ export class PushManageService {
     return { sent, failed };
   }
 
-  private async sendRaw(
+  private async sendWebPush(
     endpoint: string,
     keys: { p256dh: string; auth: string },
     payload: PushNotificationPayloadDTO,
@@ -105,14 +120,42 @@ export class PushManageService {
     });
   }
 
+  private async sendFCM(
+    fcmToken: string,
+    payload: PushNotificationPayloadDTO,
+  ) {
+    const fcmPayload = {
+      token: fcmToken,
+      notification: {
+        title: payload.title,
+        body: payload.body,
+      },
+      data: {
+        body: payload.body,
+      },
+    };
+
+    try {
+      const response = await admin.messaging().send(fcmPayload);
+      return { sent_message: response };
+    } catch (error: any) {
+      throw { statusCode: error.code ?? 500, message: error.message ?? error };
+    }
+  }
+
   private async cleanupIfGone(row: PushSubscription, reason: any) {
     const code = reason?.statusCode || reason?.body?.statusCode;
     if (code === 404 || code === 410) {
-      await this.pushRepository.delete({ endpoint: row.endpoint });
-      this.logger.warn(`Removed dead subscription: ${row.endpoint}`);
+      if (row.tokenType === "web"){
+        await this.pushRepository.delete({ endpoint: row.endpoint });
+        this.logger.warn(`Removed dead subscription: ${row.endpoint}`);
+      } else {
+        await this.pushRepository.delete({ fcmToken: row.fcmToken });
+        this.logger.warn(`Removed dead FCM token: ${row.fcmToken}`);
+      }
     } else {
       this.logger.warn(
-        `Push send failed: ${row.endpoint} code=${code ?? "N/A"} msg=${reason?.message ?? reason}`,
+        `Push send failed: ${row.user.id} code=${code ?? "N/A"} msg=${reason?.message ?? reason}`,
       );
     }
   }

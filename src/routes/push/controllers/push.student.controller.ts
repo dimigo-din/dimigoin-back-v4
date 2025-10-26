@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, HttpCode, HttpStatus, Post, Query, Req } from "@nestjs/common";
+import { Body, Controller, Delete, HttpCode, HttpStatus, Post, Put, Query, Req } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
 
 import { CustomJwtAuthGuard } from "src/auth/guards";
@@ -8,7 +8,7 @@ import { ApiResponseFormat } from "src/common/dto/response_format.dto";
 import { PermissionEnum } from "src/common/mapper/permissions";
 
 import { PushSubscription } from "../../../schemas";
-import { CreateSubscriptionDTO, DeleteSubscriptionByEndpointDTO } from "../dto/push.student.dto";
+import { CreateFCMTokenDTO, CreateSubscriptionDTO, DeleteFCMTokenDTO, DeleteSubscriptionByEndpointDTO } from "../dto/push.student.dto";
 import { PushStudentService } from "../providers/push.student.service";
 
 @ApiTags("Push Student")
@@ -56,5 +56,32 @@ export class PushStudentController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async unsubscribeAll(@Req() req: any) {
     return await this.pushService.removeAllByUser(req.user);
+  }
+
+  @ApiOperation({
+    summary: "FCM 토큰 등록",
+    description: "앱 푸시알림을 위한 FCM 토큰을 등록합니다.",
+  })
+  @ApiResponseFormat({
+    status: HttpStatus.CREATED,
+    type: PushSubscription,
+  })
+  @Put("/fcm-token")
+  async createFCMToken(@Req() req: any, @Body() data: CreateFCMTokenDTO) {
+    return await this.pushService.upsertFCMToken(req.user, data);
+  }
+
+  @ApiOperation({
+    summary: "FCM 토큰 등록 해제",
+    description: "앱 푸시알림을 위한 FCM 토큰을 등록 해제합니다.",
+  })
+  @ApiResponseFormat({
+    status: HttpStatus.NO_CONTENT,
+    type: PushSubscription,
+  })
+  @Delete("/fcm-token")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async removeFCMToken(@Body() data: DeleteFCMTokenDTO) {
+    return await this.pushService.removeFCMToken(data);
   }
 }
