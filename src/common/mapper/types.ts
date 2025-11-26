@@ -101,9 +101,3 @@ export interface YoutubeSearchResults {
   };
   items: YoutubeVideoItem[];
 }
-
-export const PushTokenTypeValues = [
-  "web",
-  "fcm",
-] as const;
-export type PushTokenType = (typeof PushTokenTypeValues)[number];

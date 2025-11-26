@@ -308,7 +308,7 @@ export class LaundryManageService {
         badge: "https://dimigoin.io/dimigoin.png",
       };
 
-      await this.pushManageService.sendToUser(dto);
+      await this.pushManageService.sendToSpecificUsers(dto);
     }
   }
 }

@@ -1,14 +1,12 @@
-import { Injectable, Logger } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
+import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { In, Repository } from "typeorm";
-import * as webPush from "web-push";
+import { Repository } from "typeorm";
 
 import { safeFindOne } from "src/common/utils/safeFindOne.util";
 
-import { PushTokenTypeValues, UserJWT } from "../../../common/mapper/types";
+import { UserJWT } from "../../../common/mapper/types";
 import { PushSubscription, User } from "../../../schemas";
-import { CreateFCMTokenDTO, CreateSubscriptionDTO, DeleteFCMTokenDTO, DeleteSubscriptionByEndpointDTO } from "../dto/push.student.dto";
+import { CreateFCMTokenDTO, DeleteFCMTokenDTO } from "../dto/push.student.dto";
 
 @Injectable()
 export class PushStudentService {
@@ -17,35 +15,26 @@ export class PushStudentService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(PushSubscription)
     private readonly pushSubscriptionRepository: Repository<PushSubscription>,
-    private readonly configService: ConfigService,
-  ) {
-    webPush.setVapidDetails(
-      configService.get<string>("VAPID_CONTACT"),
-      configService.get<string>("VAPID_PUBLIC_KEY"),
-      configService.get<string>("VAPID_PRIVATE_KEY"),
-    );
-  }
+  ) {}
 
-  async upsertSubscription(user: UserJWT, data: CreateSubscriptionDTO) {
+  async upsertToken(user: UserJWT, data: CreateFCMTokenDTO) {
     const target = await safeFindOne<User>(this.userRepository, user.id);
 
     const subscription =
-      (await this.pushSubscriptionRepository.findOne({ where: { user: target, tokenType: "web" } })) ||
-      new PushSubscription();
+      (await this.pushSubscriptionRepository.findOne({
+        where: { user: target, deviceId: data.deviceId },
+      })) || new PushSubscription();
 
-    subscription.endpoint = data.endpoint;
-    subscription.p256dh = data.keys.p256dh;
-    subscription.auth = data.keys.auth;
+    subscription.fcmToken = data.token;
+    subscription.deviceId = data.deviceId;
     subscription.user = target;
-    subscription.expirationTime = data.expirationTime;
-    subscription.tokenType = "web";
 
     return this.pushSubscriptionRepository.save(subscription);
   }
 
-  async removeByEndpoint(data: DeleteSubscriptionByEndpointDTO) {
+  async removeToken(data: DeleteFCMTokenDTO) {
     const subscription = await safeFindOne<PushSubscription>(this.pushSubscriptionRepository, {
-      where: { endpoint: data.endpoint },
+      where: { fcmToken: data.token },
     });
 
     return await this.pushSubscriptionRepository.remove(subscription);
@@ -57,28 +46,5 @@ export class PushStudentService {
     });
 
     return await this.pushSubscriptionRepository.remove(subscriptions);
-  }
-
-  async upsertFCMToken(user: UserJWT, data: CreateFCMTokenDTO) {
-    const target = await safeFindOne<User>(this.userRepository, user.id);
-
-    const subscription =
-      (await this.pushSubscriptionRepository.findOne({ where: { user: target, tokenType: "fcm" } })) ||
-      new PushSubscription();
-
-    subscription.fcmToken = data.token;
-    subscription.deviceName = data.deviceName;
-    subscription.user = target;
-    subscription.tokenType = "fcm";
-
-    return this.pushSubscriptionRepository.save(subscription);
-  }
-
-  async removeFCMToken(data: DeleteFCMTokenDTO) {
-    const subscription = await safeFindOne<PushSubscription>(this.pushSubscriptionRepository, {
-      where: { fcmToken: data.token },
-    });
-
-    return await this.pushSubscriptionRepository.remove(subscription);
   }
 }

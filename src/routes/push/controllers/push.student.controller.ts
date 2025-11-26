@@ -8,7 +8,7 @@ import { ApiResponseFormat } from "src/common/dto/response_format.dto";
 import { PermissionEnum } from "src/common/mapper/permissions";
 
 import { PushSubscription } from "../../../schemas";
-import { CreateFCMTokenDTO, CreateSubscriptionDTO, DeleteFCMTokenDTO, DeleteSubscriptionByEndpointDTO } from "../dto/push.student.dto";
+import { CreateFCMTokenDTO, DeleteFCMTokenDTO } from "../dto/push.student.dto";
 import { PushStudentService } from "../providers/push.student.service";
 
 @ApiTags("Push Student")
@@ -18,30 +18,30 @@ export class PushStudentController {
   constructor(private readonly pushService: PushStudentService) {}
 
   @ApiOperation({
-    summary: "푸시 구독",
-    description: "푸시 알림 구독을 생성합니다.",
+    summary: "FCM 토큰 등록",
+    description: "앱 푸시알림을 위한 FCM 토큰을 등록합니다.",
   })
   @ApiResponseFormat({
     status: HttpStatus.CREATED,
     type: PushSubscription,
   })
-  @Post("/subscribe")
-  async subscribe(@Req() req, @Body() data: CreateSubscriptionDTO) {
-    return await this.pushService.upsertSubscription(req.user, data);
+  @Put("/fcm-token")
+  async createFCMToken(@Req() req: any, @Body() data: CreateFCMTokenDTO) {
+    return await this.pushService.upsertToken(req.user, data);
   }
 
   @ApiOperation({
-    summary: "푸시 구독 해지",
-    description: "푸시 알림 구독을 해지합니다.",
+    summary: "FCM 토큰 등록 해제",
+    description: "앱 푸시알림을 위한 FCM 토큰을 등록 해제합니다.",
   })
   @ApiResponseFormat({
     status: HttpStatus.NO_CONTENT,
     type: PushSubscription,
   })
-  @Delete("/subscribe")
+  @Delete("/fcm-token")
   @HttpCode(HttpStatus.NO_CONTENT)
-  async unsubscribe(@Query() data: DeleteSubscriptionByEndpointDTO) {
-    return await this.pushService.removeByEndpoint(data);
+  async removeFCMToken(@Body() data: DeleteFCMTokenDTO) {
+    return await this.pushService.removeToken(data);
   }
 
   @ApiOperation({
@@ -56,32 +56,5 @@ export class PushStudentController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async unsubscribeAll(@Req() req: any) {
     return await this.pushService.removeAllByUser(req.user);
-  }
-
-  @ApiOperation({
-    summary: "FCM 토큰 등록",
-    description: "앱 푸시알림을 위한 FCM 토큰을 등록합니다.",
-  })
-  @ApiResponseFormat({
-    status: HttpStatus.CREATED,
-    type: PushSubscription,
-  })
-  @Put("/fcm-token")
-  async createFCMToken(@Req() req: any, @Body() data: CreateFCMTokenDTO) {
-    return await this.pushService.upsertFCMToken(req.user, data);
-  }
-
-  @ApiOperation({
-    summary: "FCM 토큰 등록 해제",
-    description: "앱 푸시알림을 위한 FCM 토큰을 등록 해제합니다.",
-  })
-  @ApiResponseFormat({
-    status: HttpStatus.NO_CONTENT,
-    type: PushSubscription,
-  })
-  @Delete("/fcm-token")
-  @HttpCode(HttpStatus.NO_CONTENT)
-  async removeFCMToken(@Body() data: DeleteFCMTokenDTO) {
-    return await this.pushService.removeFCMToken(data);
   }
 }

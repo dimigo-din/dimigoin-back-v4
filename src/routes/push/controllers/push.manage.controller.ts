@@ -31,7 +31,7 @@ export class PushManageController {
   })
   @Post("/send/user")
   async sendToUser(@Body() data: PushNotificationToSpecificDTO) {
-    return await this.pushService.sendToUser(data);
+    return await this.pushService.sendToSpecificUsers(data);
   }
 
   @ApiOperation({
