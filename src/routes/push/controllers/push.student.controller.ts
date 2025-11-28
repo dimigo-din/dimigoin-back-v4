@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, HttpCode, HttpStatus, Post, Put, Query, Req } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpStatus, Patch, Put, Query, Req } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
 
 import { CustomJwtAuthGuard } from "src/auth/guards";
@@ -7,9 +7,15 @@ import { UseGuardsWithSwagger } from "src/auth/guards/useGuards";
 import { ApiResponseFormat } from "src/common/dto/response_format.dto";
 import { PermissionEnum } from "src/common/mapper/permissions";
 
-import { PushSubscription } from "../../../schemas";
-import { CreateFCMTokenDTO, DeleteFCMTokenDTO } from "../dto/push.student.dto";
-import { PushStudentService } from "../providers/push.student.service";
+import { PushSubject, PushSubscription } from "../../../schemas";
+import {
+  CreateFCMTokenDTO,
+  DeleteFCMTokenDTO,
+  GetSubscribedSubjectDTO,
+  PushNotificationSubjectsResponseDTO,
+  SetSubscribeSubjectDTO,
+} from "../dto/push.student.dto";
+import { PushStudentService } from "../providers";
 
 @ApiTags("Push Student")
 @Controller("/student/push")
@@ -18,7 +24,7 @@ export class PushStudentController {
   constructor(private readonly pushService: PushStudentService) {}
 
   @ApiOperation({
-    summary: "FCM 토큰 등록",
+    summary: "푸쉬 알림 구독",
     description: "앱 푸시알림을 위한 FCM 토큰을 등록합니다.",
   })
   @ApiResponseFormat({
@@ -26,35 +32,73 @@ export class PushStudentController {
     type: PushSubscription,
   })
   @Put("/fcm-token")
-  async createFCMToken(@Req() req: any, @Body() data: CreateFCMTokenDTO) {
+  async createFCMToken(@Req() req, @Body() data: CreateFCMTokenDTO) {
     return await this.pushService.upsertToken(req.user, data);
   }
 
   @ApiOperation({
-    summary: "FCM 토큰 등록 해제",
+    summary: "푸쉬 알림 구독 해제",
     description: "앱 푸시알림을 위한 FCM 토큰을 등록 해제합니다.",
   })
   @ApiResponseFormat({
-    status: HttpStatus.NO_CONTENT,
+    status: HttpStatus.OK,
     type: PushSubscription,
   })
   @Delete("/fcm-token")
-  @HttpCode(HttpStatus.NO_CONTENT)
-  async removeFCMToken(@Body() data: DeleteFCMTokenDTO) {
-    return await this.pushService.removeToken(data);
+  async removeFCMToken(@Req() req, @Body() data: DeleteFCMTokenDTO) {
+    return await this.pushService.removeToken(req.user, data);
   }
 
   @ApiOperation({
-    summary: "푸시 구독 전체 해지",
+    summary: "푸시 구독 전체 해제",
     description: "사용자가 구독한 모든 기기의 푸시 알림 구독을 해지합니다.",
   })
   @ApiResponseFormat({
-    status: HttpStatus.NO_CONTENT,
+    status: HttpStatus.OK,
     type: [PushSubscription],
   })
   @Delete("/unsubscribe/all")
-  @HttpCode(HttpStatus.NO_CONTENT)
-  async unsubscribeAll(@Req() req: any) {
+  async unsubscribeAll(@Req() req) {
     return await this.pushService.removeAllByUser(req.user);
+  }
+
+  @ApiOperation({
+    summary: "푸쉬 구독 Subject 목록",
+    description: "푸쉬 구독 Subject 목록을 불러옵니다. identifier와 이름이 반환됩니다.",
+  })
+  @ApiResponseFormat({
+    status: HttpStatus.OK,
+    type: PushNotificationSubjectsResponseDTO,
+  })
+  @Get("/subjects")
+  async getSubjects() {
+    return await this.pushService.getSubjects();
+  }
+
+  @ApiOperation({
+    summary: "구독된 푸쉬 Subject 목록",
+    description: "특정 디바이스에서 구독된 푸쉬 Subject 목록을 불러옵니다.",
+  })
+  @ApiResponseFormat({
+    status: HttpStatus.OK,
+    type: [PushSubject],
+  })
+  @Get("/subjects/subscribed")
+  async getSubscribedSubject(@Req() req, @Query() data: GetSubscribedSubjectDTO) {
+    return await this.pushService.getSubscribedSubject(req.user, data);
+  }
+
+  @ApiOperation({
+    summary: "푸쉬 Subject 구독 설정",
+    description:
+      "특정 디바이스에 대한 푸쉬 Subject 구독 목록을 설정합니다. 빈 배열이 들어오면 해당 기기는 자동 발송되는 푸쉬알림을 받지 않습니다.",
+  })
+  @ApiResponseFormat({
+    status: HttpStatus.OK,
+    type: [PushSubject],
+  })
+  @Patch("/subjects/subscribed")
+  async setSubscribeSubject(@Req() req, @Body() data: SetSubscribeSubjectDTO) {
+    return await this.pushService.setSubscribeSubject(req.user, data);
   }
 }

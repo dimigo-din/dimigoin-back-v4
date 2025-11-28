@@ -1,53 +1,79 @@
+import { ApiProperty } from "@nestjs/swagger";
 import {
   Column,
   CreateDateColumn,
   Entity,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from "typeorm";
 
-import { PushTokenType } from "../common/mapper/types";
+import {
+  PushNotificationSubjectIdentifier,
+  PushNotificationSubjectIdentifierValues,
+} from "../common/mapper/types";
 
 import { User } from "./user.schema";
 
 @Entity()
 export class PushSubscription {
+  @ApiProperty()
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @Column({ nullable: true })
-  endpoint: string;
-
-  @Column({ nullable: true })
-  p256dh: string;
-
-  @Column({ nullable: true })
-  auth: string;
-
-  @Column({ nullable: true })
-  fcmToken: string | null;
-
+  /** fcm token */
+  @ApiProperty()
   @Column()
-  tokenType: PushTokenType;
+  token: string | null;
 
+  @ApiProperty()
   @Column({ nullable: true })
-  deviceName: string | null;
+  deviceId: string | null;
 
-  @Column({ nullable: true })
-  userAgent: string | null;
-
-  // Subscription.expirationTime (ms) or null
-  @Column({ type: "int", nullable: true })
-  expirationTime: number | null;
-
+  @ApiProperty()
   @CreateDateColumn()
   createdAt: Date;
 
+  @ApiProperty()
   @UpdateDateColumn()
   updatedAt: Date;
 
+  @OneToMany(() => PushSubject, (pushSubject) => pushSubject.subscription, {
+    cascade: ["insert", "update", "remove"],
+    eager: true,
+  })
+  subject: PushSubject[];
+
   @ManyToOne(() => User, (user) => user.pushSubscriptions, {
+    onDelete: "CASCADE",
+  })
+  user: User;
+}
+
+@Entity()
+export class PushSubject {
+  @ApiProperty()
+  @PrimaryGeneratedColumn("uuid")
+  id: string;
+
+  /** eng identifier for code. */
+  @ApiProperty({ enum: PushNotificationSubjectIdentifierValues })
+  @Column()
+  identifier: PushNotificationSubjectIdentifier;
+
+  /** kor name for users */
+  @ApiProperty()
+  @Column()
+  name: string;
+
+  @ManyToOne(() => PushSubscription, (subscription) => subscription.subject, {
+    onUpdate: "CASCADE",
+    onDelete: "CASCADE",
+  })
+  subscription: PushSubscription;
+
+  @ManyToOne(() => User, (user) => user.pushSubject, {
     onDelete: "CASCADE",
   })
   user: User;

@@ -1,13 +1,16 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { Cron, CronExpression } from "@nestjs/schedule";
 import { InjectRepository } from "@nestjs/typeorm";
 import * as admin from "firebase-admin";
-import { In, LessThan, Repository } from "typeorm";
+import { In, Repository } from "typeorm";
 
 import { safeFindOne } from "../../../common/utils/safeFindOne.util";
 import { PushSubscription, User } from "../../../schemas";
-import { PushNotificationPayloadDTO, PushNotificationToSpecificDTO } from "../dto/push.manage.dto";
+import {
+  GetUserSubscriptionsDTO,
+  PushNotificationPayloadDTO,
+  PushNotificationToSpecificDTO,
+} from "../dto/push.manage.dto";
 
 @Injectable()
 export class PushManageService {
@@ -31,8 +34,8 @@ export class PushManageService {
     }
   }
 
-  async getSubscriptionsByUser(userId: string) {
-    const target = await safeFindOne<User>(this.userRepository, userId);
+  async getSubscriptionsByUser(data: GetUserSubscriptionsDTO) {
+    const target = await safeFindOne<User>(this.userRepository, data.id);
 
     return await this.pushRepository.find({ where: { user: target } });
   }
@@ -55,7 +58,7 @@ export class PushManageService {
 
     const results = await Promise.allSettled(
       subscriptions.map((row) => {
-        return this.sendFCM(row.fcmToken, payload);
+        return this.sendFCM(row.token, payload);
       }),
     );
 
@@ -96,8 +99,8 @@ export class PushManageService {
   private async doPushFailCleanup(subscription: PushSubscription, reason: any) {
     const code = reason?.statusCode || reason?.body?.statusCode;
     if (code === 404 || code === 410) {
-      await this.pushRepository.delete({ fcmToken: subscription.fcmToken });
-      this.logger.warn(`Removed dead FCM token: ${subscription.fcmToken}`);
+      await this.pushRepository.delete({ token: subscription.token });
+      this.logger.warn(`Removed dead FCM token: ${subscription.token}`);
     } else {
       this.logger.warn(
         `Push send failed: ${subscription.user.id} code=${code ?? "N/A"} msg=${reason?.message ?? reason}`,
