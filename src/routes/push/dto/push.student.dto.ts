@@ -38,7 +38,7 @@ export class SetSubscribeSubjectDTO {
   @IsString()
   deviceId: string;
 
-  @ApiProperty({ type: Array, enum: PushNotificationSubjectIdentifierValues })
+  @ApiProperty({ type: Array, enum: PushNotificationSubjectIdentifierValues, isArray: true })
   @IsIn(PushNotificationSubjectIdentifierValues, { each: true })
   subjects: PushNotificationSubjectIdentifier[];
 }

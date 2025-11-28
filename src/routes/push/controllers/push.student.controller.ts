@@ -31,7 +31,7 @@ export class PushStudentController {
     status: HttpStatus.CREATED,
     type: PushSubscription,
   })
-  @Put("/fcm-token")
+  @Put("/subscribe")
   async createFCMToken(@Req() req, @Body() data: CreateFCMTokenDTO) {
     return await this.pushService.upsertToken(req.user, data);
   }
@@ -44,7 +44,7 @@ export class PushStudentController {
     status: HttpStatus.OK,
     type: PushSubscription,
   })
-  @Delete("/fcm-token")
+  @Delete("/subscribe")
   async removeFCMToken(@Req() req, @Body() data: DeleteFCMTokenDTO) {
     return await this.pushService.removeToken(req.user, data);
   }
