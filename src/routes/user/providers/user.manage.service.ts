@@ -101,7 +101,7 @@ export class UserManageService {
       ...config,
     });
 
-    if (res.status === 404) return null;
+    if (res.status !== 200) return null;
     else return res.data as boolean;
   }
 
