@@ -37,7 +37,7 @@ export class PushManageService {
   async getSubscriptionsByUser(data: GetUserSubscriptionsDTO) {
     const target = await safeFindOne<User>(this.userRepository, data.id);
 
-    return await this.pushRepository.find({ where: { user: target } });
+    return await this.pushRepository.find({ where: { user: target }, relations: ["subject"] });
   }
 
   async sendToSpecificUsers(data: PushNotificationToSpecificDTO) {

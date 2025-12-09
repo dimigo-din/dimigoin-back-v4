@@ -41,7 +41,6 @@ export class PushSubscription {
 
   @OneToMany(() => PushSubject, (pushSubject) => pushSubject.subscription, {
     cascade: ["insert", "update", "remove"],
-    eager: true,
   })
   subject: PushSubject[];
 
