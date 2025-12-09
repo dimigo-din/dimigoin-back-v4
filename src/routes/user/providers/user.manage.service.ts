@@ -223,7 +223,7 @@ export class UserManageService {
       </body>
     </html>
   `,
-      { waitUntil: "networkidle0" },
+      { waitUntil: "networkidle0", timeout: 2000 },
     );
 
     const buffer = await page.pdf({
