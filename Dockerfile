@@ -73,5 +73,4 @@ RUN wget -q -t3 'https://packages.doppler.com/public/cli/rsa.8004D9FF50437357.ke
 
 RUN echo -n "$DEPLOY_TYPE" > deploy_type; echo -n "$DOPPLER_TOKEN" > doppler_token
 
-# Start the server using the production build
 ENTRYPOINT ["./entrypoint.sh"]
