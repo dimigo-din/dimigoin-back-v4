@@ -55,8 +55,6 @@ FROM base AS production
 ARG DEPLOY_TYPE
 ARG DOPPLER_TOKEN
 
-# Ensure pm2 is available at runtime
-
 WORKDIR /usr/src/app
 
 # Copy the bundled code from the build stage to the production image
