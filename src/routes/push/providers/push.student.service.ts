@@ -38,7 +38,7 @@ export class PushStudentService {
 
     subscription.token = data.token;
     subscription.deviceId = data.deviceId;
-    subscription.subject = PushNotificationSubjectIdentifierValues.map((i) =>
+    subscription.subjects = PushNotificationSubjectIdentifierValues.map((i) =>
       Object.assign(new PushSubject(), {
         identifier: i,
         name: PushNotificationSubject[i],
@@ -78,13 +78,14 @@ export class PushStudentService {
     const target = await safeFindOne<User>(this.userRepository, user.id);
 
     return (
-      await this.pushSubscriptionRepository.findOne({
+      await safeFindOne<PushSubscription>(this.pushSubscriptionRepository, {
         where: {
           user: target,
           deviceId: data.deviceId,
         },
+        relations: ["subjects"],
       })
-    ).subject;
+    ).subjects;
   }
 
   async setSubscribeSubject(user: UserJWT, data: SetSubscribeSubjectDTO) {
@@ -95,17 +96,22 @@ export class PushStudentService {
         user: target,
         deviceId: data.deviceId,
       },
+      relations: ["subjects"],
     });
 
-    subscription.subject = PushNotificationSubjectIdentifierValues.filter((i) =>
+    await this.pushSubjectRepository.remove(subscription.subjects);
+
+    subscription.subjects = PushNotificationSubjectIdentifierValues.filter((i) =>
       data.subjects.includes(i),
-    ).map((i) =>
-      Object.assign(new PushSubject(), {
-        identifier: i,
-        name: PushNotificationSubject[i],
-        user: target,
-      }),
-    );
+    ).map((i) => {
+      const s = new PushSubject();
+      s.identifier = i;
+      s.name = PushNotificationSubject[i];
+      s.user = target;
+      s.subscription = subscription;
+
+      return s;
+    });
 
     return await this.pushSubscriptionRepository.save(subscription);
   }

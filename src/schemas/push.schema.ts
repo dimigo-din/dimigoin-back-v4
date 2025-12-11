@@ -25,11 +25,11 @@ export class PushSubscription {
   /** fcm token */
   @ApiProperty()
   @Column()
-  token: string | null;
+  token: string;
 
   @ApiProperty()
   @Column({ nullable: true })
-  deviceId: string | null;
+  deviceId: string;
 
   @ApiProperty()
   @CreateDateColumn()
@@ -42,7 +42,7 @@ export class PushSubscription {
   @OneToMany(() => PushSubject, (pushSubject) => pushSubject.subscription, {
     cascade: ["insert", "update", "remove"],
   })
-  subject: PushSubject[];
+  subjects: PushSubject[];
 
   @ManyToOne(() => User, (user) => user.pushSubscriptions, {
     onDelete: "CASCADE",
@@ -66,7 +66,7 @@ export class PushSubject {
   @Column()
   name: string;
 
-  @ManyToOne(() => PushSubscription, (subscription) => subscription.subject, {
+  @ManyToOne(() => PushSubscription, (subscription) => subscription.subjects, {
     onUpdate: "CASCADE",
     onDelete: "CASCADE",
   })
