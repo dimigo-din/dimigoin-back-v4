@@ -108,7 +108,6 @@ export class PushStudentService {
       s.identifier = i;
       s.name = PushNotificationSubject[i];
       s.user = target;
-      s.subscription = subscription;
 
       return s;
     });
