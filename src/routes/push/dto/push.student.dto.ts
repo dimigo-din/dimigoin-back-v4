@@ -15,10 +15,6 @@ export class CreateFCMTokenDTO {
   @ApiProperty()
   @IsString()
   deviceId: string;
-
-  @ApiProperty()
-  @IsString()
-  expirationTime: string;
 }
 
 export class DeleteFCMTokenDTO {
