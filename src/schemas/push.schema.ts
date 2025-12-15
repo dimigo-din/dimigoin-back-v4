@@ -39,14 +39,22 @@ export class PushSubscription {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @OneToMany(() => PushSubject, (pushSubject) => pushSubject.subscription, {
-    cascade: ["insert", "update", "remove"],
-  })
+  @OneToMany(
+    () => PushSubject,
+    (pushSubject) => pushSubject.subscription,
+    {
+      cascade: ["insert", "update", "remove"],
+    },
+  )
   subjects: PushSubject[];
 
-  @ManyToOne(() => User, (user) => user.pushSubscriptions, {
-    onDelete: "CASCADE",
-  })
+  @ManyToOne(
+    () => User,
+    (user) => user.pushSubscriptions,
+    {
+      onDelete: "CASCADE",
+    },
+  )
   user: User;
 }
 
@@ -66,14 +74,22 @@ export class PushSubject {
   @Column()
   name: string;
 
-  @ManyToOne(() => PushSubscription, (subscription) => subscription.subjects, {
-    onUpdate: "CASCADE",
-    onDelete: "CASCADE",
-  })
+  @ManyToOne(
+    () => PushSubscription,
+    (subscription) => subscription.subjects,
+    {
+      onUpdate: "CASCADE",
+      onDelete: "CASCADE",
+    },
+  )
   subscription: PushSubscription;
 
-  @ManyToOne(() => User, (user) => user.pushSubject, {
-    onDelete: "CASCADE",
-  })
+  @ManyToOne(
+    () => User,
+    (user) => user.pushSubject,
+    {
+      onDelete: "CASCADE",
+    },
+  )
   user: User;
 }

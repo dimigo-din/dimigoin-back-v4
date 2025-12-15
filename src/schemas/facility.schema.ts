@@ -39,19 +39,30 @@ export class FacilityReport {
   created_at: Date;
 
   @ApiProperty({ type: () => [FacilityReportComment] })
-  @OneToMany(() => FacilityReportComment, (facilityReportComment) => facilityReportComment.parent)
+  @OneToMany(
+    () => FacilityReportComment,
+    (facilityReportComment) => facilityReportComment.parent,
+  )
   comment: FacilityReportComment[];
 
   @ApiProperty({ type: () => [FacilityImg] })
-  @OneToMany(() => FacilityImg, (facilityImg) => facilityImg.parent, {
-    cascade: ["insert", "update"],
-  })
+  @OneToMany(
+    () => FacilityImg,
+    (facilityImg) => facilityImg.parent,
+    {
+      cascade: ["insert", "update"],
+    },
+  )
   file: FacilityImg[];
 
-  @ManyToOne(() => User, (user) => user.facilityReport, {
-    onUpdate: "CASCADE",
-    onDelete: "CASCADE",
-  })
+  @ManyToOne(
+    () => User,
+    (user) => user.facilityReport,
+    {
+      onUpdate: "CASCADE",
+      onDelete: "CASCADE",
+    },
+  )
   user: User;
 }
 
@@ -74,10 +85,14 @@ export class FacilityImg {
   created_at: Date;
 
   @ApiProperty({ type: () => FacilityReport })
-  @ManyToOne(() => FacilityReport, (facilityReport) => facilityReport.file, {
-    onUpdate: "CASCADE",
-    onDelete: "CASCADE",
-  })
+  @ManyToOne(
+    () => FacilityReport,
+    (facilityReport) => facilityReport.file,
+    {
+      onUpdate: "CASCADE",
+      onDelete: "CASCADE",
+    },
+  )
   parent: FacilityReport;
 }
 
@@ -96,7 +111,10 @@ export class FacilityReportComment {
   comment_parent?: FacilityReportComment;
 
   @ApiProperty({ type: () => FacilityReport })
-  @ManyToOne(() => FacilityReport, (facilityReport) => facilityReport.comment)
+  @ManyToOne(
+    () => FacilityReport,
+    (facilityReport) => facilityReport.comment,
+  )
   parent: FacilityReport;
 
   @ApiProperty()
@@ -108,6 +126,9 @@ export class FacilityReportComment {
   created_at: Date;
 
   @ApiProperty({ type: () => User })
-  @ManyToOne(() => User, (user) => user.facilityReportComment)
+  @ManyToOne(
+    () => User,
+    (user) => user.facilityReportComment,
+  )
   user: User;
 }

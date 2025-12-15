@@ -420,11 +420,11 @@ export class StayManageService {
     if (isInRange(["A1", "L18"], data.to) || isInRange(["M1", "N18"], data.to))
       throw new HttpException(ErrorMsg.ItIsStaySeat_ShouldNotBeAllowed(), HttpStatus.BAD_REQUEST);
 
-    const applies = (
-      await this.stayApplyRepository.find({ where: { id: In(data.targets) } })
-    ).map((a) => {
-      return { ...a, stay_seat: data.to };
-    });
+    const applies = (await this.stayApplyRepository.find({ where: { id: In(data.targets) } })).map(
+      (a) => {
+        return { ...a, stay_seat: data.to };
+      },
+    );
 
     return await this.stayApplyRepository.save(applies);
   }

@@ -46,15 +46,23 @@ export class WakeupSongApplication {
   @Column()
   gender: Gender;
 
-  @OneToMany(() => WakeupSongVote, (wakeupSongVote) => wakeupSongVote.wakeupSongApplication, {
-    cascade: ["soft-remove", "recover"],
-  })
+  @OneToMany(
+    () => WakeupSongVote,
+    (wakeupSongVote) => wakeupSongVote.wakeupSongApplication,
+    {
+      cascade: ["soft-remove", "recover"],
+    },
+  )
   wakeupSongVote: WakeupSongVote[];
 
-  @ManyToOne(() => User, (user) => user.wakeupSongApplication, {
-    onUpdate: "CASCADE",
-    onDelete: "CASCADE",
-  })
+  @ManyToOne(
+    () => User,
+    (user) => user.wakeupSongApplication,
+    {
+      onUpdate: "CASCADE",
+      onDelete: "CASCADE",
+    },
+  )
   user: User;
 
   @DeleteDateColumn()
@@ -80,10 +88,14 @@ export class WakeupSongVote {
   )
   wakeupSongApplication: WakeupSongApplication;
 
-  @ManyToOne(() => User, (user) => user.wakeupSongVote, {
-    onUpdate: "CASCADE",
-    onDelete: "CASCADE",
-  })
+  @ManyToOne(
+    () => User,
+    (user) => user.wakeupSongVote,
+    {
+      onUpdate: "CASCADE",
+      onDelete: "CASCADE",
+    },
+  )
   user: User;
 
   @DeleteDateColumn()

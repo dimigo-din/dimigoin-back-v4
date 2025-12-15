@@ -65,6 +65,10 @@ export class FrigoApply {
   approved?: boolean;
 
   @ApiProperty({ type: () => User })
-  @ManyToOne(() => User, (user) => user.frigo, { eager: true })
+  @ManyToOne(
+    () => User,
+    (user) => user.frigo,
+    { eager: true },
+  )
   user: User;
 }

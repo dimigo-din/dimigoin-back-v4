@@ -4,8 +4,6 @@
   "sourceRoot": "src",
   "compilerOptions": {
     "deleteOutDir": true,
-    "assets": [
-      "common/docker/**/*"
-    ]
+    "assets": ["common/docker/**/*"]
   }
 }
