@@ -133,7 +133,7 @@ export class AuthService {
       }
     }
 
-    return await this.generateJWTKeyPair(loginUser, "1m");
+    return await this.generateJWTKeyPair(loginUser, "30m");
   }
 
   // Actually, we need refresh "token" not refresh jwt
@@ -147,7 +147,7 @@ export class AuthService {
       where: { id: session.user.id },
     });
 
-    return await this.generateJWTKeyPair(user, "1m", session);
+    return await this.generateJWTKeyPair(user, "30m", session);
   }
 
   async logout(user: UserJWT) {
