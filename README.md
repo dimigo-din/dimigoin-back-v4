@@ -36,13 +36,7 @@ $ yarn install
 
 ```bash
 # development
-$ yarn run start
-
-# watch mode
-$ yarn run start:dev
-
-# production mode
-$ yarn run start:prod
+$ yarn run dev
 ```
 
 ## Run tests
