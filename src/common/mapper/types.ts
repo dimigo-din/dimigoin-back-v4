@@ -54,6 +54,22 @@ export const FacilityReportStatusValues = [
 ] as const;
 export type FacilityReportStatus = (typeof FacilityReportStatusValues)[number];
 
+export const PushNotificationSubjectIdentifierValues = [
+  "SchoolInformation",
+  "Laundry",
+  "StayApplyReminder",
+  "WakeupSong",
+];
+export type PushNotificationSubjectIdentifier =
+  (typeof PushNotificationSubjectIdentifierValues)[number];
+
+export const PushNotificationSubject: Record<PushNotificationSubjectIdentifier, string> = {
+  SchoolInformation: "학교 정보 알림",
+  Laundry: "세탁 알림",
+  StayApplyReminder: "잔류 신청 알림",
+  WakeupSong: "오늘의 기상곡 알림",
+};
+
 export type UserJWT = User & { sessionIdentifier?: string };
 
 export interface YoutubeVideoItem {

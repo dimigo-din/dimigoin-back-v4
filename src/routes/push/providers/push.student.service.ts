@@ -1,14 +1,21 @@
-import { Injectable, Logger } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
+import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { In, Repository } from "typeorm";
-import * as webPush from "web-push";
+import { Repository } from "typeorm";
 
 import { safeFindOne } from "src/common/utils/safeFindOne.util";
 
-import { UserJWT } from "../../../common/mapper/types";
-import { PushSubscription, User } from "../../../schemas";
-import { CreateSubscriptionDTO, DeleteSubscriptionByEndpointDTO } from "../dto/push.student.dto";
+import {
+  PushNotificationSubject,
+  PushNotificationSubjectIdentifierValues,
+  UserJWT,
+} from "../../../common/mapper/types";
+import { PushSubject, PushSubscription, User } from "../../../schemas";
+import {
+  CreateFCMTokenDTO,
+  DeleteFCMTokenDTO,
+  GetSubscribedSubjectDTO,
+  SetSubscribeSubjectDTO,
+} from "../dto/push.student.dto";
 
 @Injectable()
 export class PushStudentService {
@@ -17,43 +24,94 @@ export class PushStudentService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(PushSubscription)
     private readonly pushSubscriptionRepository: Repository<PushSubscription>,
-    private readonly configService: ConfigService,
-  ) {
-    webPush.setVapidDetails(
-      configService.get<string>("VAPID_CONTACT"),
-      configService.get<string>("VAPID_PUBLIC_KEY"),
-      configService.get<string>("VAPID_PRIVATE_KEY"),
-    );
-  }
-  async upsertSubscription(user: UserJWT, data: CreateSubscriptionDTO) {
+    @InjectRepository(PushSubject)
+    private readonly pushSubjectRepository: Repository<PushSubject>,
+  ) {}
+
+  async upsertToken(user: UserJWT, data: CreateFCMTokenDTO) {
     const target = await safeFindOne<User>(this.userRepository, user.id);
 
     const subscription =
-      (await this.pushSubscriptionRepository.findOne({ where: { user: target } })) ||
-      new PushSubscription();
+      (await this.pushSubscriptionRepository.findOne({
+        where: { user: target, deviceId: data.deviceId },
+      })) || new PushSubscription();
 
-    subscription.endpoint = data.endpoint;
-    subscription.p256dh = data.keys.p256dh;
-    subscription.auth = data.keys.auth;
+    subscription.token = data.token;
+    subscription.deviceId = data.deviceId;
+    subscription.subjects = PushNotificationSubjectIdentifierValues.map((i) =>
+      Object.assign(new PushSubject(), {
+        identifier: i,
+        name: PushNotificationSubject[i],
+        user: target,
+      }),
+    );
     subscription.user = target;
-    subscription.expirationTime = data.expirationTime;
 
     return this.pushSubscriptionRepository.save(subscription);
   }
 
-  async removeByEndpoint(data: DeleteSubscriptionByEndpointDTO) {
+  async removeToken(user: UserJWT, data: DeleteFCMTokenDTO) {
+    const target = await safeFindOne<User>(this.userRepository, user.id);
+
     const subscription = await safeFindOne<PushSubscription>(this.pushSubscriptionRepository, {
-      where: { endpoint: data.endpoint },
+      where: { user: target, token: data.token },
     });
 
     return await this.pushSubscriptionRepository.remove(subscription);
   }
 
   async removeAllByUser(user: UserJWT) {
+    const target = await safeFindOne<User>(this.userRepository, user.id);
+
     const subscriptions = await safeFindOne<PushSubscription>(this.pushSubscriptionRepository, {
-      where: { user: { id: user.id } },
+      where: { user: target },
     });
 
     return await this.pushSubscriptionRepository.remove(subscriptions);
+  }
+
+  async getSubjects() {
+    return PushNotificationSubject;
+  }
+
+  async getSubscribedSubject(user: UserJWT, data: GetSubscribedSubjectDTO) {
+    const target = await safeFindOne<User>(this.userRepository, user.id);
+
+    return (
+      await safeFindOne<PushSubscription>(this.pushSubscriptionRepository, {
+        where: {
+          user: target,
+          deviceId: data.deviceId,
+        },
+        relations: ["subjects"],
+      })
+    ).subjects;
+  }
+
+  async setSubscribeSubject(user: UserJWT, data: SetSubscribeSubjectDTO) {
+    const target = await safeFindOne<User>(this.userRepository, user.id);
+
+    const subscription = await safeFindOne<PushSubscription>(this.pushSubscriptionRepository, {
+      where: {
+        user: target,
+        deviceId: data.deviceId,
+      },
+      relations: ["subjects"],
+    });
+
+    await this.pushSubjectRepository.remove(subscription.subjects);
+
+    subscription.subjects = PushNotificationSubjectIdentifierValues.filter((i) =>
+      data.subjects.includes(i),
+    ).map((i) => {
+      const s = new PushSubject();
+      s.identifier = i;
+      s.name = PushNotificationSubject[i];
+      s.user = target;
+
+      return s;
+    });
+
+    return await this.pushSubscriptionRepository.save(subscription);
   }
 }

@@ -74,8 +74,16 @@ export class WakeupStudentService {
   }
 
   async registerVideo(user: UserJWT, data: RegisterVideoDTO) {
+    const week = moment().startOf("week").format("YYYY-MM-DD");
+
     const exists = await this.wakeupSongApplicationRepository.findOne({
-      where: { video_id: data.videoId },
+      where: {
+        video_id: data.videoId,
+        week: week,
+        gender: (await this.userManageService.checkUserDetail(user.email, { gender: "male" }))
+          ? "male"
+          : "female",
+      },
     });
     if (exists) throw new HttpException(ErrorMsg.ResourceAlreadyExists(), HttpStatus.BAD_REQUEST);
 
@@ -107,7 +115,7 @@ export class WakeupStudentService {
       videoData.snippet.thumbnails.default
     ).url;
     application.video_channel = videoData.snippet.channelTitle;
-    application.week = moment().startOf("week").format("YYYY-MM-DD");
+    application.week = week;
     application.gender = (await this.userManageService.checkUserDetail(user.email, {
       gender: "male",
     }))

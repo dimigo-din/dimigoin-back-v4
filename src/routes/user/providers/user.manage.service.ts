@@ -101,7 +101,7 @@ export class UserManageService {
       ...config,
     });
 
-    if (res.status === 404) return null;
+    if (res.status !== 200) return null;
     else return res.data as boolean;
   }
 
@@ -223,7 +223,7 @@ export class UserManageService {
       </body>
     </html>
   `,
-      { waitUntil: "networkidle0" },
+      { waitUntil: "networkidle0", timeout: 2000 },
     );
 
     const buffer = await page.pdf({

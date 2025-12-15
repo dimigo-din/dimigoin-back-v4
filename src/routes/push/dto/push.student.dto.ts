@@ -1,35 +1,44 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Type } from "class-transformer";
-import { IsString, IsOptional, IsNumber, ValidateNested } from "class-validator";
+import { IsString, IsOptional, IsIn } from "class-validator";
 
-export class SubscriptionKeysDTO {
+import {
+  PushNotificationSubject,
+  PushNotificationSubjectIdentifier,
+  PushNotificationSubjectIdentifierValues,
+} from "../../../common/mapper/types";
+
+export class CreateFCMTokenDTO {
   @ApiProperty()
   @IsString()
-  p256dh: string;
+  token: string;
 
   @ApiProperty()
   @IsString()
-  auth: string;
+  deviceId: string;
 }
 
-export class CreateSubscriptionDTO {
+export class DeleteFCMTokenDTO {
   @ApiProperty()
   @IsString()
-  endpoint: string;
-
-  @ApiProperty({ type: () => SubscriptionKeysDTO })
-  @ValidateNested()
-  @Type(() => SubscriptionKeysDTO)
-  keys: SubscriptionKeysDTO;
-
-  @ApiProperty()
-  @IsOptional()
-  @IsNumber()
-  expirationTime?: number | null;
+  token: string;
 }
 
-export class DeleteSubscriptionByEndpointDTO {
+export class GetSubscribedSubjectDTO {
   @ApiProperty()
   @IsString()
-  endpoint: string;
+  deviceId: string;
+}
+
+export class SetSubscribeSubjectDTO {
+  @ApiProperty()
+  @IsString()
+  deviceId: string;
+
+  @ApiProperty({ type: Array, enum: PushNotificationSubjectIdentifierValues, isArray: true })
+  @IsIn(PushNotificationSubjectIdentifierValues, { each: true })
+  subjects: PushNotificationSubjectIdentifier[];
+}
+
+export class PushNotificationSubjectsResponseDTO {
+  [key: PushNotificationSubjectIdentifier]: string;
 }

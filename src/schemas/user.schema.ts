@@ -9,9 +9,9 @@ import { Login, Session } from "./auth.schema";
 import { FacilityReport, FacilityReportComment } from "./facility.schema";
 import { FrigoApply } from "./frigo.schema";
 import { LaundryApply } from "./laundry.schema";
+import { PushSubject, PushSubscription } from "./push.schema";
 import { StayApply } from "./stay.schema";
 import { WakeupSongApplication, WakeupSongVote } from "./wakeup.schema";
-import { PushSubscription } from "./push.schema";
 
 @Entity()
 export class User {
@@ -65,4 +65,7 @@ export class User {
 
   @OneToMany(() => PushSubscription, (pushSubscription) => pushSubscription.user)
   pushSubscriptions: PushSubscription[];
+
+  @OneToMany(() => PushSubject, (pushSubject) => pushSubject.user)
+  pushSubject: PushSubject[];
 }

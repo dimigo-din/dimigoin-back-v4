@@ -51,6 +51,12 @@ export class PushNotificationToSpecificDTO extends PushNotificationPayloadDTO {
   to: string[];
 }
 
+export class GetUserSubscriptionsDTO {
+  @ApiProperty({ description: "userid" })
+  @IsString()
+  id: string;
+}
+
 export class PushNotificationResultResponseDTO {
   @ApiProperty()
   sent: number;

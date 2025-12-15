@@ -52,7 +52,8 @@ USER node
 
 FROM base AS production
 
-# Ensure pm2 is available at runtime
+ARG DEPLOY_TYPE
+ARG DOPPLER_TOKEN
 
 WORKDIR /usr/src/app
 
@@ -70,6 +71,6 @@ RUN wget -q -t3 'https://packages.doppler.com/public/cli/rsa.8004D9FF50437357.ke
   echo 'https://packages.doppler.com/public/cli/alpine/any-version/main' | tee -a /etc/apk/repositories && \
   apk add doppler
 
+RUN echo -n "$DEPLOY_TYPE" > deploy_type; echo -n "$DOPPLER_TOKEN" > doppler_token
 
-# Start the server using the production build
 ENTRYPOINT ["./entrypoint.sh"]
