@@ -21,12 +21,16 @@ export class Login {
   id: string;
 
   @ApiProperty({ type: () => User })
-  @ManyToOne(() => User, (user) => user.login, {
-    cascade: ["insert", "update"],
-    onUpdate: "CASCADE",
-    onDelete: "CASCADE",
-    eager: true,
-  })
+  @ManyToOne(
+    () => User,
+    (user) => user.login,
+    {
+      cascade: ["insert", "update"],
+      onUpdate: "CASCADE",
+      onDelete: "CASCADE",
+      eager: true,
+    },
+  )
   user: User;
 
   @ApiProperty()
@@ -69,10 +73,14 @@ export class Session {
   updated_at: Date;
 
   @ApiProperty({ type: () => User })
-  @ManyToOne(() => User, (user) => user.session, {
-    onUpdate: "CASCADE",
-    onDelete: "CASCADE",
-    eager: true,
-  })
+  @ManyToOne(
+    () => User,
+    (user) => user.session,
+    {
+      onUpdate: "CASCADE",
+      onDelete: "CASCADE",
+      eager: true,
+    },
+  )
   user: User;
 }

@@ -32,10 +32,17 @@ export class StaySeatPreset {
   only_readingRoom: boolean;
 
   @ApiProperty({ type: () => [StaySeatPresetRange] })
-  @OneToMany(() => StaySeatPresetRange, (staySeat) => staySeat.stay_seat_preset, { eager: true })
+  @OneToMany(
+    () => StaySeatPresetRange,
+    (staySeat) => staySeat.stay_seat_preset,
+    { eager: true },
+  )
   stay_seat: StaySeatPresetRange[];
 
-  @OneToMany(() => StaySchedule, (staySchedule) => staySchedule.stay_seat_preset)
+  @OneToMany(
+    () => StaySchedule,
+    (staySchedule) => staySchedule.stay_seat_preset,
+  )
   stay_schedule: StaySchedule[];
 }
 
@@ -53,10 +60,14 @@ export class StaySeatPresetRange {
   @Column()
   range: string;
 
-  @ManyToOne(() => StaySeatPreset, (staySeatPreset) => staySeatPreset.stay_seat, {
-    onUpdate: "CASCADE",
-    onDelete: "CASCADE",
-  })
+  @ManyToOne(
+    () => StaySeatPreset,
+    (staySeatPreset) => staySeatPreset.stay_seat,
+    {
+      onUpdate: "CASCADE",
+      onDelete: "CASCADE",
+    },
+  )
   stay_seat_preset: StaySeatPreset;
 }
 
@@ -104,15 +115,23 @@ export class StaySchedule {
   created_at: Date;
 
   @ApiProperty({ type: () => StaySeatPreset })
-  @ManyToOne(() => StaySeatPreset, (staySeatPreset) => staySeatPreset.stay_schedule, {
-    eager: true,
-  })
+  @ManyToOne(
+    () => StaySeatPreset,
+    (staySeatPreset) => staySeatPreset.stay_schedule,
+    {
+      eager: true,
+    },
+  )
   stay_seat_preset: StaySeatPreset;
 
   @ApiProperty({ type: () => [Stay] })
-  @OneToMany(() => Stay, (stay) => stay.parent, {
-    cascade: ["insert", "update"],
-  })
+  @OneToMany(
+    () => Stay,
+    (stay) => stay.parent,
+    {
+      cascade: ["insert", "update"],
+    },
+  )
   children: Stay[];
 }
 
@@ -143,29 +162,45 @@ export class Stay {
   outing_day: string[];
 
   @ApiProperty({ type: () => [StayApplyPeriod_Stay] })
-  @OneToMany(() => StayApplyPeriod_Stay, (stayApplyPeriod_Stay) => stayApplyPeriod_Stay.stay, {
-    cascade: ["insert", "update"],
-    eager: true,
-  })
+  @OneToMany(
+    () => StayApplyPeriod_Stay,
+    (stayApplyPeriod_Stay) => stayApplyPeriod_Stay.stay,
+    {
+      cascade: ["insert", "update"],
+      eager: true,
+    },
+  )
   stay_apply_period: StayApplyPeriod_Stay[];
 
   /** if null, stay in class or something else */
   @ApiProperty({ type: () => StaySeatPreset })
-  @ManyToOne(() => StaySeatPreset, (staySeatPreset) => staySeatPreset.stay_schedule, {
-    eager: true,
-    onUpdate: "CASCADE",
-    nullable: true,
-  })
+  @ManyToOne(
+    () => StaySeatPreset,
+    (staySeatPreset) => staySeatPreset.stay_schedule,
+    {
+      eager: true,
+      onUpdate: "CASCADE",
+      nullable: true,
+    },
+  )
   stay_seat_preset: StaySeatPreset;
 
   // @ApiProperty({ type: () => StayApply })
-  @OneToMany(() => StayApply, (stay_apply) => stay_apply.stay, {
-    cascade: ["soft-remove", "recover"],
-  })
+  @OneToMany(
+    () => StayApply,
+    (stay_apply) => stay_apply.stay,
+    {
+      cascade: ["soft-remove", "recover"],
+    },
+  )
   stay_apply: StayApply[];
 
   // @ApiProperty({ type: () => StaySchedule, nullable: true })
-  @ManyToOne(() => StaySchedule, (schedule) => schedule.children, { nullable: true })
+  @ManyToOne(
+    () => StaySchedule,
+    (schedule) => schedule.children,
+    { nullable: true },
+  )
   parent: StaySchedule;
 
   @DeleteDateColumn()
@@ -202,10 +237,14 @@ export class StayApplyPeriod_StaySchedule {
   @Column("int")
   apply_end_hour: number;
 
-  @ManyToOne(() => StaySchedule, (staySchedule) => staySchedule.stay_apply_period, {
-    onUpdate: "CASCADE",
-    onDelete: "CASCADE",
-  })
+  @ManyToOne(
+    () => StaySchedule,
+    (staySchedule) => staySchedule.stay_apply_period,
+    {
+      onUpdate: "CASCADE",
+      onDelete: "CASCADE",
+    },
+  )
   stay_schedule: StaySchedule;
 }
 @Entity()
@@ -229,11 +268,15 @@ export class StayApplyPeriod_Stay {
   @Column("timestamptz")
   apply_end: Date;
 
-  @ManyToOne(() => Stay, (stay) => stay.stay_apply_period, {
-    onUpdate: "CASCADE",
-    onDelete: "CASCADE",
-    nullable: true,
-  })
+  @ManyToOne(
+    () => Stay,
+    (stay) => stay.stay_apply_period,
+    {
+      onUpdate: "CASCADE",
+      onDelete: "CASCADE",
+      nullable: true,
+    },
+  )
   stay: Stay;
 }
 
@@ -248,25 +291,37 @@ export class StayApply {
   @Column()
   stay_seat: string;
 
-  @ManyToOne(() => Stay, (stay) => stay.stay_apply, {
-    onUpdate: "CASCADE",
-    onDelete: "CASCADE",
-  })
+  @ManyToOne(
+    () => Stay,
+    (stay) => stay.stay_apply,
+    {
+      onUpdate: "CASCADE",
+      onDelete: "CASCADE",
+    },
+  )
   stay: Stay;
 
   @ApiProperty({ type: () => StayOuting, isArray: true })
-  @OneToMany(() => StayOuting, (stayOuting) => stayOuting.stay_apply, {
-    cascade: ["insert", "update", "soft-remove", "recover"],
-    eager: true,
-  })
+  @OneToMany(
+    () => StayOuting,
+    (stayOuting) => stayOuting.stay_apply,
+    {
+      cascade: ["insert", "update", "soft-remove", "recover"],
+      eager: true,
+    },
+  )
   outing: StayOuting[];
 
   @ApiProperty({ type: () => User })
-  @ManyToOne(() => User, (user) => user.stay_apply, {
-    onUpdate: "CASCADE",
-    onDelete: "CASCADE",
-    eager: true,
-  })
+  @ManyToOne(
+    () => User,
+    (user) => user.stay_apply,
+    {
+      onUpdate: "CASCADE",
+      onDelete: "CASCADE",
+      eager: true,
+    },
+  )
   user: User;
 
   @DeleteDateColumn()
@@ -313,10 +368,14 @@ export class StayOuting {
   @Column("varchar", { nullable: true })
   audit_reason?: string;
 
-  @ManyToOne(() => StayApply, (stayApply) => stayApply.outing, {
-    onUpdate: "CASCADE",
-    onDelete: "CASCADE",
-  })
+  @ManyToOne(
+    () => StayApply,
+    (stayApply) => stayApply.outing,
+    {
+      onUpdate: "CASCADE",
+      onDelete: "CASCADE",
+    },
+  )
   stay_apply: StayApply;
 
   @DeleteDateColumn()

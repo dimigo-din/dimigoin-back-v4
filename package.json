@@ -6,13 +6,14 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
+    "biome": "npm run format && npm run lint",
     "build": "nest build",
-    "format": "prettier --write \"src/**/*.ts\"",
-    "predev": "npm run migration:dev",
+    "format": "biome format --write",
+    "predev": "doppler run -- npm run migration:dev",
     "prestart:prod": "npm run migration:prod",
-    "dev": "doppler run -c dev_personal -- nest start --watch",
+    "dev": "doppler run -- nest start --watch",
     "start:prod": "node dist/src/main",
-    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
+    "lint": "biome lint --write",
     "pretest:e2e": "npm run migration:test",
     "test:e2e": "jest --config ./test/jest-e2e.json -i",
     "truncate": "npx ts-node -r tsconfig-paths/register src/scripts/truncate-all.ts",
@@ -28,6 +29,7 @@
     "migration:dev": "rm -rf ./src/migrations/*; (npm run typeorm:dev migration:generate src/migrations/InitSchema -- -d src/scripts/data-source.ts && npm run typeorm:dev migration:run -- -d src/scripts/data-source.ts) || true"
   },
   "dependencies": {
+    "@biomejs/biome": "^2.3.8",
     "@keyv/redis": "^5.1.2",
     "@nestjs/axios": "^4.0.0",
     "@nestjs/cache-manager": "^3.0.1",
@@ -59,7 +61,6 @@
     "moment-timezone": "^0.5.48",
     "multer": "2.0.2",
     "nestjs-swagger-dto": "^3.8.4",
-    "node-ical": "^0.20.1",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "pg": "^8.14.1",
@@ -110,19 +111,13 @@
     "moduleNameMapper": {
       "^src/(.*)": "<rootDir>/../src/$1"
     },
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "ts"
-    ],
+    "moduleFileExtensions": ["js", "json", "ts"],
     "rootDir": "test",
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
     },
-    "collectCoverageFrom": [
-      "**/*.(t|j)s"
-    ],
+    "collectCoverageFrom": ["**/*.(t|j)s"],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
   }

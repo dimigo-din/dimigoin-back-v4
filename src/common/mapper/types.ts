@@ -43,7 +43,7 @@ export type FrigoTiming = (typeof FrigoTimingValues)[number];
 export const FacilityReportTypeValues = ["suggest", "broken", "danger"] as const;
 export type FacilityReportType = (typeof FacilityReportTypeValues)[number];
 
-/** 대기중, 검토중, 처리중, 완료, 무시됨, 실 */
+/** 대기중, 검토중, 처리중, 완료, 무시됨, 실패 */
 export const FacilityReportStatusValues = [
   "Waiting",
   "UnderReview",

@@ -36,36 +36,69 @@ export class User {
   @Column("varchar", { default: numberPermission(...StudentUserPermission) })
   permission: string;
 
-  @OneToMany(() => Login, (login) => login.user)
+  @OneToMany(
+    () => Login,
+    (login) => login.user,
+  )
   login: Login[];
 
-  @OneToMany(() => Session, (session) => session.user)
+  @OneToMany(
+    () => Session,
+    (session) => session.user,
+  )
   session: Session[];
 
-  @OneToMany(() => StayApply, (stayApply) => stayApply.user)
+  @OneToMany(
+    () => StayApply,
+    (stayApply) => stayApply.user,
+  )
   stay_apply: StayApply[];
 
-  @OneToMany(() => LaundryApply, (laundryApply) => laundryApply.user)
+  @OneToMany(
+    () => LaundryApply,
+    (laundryApply) => laundryApply.user,
+  )
   laundryApplies: LaundryApply[];
 
-  @OneToMany(() => FrigoApply, (frigo) => frigo.user)
+  @OneToMany(
+    () => FrigoApply,
+    (frigo) => frigo.user,
+  )
   frigo: FrigoApply[];
 
-  @OneToMany(() => FacilityReport, (facilityReport) => facilityReport.user)
+  @OneToMany(
+    () => FacilityReport,
+    (facilityReport) => facilityReport.user,
+  )
   facilityReport: FacilityReport[];
 
-  @OneToMany(() => FacilityReportComment, (facilityReportComment) => facilityReportComment.user)
+  @OneToMany(
+    () => FacilityReportComment,
+    (facilityReportComment) => facilityReportComment.user,
+  )
   facilityReportComment: FacilityReportComment[];
 
-  @OneToMany(() => WakeupSongApplication, (wakeupSongApplication) => wakeupSongApplication.user)
+  @OneToMany(
+    () => WakeupSongApplication,
+    (wakeupSongApplication) => wakeupSongApplication.user,
+  )
   wakeupSongApplication: WakeupSongApplication;
 
-  @OneToMany(() => WakeupSongVote, (wakeupSongVote) => wakeupSongVote.user)
+  @OneToMany(
+    () => WakeupSongVote,
+    (wakeupSongVote) => wakeupSongVote.user,
+  )
   wakeupSongVote: WakeupSongVote;
 
-  @OneToMany(() => PushSubscription, (pushSubscription) => pushSubscription.user)
+  @OneToMany(
+    () => PushSubscription,
+    (pushSubscription) => pushSubscription.user,
+  )
   pushSubscriptions: PushSubscription[];
 
-  @OneToMany(() => PushSubject, (pushSubject) => pushSubject.user)
+  @OneToMany(
+    () => PushSubject,
+    (pushSubject) => pushSubject.user,
+  )
   pushSubject: PushSubject[];
 }
