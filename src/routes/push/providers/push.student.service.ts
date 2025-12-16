@@ -38,13 +38,14 @@ export class PushStudentService {
 
     subscription.token = data.token;
     subscription.deviceId = data.deviceId;
-    subscription.subjects = PushNotificationSubjectIdentifierValues.map((i) =>
-      Object.assign(new PushSubject(), {
-        identifier: i,
-        name: PushNotificationSubject[i],
-        user: target,
-      }),
-    );
+    subscription.subjects = PushNotificationSubjectIdentifierValues.map((i) => {
+      const s = new PushSubject();
+      s.identifier = i;
+      s.name = PushNotificationSubject[i];
+      s.user = target;
+
+      return s;
+    });
     subscription.user = target;
 
     return this.pushSubscriptionRepository.save(subscription);
