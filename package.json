@@ -24,7 +24,7 @@
     "typeorm:test": "NODE_ENV=test ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
     "typeorm:dev": "NODE_ENV=dev ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
     "migration": "$(npm run truncate && rm src/migrations/* && npm run typeorm migration:generate src/migrations/InitSchema -- -d src/scripts/data-source.ts && npm run typeorm migration:run -- -d src/scripts/data-source.ts) || true",
-    "migration:prod": "(npm run typeorm:prod migration:generate src/migrations/InitSchema -- -d src/scripts/data-source.ts && npm run typeorm:prod migration:run -- -d src/scripts/data-source.ts) || true",
+    "migration:prod": "rm -rf ./src/migrations/*; (npm run typeorm:prod migration:generate src/migrations/InitSchema -- -d src/scripts/data-source.ts && npm run typeorm:prod migration:run -- -d src/scripts/data-source.ts) || true",
     "migration:test": "npm run truncate:test || true; ((rm -f src/migrations/* && npm run typeorm:test migration:generate src/migrations/InitSchema -- -d src/scripts/data-source.ts && npm run typeorm:test migration:run -- -d src/scripts/data-source.ts) || true); npm run truncate:test",
     "migration:dev": "rm -rf ./src/migrations/*; (npm run typeorm:dev migration:generate src/migrations/InitSchema -- -d src/scripts/data-source.ts && npm run typeorm:dev migration:run -- -d src/scripts/data-source.ts) || true"
   },
