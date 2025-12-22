@@ -279,11 +279,11 @@ export class LaundryManageService {
   @Cron(CronExpression.EVERY_MINUTE)
   private async laundryNotificationScheduler() {
     const now = moment().tz("Asia/Seoul");
-    const inTenMinutes = now.add(15, "minutes").format("HH:mm");
+    const inFifteenMinutes = now.add(15, "minutes").format("HH:mm");
     const applies = await this.laundryApplyRepository.find({
       where: {
         date: moment().format("YYYY-MM-DD"),
-        laundryTime: { time: inTenMinutes },
+        laundryTime: { time: inFifteenMinutes },
       },
       relations: { user: true, laundryMachine: true, laundryTime: true },
     });
