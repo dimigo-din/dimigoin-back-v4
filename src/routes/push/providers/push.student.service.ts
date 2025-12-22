@@ -31,24 +31,27 @@ export class PushStudentService {
   async upsertToken(user: UserJWT, data: CreateFCMTokenDTO) {
     const target = await safeFindOne<User>(this.userRepository, user.id);
 
-    const subscription =
-      (await this.pushSubscriptionRepository.findOne({
-        where: { user: target, deviceId: data.deviceId },
-      })) || new PushSubscription();
-
-    subscription.token = data.token;
-    subscription.deviceId = data.deviceId;
-    subscription.subjects = PushNotificationSubjectIdentifierValues.map((i) => {
-      const s = new PushSubject();
-      s.identifier = i;
-      s.name = PushNotificationSubject[i];
-      s.user = target;
-
-      return s;
+    let subscription = await this.pushSubscriptionRepository.findOne({
+      where: { user: target, deviceId: data.deviceId },
     });
-    subscription.user = target;
 
-    return this.pushSubscriptionRepository.save(subscription);
+    if (!subscription) {
+      subscription = new PushSubscription();
+      subscription.token = data.token;
+      subscription.deviceId = data.deviceId;
+      subscription.subjects = PushNotificationSubjectIdentifierValues.map((i) => {
+        const s = new PushSubject();
+        s.identifier = i;
+        s.name = PushNotificationSubject[i];
+        s.user = target;
+
+        return s;
+      });
+      subscription.user = target;
+
+      return this.pushSubscriptionRepository.save(subscription);
+    }
+    return subscription;
   }
 
   async removeToken(user: UserJWT, data: DeleteFCMTokenDTO) {
