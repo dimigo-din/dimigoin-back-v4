@@ -1,6 +1,10 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsObject, IsOptional, IsString, ValidateNested } from "class-validator";
+import {
+  PushNotificationSubjectIdentifier,
+  PushNotificationSubjectIdentifierValues,
+} from "../../../common/mapper/types";
 
 export class PushNotificationPayloadDTO {
   @ApiProperty()
@@ -10,6 +14,9 @@ export class PushNotificationPayloadDTO {
   @ApiProperty()
   @IsString()
   body: string;
+
+  @ApiProperty({ enum: PushNotificationSubjectIdentifierValues })
+  category: PushNotificationSubjectIdentifier;
 
   @ApiProperty()
   @IsString()
@@ -51,10 +58,24 @@ export class PushNotificationToSpecificDTO extends PushNotificationPayloadDTO {
   to: string[];
 }
 
-export class GetUserSubscriptionsDTO {
+export class GetSubscriptionsByCategoryDTO {
+  @ApiProperty({ enum: PushNotificationSubjectIdentifierValues })
+  category: PushNotificationSubjectIdentifier;
+}
+
+export class GetSubscriptionsByUserDTO {
   @ApiProperty({ description: "userid" })
   @IsString()
   id: string;
+}
+
+export class GetSubscriptionsByUserAndCategoryDTO {
+  @ApiProperty({ description: "userid" })
+  @IsString()
+  id: string;
+
+  @ApiProperty({ enum: PushNotificationSubjectIdentifierValues })
+  category: PushNotificationSubjectIdentifier;
 }
 
 export class PushNotificationResultResponseDTO {
