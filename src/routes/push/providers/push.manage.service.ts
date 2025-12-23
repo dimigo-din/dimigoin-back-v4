@@ -41,14 +41,14 @@ export class PushManageService {
       where: {
         subjects: { identifier: data.category },
       },
-      relations: ["subject"],
+      relations: ["subjects"],
     });
   }
 
   async getSubscriptionsByUser(data: GetSubscriptionsByUserDTO) {
     const target = await safeFindOne<User>(this.userRepository, data.id);
 
-    return await this.pushRepository.find({ where: { user: target }, relations: ["subject"] });
+    return await this.pushRepository.find({ where: { user: target }, relations: ["subjects"] });
   }
 
   async getSubscriptionsByUserAndCategory(data: GetSubscriptionsByUserAndCategoryDTO) {
@@ -59,7 +59,7 @@ export class PushManageService {
         user: target,
         subjects: { identifier: data.category },
       },
-      relations: ["subject"],
+      relations: ["subjects"],
     });
   }
 
