@@ -114,11 +114,7 @@ export class WakeupStudentService {
     const application = new WakeupSongApplication();
     application.video_id = videoData.id.videoId;
     application.video_title = videoData.snippet.title;
-    application.video_thumbnail = (
-      videoData.snippet.thumbnails.high ||
-      videoData.snippet.thumbnails.medium ||
-      videoData.snippet.thumbnails.default
-    ).url;
+    application.video_thumbnail = videoData.snippet.thumbnails.default.url;
     application.video_channel = videoData.snippet.channelTitle;
     application.week = week;
     application.gender = (await this.userManageService.checkUserDetail(user.email, {
