@@ -37,7 +37,6 @@ export class PushStudentService {
 
     if (!subscription) {
       subscription = new PushSubscription();
-      subscription.token = data.token;
       subscription.deviceId = data.deviceId;
       subscription.subjects = PushNotificationSubjectIdentifierValues.map((i) => {
         const s = new PushSubject();
@@ -48,10 +47,9 @@ export class PushStudentService {
         return s;
       });
       subscription.user = target;
-
-      return this.pushSubscriptionRepository.save(subscription);
     }
-    return subscription;
+    subscription.token = data.token;
+    return this.pushSubscriptionRepository.save(subscription);
   }
 
   async removeToken(user: UserJWT, data: DeleteFCMTokenDTO) {
