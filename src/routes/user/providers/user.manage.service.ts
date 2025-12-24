@@ -1,11 +1,9 @@
-import * as process from "node:process";
-
+import { spawn } from 'node:child_process';
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { InjectRepository } from "@nestjs/typeorm";
 import axios, { AxiosInstance } from "axios";
 import * as bcrypt from "bcrypt";
-import puppeteer from "puppeteer";
 import { Like, Repository } from "typeorm";
 
 import { PermissionType } from "../../../common/mapper/permissions";
@@ -179,60 +177,44 @@ export class UserManageService {
     return await this.userRepository.save(user);
   }
 
-  async renderHtml(data: RenderHTMLDTO) {
-    const browser =
-      process.env.NODE_ENV === "dev"
-        ? await puppeteer.launch()
-        : await puppeteer.launch({
-            executablePath: "/usr/bin/chromium-browser",
-            args: ["--disable-gpu", "--no-sandbox", "--js-flags=--noexpose_wasm,--jitless"],
-          });
-    const page = await browser.newPage();
-
-    await page.setContent(
-      `
-    <html>
-      <head>
-        <style>
-          @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR&display=swap');
-          * {
-            font-family: 'Noto Sans KR', sans-serif !important;
-          }
-          body {
-            margin: 0;
-            padding: 0;
-          }
-          .pdf-container {
-            width: 210mm;
-            height: auto;
-            padding: 10mm 15mm;
-            display: flex;
-            justify-content: center;
-          }
-          .pdf-inner {
-            width: fit-content;
-          }
-        </style>
-      </head>
-      <body>
-        <div class="pdf-container">
-          <div class="pdf-inner">
+  async renderHtml(data: RenderHTMLDTO): Promise<Buffer> {
+    const html = `
+      <html>
+        <head>
+          <meta charset="UTF-8">
+          <style>
+            @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
+            * {
+              font-family: 'Pretendard', 'Noto Sans CJK KR', sans-serif !important;
+            }
+            body { margin: 0; padding: 0; }
+            .pdf-container {
+              width: 210mm;
+              padding: 10mm 15mm;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="pdf-container">
             ${data.html}
           </div>
-        </div>
-      </body>
-    </html>
-  `,
-      { waitUntil: "networkidle0", timeout: 2000 },
-    );
+        </body>
+      </html>
+    `;
 
-    const buffer = await page.pdf({
-      format: "A4",
-      printBackground: true,
+    return new Promise((resolve, reject) => {
+      const proc = spawn('weasyprint', ['-', '-']);
+      const chunks: Buffer[] = [];
+
+      proc.stdout.on('data', (chunk) => chunks.push(chunk));
+      proc.stderr.on('data', (err) => console.error(err.toString()));
+      proc.on('close', (code) => {
+        if (code === 0) resolve(Buffer.concat(chunks));
+        else reject(new Error(`weasyprint exited with code ${code}`));
+      });
+
+      proc.stdin.write(html, 'utf-8');
+      proc.stdin.end();
     });
-
-    await browser.close();
-
-    return buffer;
   }
 }

@@ -64,7 +64,13 @@ COPY --chown=node:node . .
 
 RUN apk add --no-cache curl ca-certificates \
  && update-ca-certificates
-RUN apk add chromium
+RUN apk add --no-cache \
+    py3-weasyprint \
+    font-noto-cjk \
+    pango \
+    cairo \
+    gdk-pixbuf \
+    glib
 RUN yarn global add pm2
 RUN chmod 700 ./entrypoint.sh
 RUN wget -q -t3 'https://packages.doppler.com/public/cli/rsa.8004D9FF50437357.key' -O /etc/apk/keys/cli@doppler-8004D9FF50437357.rsa.pub && \
