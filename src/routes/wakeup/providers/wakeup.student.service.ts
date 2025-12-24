@@ -71,8 +71,8 @@ export class WakeupStudentService {
 
     const result = applications.entities.map((app, index) => ({
       ...app,
-      up: parseInt(applications.raw[index].up) || 0,
-      down: parseInt(applications.raw[index].down) || 0,
+      up: parseInt(applications.raw[index].up, 10) || 0,
+      down: parseInt(applications.raw[index].down, 10) || 0,
     }));
 
     return result;
