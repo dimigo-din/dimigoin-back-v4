@@ -129,7 +129,7 @@ export class PushManageService {
       this.logger.warn(`Removed dead FCM token: ${subscription.token}`);
     } else {
       this.logger.warn(
-        `Push send failed: ${subscription.user.id} code=${code ?? "N/A"} msg=${reason?.message ?? reason}`,
+        `Push send failed: ${(subscription.user ?? subscription).id} code=${code ?? "N/A"} msg=${reason?.message ?? reason}`,
       );
     }
   }
