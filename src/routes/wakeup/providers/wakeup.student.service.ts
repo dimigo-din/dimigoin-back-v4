@@ -56,21 +56,26 @@ export class WakeupStudentService {
 
     const applications = await this.wakeupSongApplicationRepository
       .createQueryBuilder("application")
-      .loadRelationCountAndMap("application.up", "application.wakeupSongVote", "app", (qb) =>
-        qb.andWhere("app.upvote = true"),
-      )
-      .loadRelationCountAndMap("application.down", "application.wakeupSongVote", "app", (qb) =>
-        qb.andWhere("app.upvote = false"),
-      )
+      .leftJoin("application.wakeupSongVote", "vote")
+      .select("application")
+      .addSelect("SUM(CASE WHEN vote.upvote = true THEN 1 ELSE 0 END)", "up")
+      .addSelect("SUM(CASE WHEN vote.upvote = false THEN 1 ELSE 0 END)", "down")
       .where("application.week = :week AND application.gender = :gender", {
         week: week,
         gender: (await this.userManageService.checkUserDetail(user.email, { gender: "male" }))
           ? "male"
           : "female",
       })
-      .getMany();
+      .groupBy("application.id")
+      .getRawAndEntities();
 
-    return applications;
+    const result = applications.entities.map((app, index) => ({
+      ...app,
+      up: parseInt(applications.raw[index].up, 10) || 0,
+      down: parseInt(applications.raw[index].down, 10) || 0,
+    }));
+
+    return result;
   }
 
   async registerVideo(user: UserJWT, data: RegisterVideoDTO) {
@@ -109,11 +114,7 @@ export class WakeupStudentService {
     const application = new WakeupSongApplication();
     application.video_id = videoData.id.videoId;
     application.video_title = videoData.snippet.title;
-    application.video_thumbnail = (
-      videoData.snippet.thumbnails.high ||
-      videoData.snippet.thumbnails.medium ||
-      videoData.snippet.thumbnails.default
-    ).url;
+    application.video_thumbnail = videoData.snippet.thumbnails.default.url;
     application.video_channel = videoData.snippet.channelTitle;
     application.week = week;
     application.gender = (await this.userManageService.checkUserDetail(user.email, {

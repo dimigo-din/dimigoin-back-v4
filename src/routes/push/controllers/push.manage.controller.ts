@@ -9,7 +9,7 @@ import { PermissionEnum } from "src/common/mapper/permissions";
 
 import { PushSubscription } from "../../../schemas";
 import {
-  GetUserSubscriptionsDTO,
+  GetSubscriptionsByUserDTO,
   PushNotificationPayloadDTO,
   PushNotificationResultResponseDTO,
   PushNotificationToSpecificDTO,
@@ -57,7 +57,7 @@ export class PushManageController {
     type: [PushSubscription],
   })
   @Get("/userSubscriptions")
-  async getUserSubscriptions(@Query() data: GetUserSubscriptionsDTO) {
+  async getUserSubscriptions(@Query() data: GetSubscriptionsByUserDTO) {
     return await this.pushService.getSubscriptionsByUser(data);
   }
 }

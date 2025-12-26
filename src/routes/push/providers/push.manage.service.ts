@@ -7,7 +7,9 @@ import { In, Repository } from "typeorm";
 import { safeFindOne } from "../../../common/utils/safeFindOne.util";
 import { PushSubscription, User } from "../../../schemas";
 import {
-  GetUserSubscriptionsDTO,
+  GetSubscriptionsByCategoryDTO,
+  GetSubscriptionsByUserDTO,
+  GetSubscriptionsByUserAndCategoryDTO,
   PushNotificationPayloadDTO,
   PushNotificationToSpecificDTO,
 } from "../dto/push.manage.dto";
@@ -34,21 +36,45 @@ export class PushManageService {
     }
   }
 
-  async getSubscriptionsByUser(data: GetUserSubscriptionsDTO) {
+  async getSubscriptionsByCategory(data: GetSubscriptionsByCategoryDTO) {
+    return await this.pushRepository.find({
+      where: {
+        subjects: { identifier: data.category },
+      },
+      relations: ["subjects"],
+    });
+  }
+
+  async getSubscriptionsByUser(data: GetSubscriptionsByUserDTO) {
     const target = await safeFindOne<User>(this.userRepository, data.id);
 
-    return await this.pushRepository.find({ where: { user: target }, relations: ["subject"] });
+    return await this.pushRepository.find({ where: { user: target }, relations: ["subjects"] });
+  }
+
+  async getSubscriptionsByUserAndCategory(data: GetSubscriptionsByUserAndCategoryDTO) {
+    const target = await safeFindOne<User>(this.userRepository, data.id);
+
+    return await this.pushRepository.find({
+      where: {
+        user: target,
+        subjects: { identifier: data.category },
+      },
+      relations: ["subjects"],
+    });
   }
 
   async sendToSpecificUsers(data: PushNotificationToSpecificDTO) {
-    const targets = await this.pushRepository.find({ where: { user: { id: In(data.to) } } });
-
-    return await this.sendBatch(targets, data);
+    let targets = await Promise.all(
+      data.to.map(
+        async (id) => await this.getSubscriptionsByUserAndCategory({ id, category: data.category }),
+      ),
+    );
+    return await this.sendBatch(targets.flat(), data);
   }
 
   async sendToAll(data: PushNotificationPayloadDTO) {
-    const all = await this.pushRepository.find();
-    return await this.sendBatch(all, data);
+    const targets = await this.getSubscriptionsByCategory({ category: data.category });
+    return await this.sendBatch(targets, data);
   }
 
   private async sendBatch(subscriptions: PushSubscription[], payload: PushNotificationPayloadDTO) {
@@ -103,7 +129,7 @@ export class PushManageService {
       this.logger.warn(`Removed dead FCM token: ${subscription.token}`);
     } else {
       this.logger.warn(
-        `Push send failed: ${subscription.user.id} code=${code ?? "N/A"} msg=${reason?.message ?? reason}`,
+        `Push send failed: ${(subscription.user ?? subscription).id} code=${code ?? "N/A"} msg=${reason?.message ?? reason}`,
       );
     }
   }

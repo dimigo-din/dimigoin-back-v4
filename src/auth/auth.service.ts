@@ -3,6 +3,7 @@ import * as crypto from "crypto";
 import { forwardRef, HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
+import { StringValue } from "ms";
 import { Cron, CronExpression } from "@nestjs/schedule";
 import { InjectRepository } from "@nestjs/typeorm";
 import * as bcrypt from "bcrypt";
@@ -175,7 +176,7 @@ export class AuthService {
 
   async generateJWTKeyPair(
     user: User,
-    accessExpire: string,
+    accessExpire: StringValue,
     old?: Session,
   ): Promise<{ accessToken: string; refreshToken: string }> {
     const sessionIdentifier = crypto.randomBytes(30).toString("hex");
