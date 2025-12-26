@@ -49,6 +49,7 @@ export class PushStudentService {
       subscription.user = target;
     }
     subscription.token = data.token;
+
     return this.pushSubscriptionRepository.save(subscription);
   }
 
