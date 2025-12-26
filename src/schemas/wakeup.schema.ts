@@ -15,6 +15,7 @@ import { User } from "./user.schema";
 
 @Entity()
 @Index(["video_id", "week"], { unique: true })
+@Index(["week", "gender"])
 export class WakeupSongApplication {
   @ApiProperty()
   @PrimaryGeneratedColumn("uuid")
@@ -71,6 +72,7 @@ export class WakeupSongApplication {
 
 @Entity()
 @Index(["user", "wakeupSongApplication"], { unique: true })
+@Index(["wakeupSongApplication", "upvote"])
 export class WakeupSongVote {
   @ApiProperty()
   @PrimaryGeneratedColumn("uuid")
