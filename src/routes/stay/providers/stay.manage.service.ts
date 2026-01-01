@@ -429,8 +429,8 @@ export class StayManageService {
     return await this.stayApplyRepository.save(applies);
   }
 
-  @Cron(CronExpression.EVERY_10_SECONDS)
-  // @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  // @Cron(CronExpression.EVERY_10_SECONDS)
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async syncStay() {
     // register stay
     const schedules = await this.stayScheduleRepository.find({
