@@ -10,6 +10,8 @@ import {
 } from "../mapper/permissions";
 import { deepObjectCompare } from "../utils/compare.util";
 import { numberPermission, parsePermission } from "../utils/permission.util";
+import { LaundryTimelineSchedulerValues } from "../mapper/types";
+import { LaundrySchedulePriority } from "../mapper/constants";
 
 @Injectable()
 export class ValidationService {
@@ -142,6 +144,16 @@ export class ValidationService {
     // await this.sessionRepository.clear();
     // this.logger.log("OK. Sessions cleared");
     this.logger.log("NOP");
+  }
+
+  async validateLaundrySchedulePriority(){
+    for (let trigger of LaundryTimelineSchedulerValues) {
+      if (!LaundrySchedulePriority.some((schedule) => schedule.schedule === trigger)) {
+        throw new Error(`There is a unlisted LaundryTimelineScheduler value on LaundrySchedule Priority. ${trigger}`);
+      }
+    }
+
+    this.logger.log("LaundrySchedule priority validation successful");
   }
 }
 

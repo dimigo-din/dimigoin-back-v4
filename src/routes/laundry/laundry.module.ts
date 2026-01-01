@@ -18,6 +18,7 @@ import { UserManageService } from "../user/providers";
 
 import * as controllers from "./controllers";
 import * as providers from "./providers";
+import * as schedulers from "./schedulers";
 
 @Module({
   imports: [
@@ -33,7 +34,7 @@ import * as providers from "./providers";
     ]),
   ],
   controllers: importToArray(controllers),
-  providers: [...importToArray(providers), UserManageService, PushManageService, CacheService],
+  providers: [...importToArray(providers), ...importToArray(schedulers),UserManageService, PushManageService, CacheService],
   exports: importToArray(providers),
 })
 export class LaundryModule {}

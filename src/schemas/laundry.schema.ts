@@ -3,6 +3,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   JoinTable,
   ManyToMany,
   ManyToOne,
@@ -11,11 +12,16 @@ import {
   Unique,
 } from "typeorm";
 
-import { Gender, Grade, LaundryMachineType, LaundryTimelineTrigger } from "../common/mapper/types";
+import { Gender, Grade, LaundryMachineType, LaundryTimelineSchedule } from "../common/mapper/types";
 
 import { User } from "./user.schema";
 
 @Entity()
+@Index("UQ_laundrytimeline_scheduler_not_etc", ["scheduler"], {
+  unique: true,
+  // Postgres partial unique index: allow duplicates for 'etc' (and null)
+  where: "scheduler IS NOT NULL AND scheduler <> 'etc'",
+})
 export class LaundryTimeline {
   @ApiProperty()
   @PrimaryGeneratedColumn("uuid")
@@ -26,8 +32,8 @@ export class LaundryTimeline {
   name: string;
 
   @ApiProperty({ nullable: true })
-  @Column({ nullable: true, unique: true })
-  triggeredOn: LaundryTimelineTrigger | null;
+  @Column({ nullable: true, default: "etc" })
+  scheduler: LaundryTimelineSchedule | null = "etc";
 
   @ApiProperty()
   @Column({ type: "boolean", default: false })
