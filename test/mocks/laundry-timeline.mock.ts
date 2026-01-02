@@ -6,7 +6,7 @@ import {
 export const LaundryTimelineMock = (machines: string[]) => {
   const laundryTimeline = new CreateLaundryTimelineDTO();
   laundryTimeline.name = "평상시";
-  laundryTimeline.triggeredOn = "primary";
+  laundryTimeline.scheduler = "primary";
   laundryTimeline.times = [];
 
   const laundryTime = new LaundryTimeDTO();

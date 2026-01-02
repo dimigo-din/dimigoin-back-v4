@@ -37,6 +37,9 @@ import {
   UpdateLaundryMachineDTO,
   UpdateLaundryTimelineDTO,
 } from "../dto/laundry.manage.dto";
+import { LaundrySchedulePriority } from "../../../common/mapper/constants";
+import { LaundryTimelineScheduler } from "../schedulers/scheduler.interface";
+import { ModuleRef } from "@nestjs/core";
 
 @Injectable()
 export class LaundryManageService {
@@ -55,6 +58,7 @@ export class LaundryManageService {
     private readonly laundryTimelineRepository: Repository<LaundryTimeline>,
     private readonly pushManageService: PushManageService,
     private readonly cacheService: CacheService,
+    private readonly moduleRef: ModuleRef,
   ) {}
 
   async getLaundryTimelineList() {
@@ -73,7 +77,7 @@ export class LaundryManageService {
   async createLaundryTimeline(data: CreateLaundryTimelineDTO) {
     const laundryTimeline = new LaundryTimeline();
     laundryTimeline.name = data.name;
-    laundryTimeline.triggeredOn = data.triggeredOn;
+    laundryTimeline.scheduler = data.scheduler;
 
     laundryTimeline.times = [];
     for (const time of data.times) {
@@ -98,7 +102,7 @@ export class LaundryManageService {
       relations: { times: true },
     });
     laundryTimeline.name = data.name;
-    laundryTimeline.triggeredOn = data.triggeredOn;
+    laundryTimeline.scheduler = data.scheduler;
 
     await this.laundryTimeRepository.remove(laundryTimeline.times);
     laundryTimeline.times = [];
@@ -238,9 +242,6 @@ export class LaundryManageService {
   // @Cron(CronExpression.EVERY_SECOND)
   private async laundryTimelineScheduler() {
     const timelines = await this.laundryTimelineRepository.find();
-    const timelinesByTrigger = await this.laundryTimelineRepository.find({
-      where: { triggeredOn: Not(IsNull()) },
-    });
 
     const disable = async () => {
       await this.laundryTimelineRepository.save(
@@ -251,28 +252,26 @@ export class LaundryManageService {
       );
     };
 
-    // returns when trigger triggered
-    const stayTimeline = timelinesByTrigger.find((x) => x.triggeredOn === "stay");
-    if (stayTimeline) {
-      const today = moment().tz("Asia/Seoul").format("YYYY-MM-DD");
-      const stay = await this.stayRepository.findOne({
-        where: { stay_from: LessThanOrEqual(today), stay_to: MoreThanOrEqual(today) },
-      });
-      if (stay && !stayTimeline.enabled) {
-        await disable();
-        stayTimeline.enabled = true;
-        await this.laundryTimelineRepository.save(stayTimeline);
-        return;
-      } else if (stay && stayTimeline.enabled) return;
-    }
+    for (let schedulerItem of LaundrySchedulePriority) {
+      const scheduler: LaundryTimelineScheduler = this.moduleRef.get(schedulerItem.scheduler, { strict: false });
 
-    // enable primary when function not returned so any trigger suitable for it.
-    const primary = timelinesByTrigger.find((x) => x.triggeredOn === "primary");
-    if (primary && !primary.enabled) {
-      await disable();
-      primary.enabled = true;
-      await this.laundryTimelineRepository.save(primary);
-      return;
+      const shouldEnable = await scheduler.evaluate(timelines);
+      if (shouldEnable) {
+        const target = timelines.filter((t) => t.scheduler === schedulerItem.schedule);
+        if (target.length === 1) { // not a etc
+          if (target[0].enabled === true) // already on
+            break; // keep it.
+          else {
+            await disable();
+            target[0].enabled = true;
+            await this.laundryTimelineRepository.save(target[0]); // enable it
+            break;
+          }
+        }else {
+          break; // etc and current enabled is etc
+        }
+      }
+      // continue to evaluate next
     }
   }
 

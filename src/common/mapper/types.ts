@@ -28,8 +28,8 @@ export type StaySeatTargets = (typeof StaySeatMappingValues)[number];
 export const LaundryMachineTypeValues = ["washer", "dryer"] as const;
 export type LaundryMachineType = (typeof LaundryMachineTypeValues)[number];
 
-export const LaundryTimelineTriggerValues = ["primary", "stay"] as const;
-export type LaundryTimelineTrigger = (typeof LaundryTimelineTriggerValues)[number];
+export const LaundryTimelineSchedulerValues = ["primary", "stay", "vacation", "etc"] as const;
+export type LaundryTimelineSchedule = (typeof LaundryTimelineSchedulerValues)[number];
 
 /** 종례후, 저녁, 야자1후, 야자2후 */
 export const FrigoTimingValues = [

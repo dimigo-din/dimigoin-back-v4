@@ -9,8 +9,8 @@ import {
   GradeValues,
   LaundryMachineType,
   LaundryMachineTypeValues,
-  LaundryTimelineTrigger,
-  LaundryTimelineTriggerValues,
+  LaundryTimelineSchedule,
+  LaundryTimelineSchedulerValues,
 } from "../../../common/mapper/types";
 
 export class LaundryTimelineIdDTO {
@@ -39,8 +39,8 @@ export class CreateLaundryTimelineDTO {
   name: string;
 
   @ApiProperty()
-  @IsIn(LaundryTimelineTriggerValues)
-  triggeredOn: LaundryTimelineTrigger;
+  @IsIn(LaundryTimelineSchedulerValues)
+  scheduler: LaundryTimelineSchedule;
 
   @ApiProperty({ type: [LaundryTimeDTO] })
   @ValidateNested({ each: true })

@@ -1,4 +1,13 @@
 import { generateRange } from "../utils/staySeat.util";
+import { LaundryTimelineSchedule } from "./types";
+import { LaundryTimelineScheduler } from "../../routes/laundry/schedulers/scheduler.interface";
+import {
+  EtcScheduler,
+  PrimaryScheduler,
+  StayScheduler,
+  VacationScheduler
+} from "../../routes/laundry/schedulers";
+import { Type } from "@nestjs/common";
 
 export const StaySeats = [].concat(generateRange(["A1", "L18"]), generateRange(["M1", "N7"]));
 
@@ -18,3 +27,10 @@ export const Allowed_Image_Signatures = [
 
 export const SelfDevelopment_Outing_From = (date: string) => `${date}T10:20:00.000+09:00`;
 export const SelfDevelopment_Outing_To = (date: string) => `${date}T14:00:00.000+09:00`;
+
+export const LaundrySchedulePriority: { schedule: LaundryTimelineSchedule, scheduler: Type<LaundryTimelineScheduler> }[] = [
+  { schedule: "etc", scheduler: EtcScheduler },
+  { schedule: "vacation", scheduler: VacationScheduler },
+  { schedule: "stay", scheduler: StayScheduler },
+  { schedule: "primary", scheduler: PrimaryScheduler },
+];

@@ -44,6 +44,7 @@ async function bootstrap() {
   const validationService = app.get<ValidationService>(ValidationService);
   await validationService.validatePermissionEnum();
   await validationService.validateSession();
+  await validationService.validateLaundrySchedulePriority();
 }
 
 bootstrap();

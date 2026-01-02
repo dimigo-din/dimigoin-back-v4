@@ -22,7 +22,7 @@ const typeOrmModuleOptions: TypeOrmModuleAsyncOptions = {
       database: configService.get<string>("DB_NAME"),
       entities: importToArray(entities),
       synchronize: false,
-      // logging: true,
+      logging: process.env.NODE_ENV !== "prod",
     };
   },
 };

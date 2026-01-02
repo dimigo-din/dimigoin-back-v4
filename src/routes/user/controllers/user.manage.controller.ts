@@ -112,6 +112,7 @@ export class UserManageController {
     status: HttpStatus.OK,
     type: StreamableFile,
   })
+  @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.TEACHER]))
   @Post("/renderHtml")
   async renderHtml(@Res() res, @Body() data: RenderHTMLDTO) {
     const buffer = await this.userManageService.renderHtml(data);
