@@ -147,9 +147,9 @@ export class ValidationService {
   }
 
   async validateLaundrySchedulePriority(){
-    for (let trigger of LaundryTimelineSchedulerValues) {
-      if (!LaundrySchedulePriority.some((schedule) => schedule.schedule === trigger)) {
-        throw new Error(`There is a unlisted LaundryTimelineScheduler value on LaundrySchedule Priority. ${trigger}`);
+    for (let schedule of LaundryTimelineSchedulerValues) {
+      if (!LaundrySchedulePriority.some((schedule) => schedule.schedule === schedule)) {
+        throw new Error(`There is a unlisted LaundryTimelineScheduler value on LaundrySchedule Priority. ${schedule}`);
       }
     }
 
