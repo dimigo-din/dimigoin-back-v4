@@ -25,7 +25,7 @@ export class StayScheduler extends LaundryTimelineScheduler {
       });
 
       if (stay) {
-        return true
+        return true;
       }
     }
 
