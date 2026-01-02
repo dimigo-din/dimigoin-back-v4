@@ -265,6 +265,7 @@ export class LaundryManageService {
             await disable();
             target[0].enabled = true;
             await this.laundryTimelineRepository.save(target[0]); // enable it
+            break;
           }
         }else {
           break; // etc and current enabled is etc
