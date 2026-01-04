@@ -52,9 +52,6 @@ USER node
 
 FROM base AS production
 
-ARG DEPLOY_TYPE
-ARG DOPPLER_TOKEN
-
 WORKDIR /usr/src/app
 
 # Copy the bundled code from the build stage to the production image
