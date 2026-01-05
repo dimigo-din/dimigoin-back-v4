@@ -1,8 +1,8 @@
-import { numberPermission } from '../utils/permission.util';
+import { numberPermission } from "../utils/permission.util";
 
-export const UserPermissionValues = ['STUDENT', 'TEACHER'] as const;
+export const UserPermissionValues = ["STUDENT", "TEACHER"] as const;
 
-export const ManagementPermissionValues = ['MANAGE_PERMISSION'] as const;
+export const ManagementPermissionValues = ["MANAGE_PERMISSION"] as const;
 
 // Merge permission values without duplicates
 export const PermissionValues = [

@@ -1,14 +1,14 @@
-import * as process from 'node:process';
+import * as process from "node:process";
 
-import { Body, Controller, Get, HttpStatus, Post, Query, Req, Res } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import type { FastifyReply, FastifyRequest } from 'fastify';
-import { CurrentUser } from '../common/decorators/user.decorator';
-import { ApiResponseFormat } from '../common/dto/response_format.dto';
-import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE } from '../common/mapper/constants';
-import { PermissionEnum } from '../common/mapper/permissions';
-import type { User } from '../schemas';
+import { Body, Controller, Get, HttpStatus, Post, Query, Req, Res } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { ApiOperation, ApiTags } from "@nestjs/swagger";
+import type { FastifyReply, FastifyRequest } from "fastify";
+import { CurrentUser } from "../common/decorators/user.decorator";
+import { ApiResponseFormat } from "../common/dto/response_format.dto";
+import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE } from "../common/mapper/constants";
+import { PermissionEnum } from "../common/mapper/permissions";
+import type { User } from "../schemas";
 import {
   type GoogleAppLoginDTO,
   type GoogleWebLoginDTO,
@@ -17,15 +17,15 @@ import {
   type RedirectUriDTO,
   type RefreshTokenDTO,
   type RunPersonalInformationVerifyTokenDTO,
-} from './auth.dto';
-import { AuthService } from './auth.service';
-import { CustomJwtAuthGuard } from './guards';
-import { PermissionGuard } from './guards/permission.guard';
-import { PersonalInformationVerifyTokenAuthGuard } from './guards/personalInformationVerifyToken.guard';
-import { UseGuardsWithSwagger } from './guards/useGuards';
+} from "./auth.dto";
+import { AuthService } from "./auth.service";
+import { CustomJwtAuthGuard } from "./guards";
+import { PermissionGuard } from "./guards/permission.guard";
+import { PersonalInformationVerifyTokenAuthGuard } from "./guards/personalInformationVerifyToken.guard";
+import { UseGuardsWithSwagger } from "./guards/useGuards";
 
-@ApiTags('Auth')
-@Controller('/auth')
+@ApiTags("Auth")
+@Controller("/auth")
 export class AuthController {
   constructor(
     private readonly configService: ConfigService,
@@ -33,24 +33,24 @@ export class AuthController {
   ) {}
 
   @ApiOperation({
-    summary: '핑',
-    description: '세션이 살아있는지 테스트합니다.',
+    summary: "핑",
+    description: "세션이 살아있는지 테스트합니다.",
   })
-  @Get('/ping')
+  @Get("/ping")
   @UseGuardsWithSwagger(CustomJwtAuthGuard)
   async ping() {
-    return '퐁';
+    return "퐁";
   }
 
   @ApiOperation({
-    summary: '로그인 - 비밀번호',
-    description: '비밀번호를 이용한 로그인입니다.',
+    summary: "로그인 - 비밀번호",
+    description: "비밀번호를 이용한 로그인입니다.",
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
     type: JWTResponse,
   })
-  @Post('/login/password')
+  @Post("/login/password")
   async passwordLogin(
     @Res({ passthrough: true }) res: FastifyReply,
     @Body() data: PasswordLoginDTO,
@@ -62,26 +62,26 @@ export class AuthController {
   }
 
   @ApiOperation({
-    summary: '로그인 - 구글',
-    description: '구글 OAuth2 로그인 화면으로 리다이렉트하는 Uri을 반환하는 엔드포인트입니다.',
+    summary: "로그인 - 구글",
+    description: "구글 OAuth2 로그인 화면으로 리다이렉트하는 Uri을 반환하는 엔드포인트입니다.",
   })
   @ApiResponseFormat({
     status: HttpStatus.FOUND,
   })
-  @Get('/login/google')
+  @Get("/login/google")
   async googleLogin(@Query() data: RedirectUriDTO) {
     return await this.authService.getGoogleLoginUrl(data);
   }
 
   @ApiOperation({
-    summary: '로그인 콜백 - 구글',
-    description: '구글 로그인 콜백 엔드포인트입니다.',
+    summary: "로그인 콜백 - 구글",
+    description: "구글 로그인 콜백 엔드포인트입니다.",
   })
   @ApiResponseFormat({
     status: HttpStatus.FOUND,
     type: JWTResponse,
   })
-  @Post('/login/google/callback')
+  @Post("/login/google/callback")
   async googleWebLoginCallback(
     @Res({ passthrough: true }) res: FastifyReply,
     @Body() data: GoogleWebLoginDTO,
@@ -92,14 +92,14 @@ export class AuthController {
   }
 
   @ApiOperation({
-    summary: '로그인 콜백 - 구글 앱 로그인',
-    description: '구글 앱 로그인 콜백 엔드포인트입니다.',
+    summary: "로그인 콜백 - 구글 앱 로그인",
+    description: "구글 앱 로그인 콜백 엔드포인트입니다.",
   })
   @ApiResponseFormat({
     status: HttpStatus.FOUND,
     type: JWTResponse,
   })
-  @Post('/login/google/callback/app')
+  @Post("/login/google/callback/app")
   async googleAppLoginCallback(
     @Res({ passthrough: true }) res: FastifyReply,
     @Body() data: GoogleAppLoginDTO,
@@ -110,14 +110,14 @@ export class AuthController {
   }
 
   @ApiOperation({
-    summary: '토큰 재발급',
-    description: '만료된 accessToken을 재발급받습니다.',
+    summary: "토큰 재발급",
+    description: "만료된 accessToken을 재발급받습니다.",
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
     type: JWTResponse,
   })
-  @Post('/refresh')
+  @Post("/refresh")
   async refreshToken(
     @Req() req: FastifyRequest,
     @Res({ passthrough: true }) res: FastifyReply,
@@ -125,7 +125,7 @@ export class AuthController {
   ) {
     let token: { accessToken: string; refreshToken: string };
     if (!data || !data.refreshToken) {
-      token = await this.authService.refresh(req.cookies[REFRESH_TOKEN_COOKIE] ?? '');
+      token = await this.authService.refresh(req.cookies[REFRESH_TOKEN_COOKIE] ?? "");
       this.generateCookie(res, token);
     } else {
       token = await this.authService.refresh(data.refreshToken);
@@ -134,38 +134,38 @@ export class AuthController {
   }
 
   @ApiOperation({
-    summary: '로그아웃',
-    description: '로그아웃합니다.',
+    summary: "로그아웃",
+    description: "로그아웃합니다.",
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
   })
   @UseGuardsWithSwagger(CustomJwtAuthGuard)
-  @Get('/logout')
+  @Get("/logout")
   async logout(@CurrentUser() user: User, @Res({ passthrough: true }) res: FastifyReply) {
     await this.authService.logout(user);
 
-    const sameSite = process.env.NODE_ENV !== 'dev' ? 'none' : 'lax';
+    const sameSite = process.env.NODE_ENV !== "dev" ? "none" : "lax";
     const domains =
-      process.env.NODE_ENV !== 'dev'
-        ? (this.configService.get<string>('ALLOWED_DOMAIN')?.split(',') ?? [undefined])
+      process.env.NODE_ENV !== "dev"
+        ? (this.configService.get<string>("ALLOWED_DOMAIN")?.split(",") ?? [undefined])
         : [undefined];
-    const secure = process.env.NODE_ENV !== 'dev';
+    const secure = process.env.NODE_ENV !== "dev";
 
-    res.header('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-    res.header('Pragma', 'no-cache');
-    res.header('Expires', '0');
+    res.header("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+    res.header("Pragma", "no-cache");
+    res.header("Expires", "0");
 
     for (const domain of domains) {
       res.clearCookie(ACCESS_TOKEN_COOKIE, {
-        path: '/',
+        path: "/",
         httpOnly: true,
         secure,
         sameSite,
         domain,
       });
       res.clearCookie(REFRESH_TOKEN_COOKIE, {
-        path: '/',
+        path: "/",
         httpOnly: true,
         secure,
         sameSite,
@@ -176,28 +176,28 @@ export class AuthController {
   }
 
   @ApiOperation({
-    summary: '신원확인 토큰 발급',
+    summary: "신원확인 토큰 발급",
     description:
-      '개인정보 서버에 개인정보 제공 요청을 넣을때 신원을 확인하기 위한 토큰을 발급합니다.',
+      "개인정보 서버에 개인정보 제공 요청을 넣을때 신원을 확인하기 위한 토큰을 발급합니다.",
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
   })
   @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.STUDENT]))
-  @Get('/personalInformationVerifyToken')
+  @Get("/personalInformationVerifyToken")
   async getPersonalInformationVerifyToken(@CurrentUser() user: User) {
     return await this.authService.generatePersonalInformationVerifyToken(user);
   }
 
   @ApiOperation({
-    summary: '신원확인',
-    description: '발급된 신원확인 토큰을 검증합니다.',
+    summary: "신원확인",
+    description: "발급된 신원확인 토큰을 검증합니다.",
   })
   @ApiResponseFormat({
     status: HttpStatus.CREATED,
   })
   @UseGuardsWithSwagger(PersonalInformationVerifyTokenAuthGuard)
-  @Post('/personalInformationVerifyToken')
+  @Post("/personalInformationVerifyToken")
   async runPersonalInformationVerifyToken(
     @CurrentUser() user: User,
     @Body() _data: RunPersonalInformationVerifyTokenDTO,
@@ -209,26 +209,26 @@ export class AuthController {
     res.clearCookie(ACCESS_TOKEN_COOKIE);
     res.clearCookie(REFRESH_TOKEN_COOKIE);
 
-    const sameSite = process.env.NODE_ENV !== 'dev' ? 'none' : 'lax';
+    const sameSite = process.env.NODE_ENV !== "dev" ? "none" : "lax";
     const domains =
-      process.env.NODE_ENV !== 'dev'
-        ? (this.configService.get<string>('ALLOWED_DOMAIN')?.split(',') ?? [undefined])
+      process.env.NODE_ENV !== "dev"
+        ? (this.configService.get<string>("ALLOWED_DOMAIN")?.split(",") ?? [undefined])
         : [undefined];
 
     for (const domain of domains) {
       res.setCookie(ACCESS_TOKEN_COOKIE, token.accessToken, {
-        path: '/',
+        path: "/",
         maxAge: 60 * 30,
         httpOnly: true,
-        secure: process.env.NODE_ENV !== 'dev',
+        secure: process.env.NODE_ENV !== "dev",
         sameSite,
         domain,
       });
       res.setCookie(REFRESH_TOKEN_COOKIE, token.refreshToken, {
-        path: '/',
+        path: "/",
         maxAge: 60 * 60 * 24 * 30,
         httpOnly: true,
-        secure: process.env.NODE_ENV !== 'dev',
+        secure: process.env.NODE_ENV !== "dev",
         sameSite,
         domain,
       });

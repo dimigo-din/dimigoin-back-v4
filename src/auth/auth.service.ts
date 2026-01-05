@@ -1,4 +1,4 @@
-import * as crypto from 'node:crypto';
+import * as crypto from "node:crypto";
 import {
   forwardRef,
   HttpException,
@@ -6,24 +6,24 @@ import {
   Inject,
   Injectable,
   NotFoundException,
-} from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
-import { Cron, CronExpression } from '@nestjs/schedule';
-import { InjectRepository } from '@nestjs/typeorm';
-import * as bcrypt from 'bcrypt';
-import { subMonths } from 'date-fns';
-import { OAuth2Client, type TokenPayload } from 'google-auth-library';
-import type { StringValue } from 'ms';
-import { LessThan, type Repository } from 'typeorm';
-import { ErrorMsg } from '../common/mapper/error';
-import { PermissionEnum } from '../common/mapper/permissions';
-import type { UserJWT } from '../common/mapper/types';
-import { CacheService } from '../common/modules/cache.module';
-import { hasPermission } from '../common/utils/permission.util';
-import { UserManageService } from '../routes/user/providers';
-import { Login, Session, User } from '../schemas';
-import type { JWTResponse, RedirectUriDTO } from './auth.dto';
+} from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { JwtService } from "@nestjs/jwt";
+import { Cron, CronExpression } from "@nestjs/schedule";
+import { InjectRepository } from "@nestjs/typeorm";
+import * as bcrypt from "bcrypt";
+import { subMonths } from "date-fns";
+import { OAuth2Client, type TokenPayload } from "google-auth-library";
+import type { StringValue } from "ms";
+import { LessThan, type Repository } from "typeorm";
+import { ErrorMsg } from "../common/mapper/error";
+import { PermissionEnum } from "../common/mapper/permissions";
+import type { UserJWT } from "../common/mapper/types";
+import { CacheService } from "../common/modules/cache.module";
+import { hasPermission } from "../common/utils/permission.util";
+import { UserManageService } from "../routes/user/providers";
+import { Login, Session, User } from "../schemas";
+import type { JWTResponse, RedirectUriDTO } from "./auth.dto";
 
 @Injectable()
 export class AuthService {
@@ -44,40 +44,40 @@ export class AuthService {
     private readonly sessionRepository: Repository<Session>,
   ) {
     this.genURLOauthClient = new OAuth2Client({
-      clientId: configService.get<string>('GCP_OAUTH_ID'),
+      clientId: configService.get<string>("GCP_OAUTH_ID"),
     });
     this.googleOauthClient = new OAuth2Client({
-      clientId: configService.get<string>('GCP_OAUTH_ID'),
-      clientSecret: configService.get<string>('GCP_OAUTH_SECRET'),
+      clientId: configService.get<string>("GCP_OAUTH_ID"),
+      clientSecret: configService.get<string>("GCP_OAUTH_SECRET"),
     });
   }
 
   async loginByIdPassword(id: string, password: string) {
     const login = await this.loginRepository.findOne({
-      where: { identifier1: id || '', type: 'password' },
+      where: { identifier1: id || "", type: "password" },
     });
     if (!login) {
       throw new HttpException(ErrorMsg.UserIdentifier_NotFound(), HttpStatus.UNAUTHORIZED);
     }
-    if (!bcrypt.compareSync(password, login.identifier2 ?? '')) {
+    if (!bcrypt.compareSync(password, login.identifier2 ?? "")) {
       throw new HttpException(ErrorMsg.UserIdentifier_NotMatched(), HttpStatus.UNAUTHORIZED);
     }
 
-    return await this.generateJWTKeyPair(login.user, '30m');
+    return await this.generateJWTKeyPair(login.user, "30m");
   }
 
   async getGoogleLoginUrl(data: RedirectUriDTO): Promise<string> {
     const redirect_uri = data.redirect_uri;
 
     const scopes: string[] = [
-      'openid',
-      'https://www.googleapis.com/auth/userinfo.email',
-      'https://www.googleapis.com/auth/userinfo.profile',
+      "openid",
+      "https://www.googleapis.com/auth/userinfo.email",
+      "https://www.googleapis.com/auth/userinfo.profile",
     ];
     return this.genURLOauthClient.generateAuthUrl({
-      response_type: 'code',
-      access_type: 'online',
-      prompt: 'consent',
+      response_type: "code",
+      access_type: "online",
+      prompt: "consent",
       scope: scopes,
       ...(redirect_uri ? { redirect_uri } : {}),
     });
@@ -93,7 +93,7 @@ export class AuthService {
       if (idToken) {
         const ticket = await this.googleOauthClient.verifyIdToken({
           idToken: idToken,
-          audience: this.configService.get<string>('GCP_OAUTH_ID'),
+          audience: this.configService.get<string>("GCP_OAUTH_ID"),
         });
         ticketPayload = ticket.getPayload();
       } else if (code) {
@@ -102,8 +102,8 @@ export class AuthService {
           ...(redirect_uri ? { redirect_uri } : {}),
         });
         const ticket = await this.googleOauthClient.verifyIdToken({
-          idToken: tokenRes.tokens.id_token ?? '',
-          audience: this.configService.get<string>('GCP_OAUTH_ID'),
+          idToken: tokenRes.tokens.id_token ?? "",
+          audience: this.configService.get<string>("GCP_OAUTH_ID"),
         });
         ticketPayload = ticket.getPayload();
       } else {
@@ -119,18 +119,18 @@ export class AuthService {
 
     let loginUser: User;
     const login = await this.loginRepository.findOne({
-      where: { identifier1: ticketPayload.sub, type: 'google' },
+      where: { identifier1: ticketPayload.sub, type: "google" },
     });
     if (!login) {
       loginUser = await this.userManageService.createUser({
-        loginType: 'google',
+        loginType: "google",
         identifier1: ticketPayload.sub,
         identifier2: null,
-        email: ticketPayload.email ?? '',
+        email: ticketPayload.email ?? "",
         picture:
           ticketPayload?.picture ||
-          'https://i.pinimg.com/236x/80/f6/ce/80f6ce7b8828349aa277cf3bcb19c477.jpg',
-        name: `${ticketPayload?.family_name || ''}${ticketPayload?.given_name || ''}`,
+          "https://i.pinimg.com/236x/80/f6/ce/80f6ce7b8828349aa277cf3bcb19c477.jpg",
+        name: `${ticketPayload?.family_name || ""}${ticketPayload?.given_name || ""}`,
       });
     } else {
       loginUser = login.user;
@@ -138,7 +138,7 @@ export class AuthService {
 
     if (!hasPermission(loginUser.permission, [PermissionEnum.TEACHER])) {
       const detail = await this.userManageService.checkUserDetail(loginUser.email, {
-        gender: 'male',
+        gender: "male",
       });
 
       if (detail === null) {
@@ -146,13 +146,13 @@ export class AuthService {
       }
     }
 
-    return await this.generateJWTKeyPair(loginUser, '30m');
+    return await this.generateJWTKeyPair(loginUser, "30m");
   }
 
   // Actually, we need refresh "token" not refresh jwt
   async refresh(refreshToken: string) {
     const session = await this.sessionRepository.findOne({
-      where: { refreshToken: refreshToken || '' },
+      where: { refreshToken: refreshToken || "" },
     });
     if (!session) {
       throw new HttpException(ErrorMsg.UserSession_NotFound(), HttpStatus.NOT_FOUND);
@@ -163,19 +163,19 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException("User not found");
     }
 
-    return await this.generateJWTKeyPair(user, '30m', session);
+    return await this.generateJWTKeyPair(user, "30m", session);
   }
 
   async logout(user: UserJWT) {
     const session = await this.sessionRepository.findOne({
-      where: { sessionIdentifier: user.sessionIdentifier || '' },
+      where: { sessionIdentifier: user.sessionIdentifier || "" },
     });
     // cannot be called. if called, it's a bug. (jwt strategy should catch this)
     if (!session) {
-      throw new HttpException('Cannot find valid session.', 404);
+      throw new HttpException("Cannot find valid session.", 404);
     }
 
     await this.sessionRepository.remove(session);
@@ -187,8 +187,8 @@ export class AuthService {
     return this.jwtService.signAsync(
       { email: user.email },
       {
-        expiresIn: '1m',
-        algorithm: 'HS512',
+        expiresIn: "1m",
+        algorithm: "HS512",
         secret: await this.cacheService.getPersonalInformationVerifyTokenSecret(),
       },
     );
@@ -199,15 +199,15 @@ export class AuthService {
     accessExpire: StringValue,
     old?: Session,
   ): Promise<{ accessToken: string; refreshToken: string }> {
-    const sessionIdentifier = crypto.randomBytes(30).toString('hex');
+    const sessionIdentifier = crypto.randomBytes(30).toString("hex");
 
     // refresh expire: 1 month
     const keyPair = {
       accessToken: await this.jwtService.signAsync(
         { sessionIdentifier, ...user },
-        { expiresIn: accessExpire || '10m' },
+        { expiresIn: accessExpire || "10m" },
       ),
-      refreshToken: crypto.randomBytes(128).toString('hex'),
+      refreshToken: crypto.randomBytes(128).toString("hex"),
     };
 
     const session = old || new Session();

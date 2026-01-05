@@ -1,43 +1,43 @@
-import { Injectable, Logger, type NestMiddleware } from '@nestjs/common';
-import type { FastifyReply, FastifyRequest } from 'fastify';
+import { Injectable, Logger, type NestMiddleware } from "@nestjs/common";
+import type { FastifyReply, FastifyRequest } from "fastify";
 
 @Injectable()
 export class CustomLoggerMiddleware implements NestMiddleware {
   private logger = new Logger(CustomLoggerMiddleware.name);
 
-  use(req: FastifyRequest['raw'], res: FastifyReply['raw'], next: () => void) {
+  use(req: FastifyRequest["raw"], res: FastifyReply["raw"], next: () => void) {
     const startTimestamp = Date.now();
     const reqMethod = req.method;
     const originURL = req.url;
     const httpVersion = `HTTP/${req.httpVersion}`;
-    const userAgent = req.headers['user-agent'];
+    const userAgent = req.headers["user-agent"];
     const ipAddress = req.socket?.remoteAddress;
-    const forwardedFor = Array.isArray(req.headers['x-forwarded-for'])
-      ? req.headers['x-forwarded-for'].join(' > ')
-      : (req.headers['x-forwarded-for'] || '').replace(/,/g, ' > ');
+    const forwardedFor = Array.isArray(req.headers["x-forwarded-for"])
+      ? req.headers["x-forwarded-for"].join(" > ")
+      : (req.headers["x-forwarded-for"] || "").replace(/,/g, " > ");
 
-    let authorization = '';
-    const cookies = this.parseCookies(req.headers.cookie || '');
+    let authorization = "";
+    const cookies = this.parseCookies(req.headers.cookie || "");
 
     if (
-      (typeof req.headers.authorization === 'string' &&
-        req.headers.authorization.startsWith('Bearer')) ||
-      cookies?.['access-token']
+      (typeof req.headers.authorization === "string" &&
+        req.headers.authorization.startsWith("Bearer")) ||
+      cookies?.["access-token"]
     ) {
       const authorizationTmp =
-        cookies['access-token'] || req.headers.authorization?.replace('Bearer ', '');
-      if (authorizationTmp && authorizationTmp.split('.').length === 3) {
+        cookies["access-token"] || req.headers.authorization?.replace("Bearer ", "");
+      if (authorizationTmp && authorizationTmp.split(".").length === 3) {
         try {
           authorization = `${this.parseJwt(authorizationTmp).id}(${this.parseJwt(authorizationTmp).name})`;
         } catch (_e) {
-          authorization = 'unknown';
+          authorization = "unknown";
         }
       }
     } else {
-      authorization = 'unknown';
+      authorization = "unknown";
     }
 
-    res.on('finish', () => {
+    res.on("finish", () => {
       const statusCode = res.statusCode;
       const endTimestamp = Date.now() - startTimestamp;
 
@@ -55,10 +55,10 @@ export class CustomLoggerMiddleware implements NestMiddleware {
       return cookies;
     }
 
-    cookieHeader.split(';').forEach((cookie) => {
-      const [name, ...rest] = cookie.split('=');
+    cookieHeader.split(";").forEach((cookie) => {
+      const [name, ...rest] = cookie.split("=");
       if (name && rest.length) {
-        cookies[name.trim()] = rest.join('=').trim();
+        cookies[name.trim()] = rest.join("=").trim();
       }
     });
 
@@ -66,13 +66,13 @@ export class CustomLoggerMiddleware implements NestMiddleware {
   }
 
   parseJwt(token: string) {
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const base64Url = token.split(".")[1];
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
     const jsonPayload = decodeURIComponent(
       atob(base64)
-        .split('')
+        .split("")
         .map((c) => `%${(`00${c.charCodeAt(0).toString(16)}`).slice(-2)}`)
-        .join(''),
+        .join(""),
     );
 
     return JSON.parse(jsonPayload);

@@ -1,1 +1,1 @@
-export * from './frigo.module';
+export * from "./frigo.module";

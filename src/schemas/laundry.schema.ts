@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty } from "@nestjs/swagger";
 import {
   Column,
   CreateDateColumn,
@@ -10,26 +10,26 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
   Unique,
-} from 'typeorm';
+} from "typeorm";
 
 import type {
   Gender,
   Grade,
   LaundryMachineType,
   LaundryTimelineSchedule,
-} from '../common/mapper/types';
+} from "../common/mapper/types";
 
-import { User } from './user.schema';
+import { User } from "./user.schema";
 
 @Entity()
-@Index('UQ_laundrytimeline_scheduler_not_etc', ['scheduler'], {
+@Index("UQ_laundrytimeline_scheduler_not_etc", ["scheduler"], {
   unique: true,
   // Postgres partial unique index: allow duplicates for 'etc' (and null)
   where: "scheduler IS NOT NULL AND scheduler <> 'etc'",
 })
 export class LaundryTimeline {
   @ApiProperty()
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id: string;
 
   @ApiProperty()
@@ -37,11 +37,11 @@ export class LaundryTimeline {
   name: string;
 
   @ApiProperty({ nullable: true })
-  @Column({ type: 'varchar', nullable: true, default: 'etc' })
-  scheduler: LaundryTimelineSchedule | null = 'etc';
+  @Column({ type: "varchar", nullable: true, default: "etc" })
+  scheduler: LaundryTimelineSchedule | null = "etc";
 
   @ApiProperty()
-  @Column({ type: 'boolean', default: false })
+  @Column({ type: "boolean", default: false })
   enabled: boolean;
 
   @ApiProperty({ type: () => [LaundryTime] })
@@ -49,7 +49,7 @@ export class LaundryTimeline {
     () => LaundryTime,
     (laundryTime) => laundryTime.timeline,
     {
-      cascade: ['insert', 'update'],
+      cascade: ["insert", "update"],
     },
   )
   times: LaundryTime[];
@@ -65,7 +65,7 @@ export class LaundryTimeline {
 @Entity()
 export class LaundryTime {
   @ApiProperty()
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id: string;
 
   @ApiProperty()
@@ -73,7 +73,7 @@ export class LaundryTime {
   time: string;
 
   @ApiProperty({ isArray: true })
-  @Column('int', { array: true })
+  @Column("int", { array: true })
   grade: Grade[];
 
   @ApiProperty({ type: () => [LaundryMachine] })
@@ -81,8 +81,8 @@ export class LaundryTime {
     () => LaundryMachine,
     (laundryMachine) => laundryMachine.laundryTime,
     {
-      onUpdate: 'CASCADE',
-      onDelete: 'CASCADE',
+      onUpdate: "CASCADE",
+      onDelete: "CASCADE",
       eager: true,
     },
   )
@@ -93,8 +93,8 @@ export class LaundryTime {
     () => LaundryTimeline,
     (laundryTimeline) => laundryTimeline.times,
     {
-      onUpdate: 'CASCADE',
-      onDelete: 'CASCADE',
+      onUpdate: "CASCADE",
+      onDelete: "CASCADE",
     },
   )
   timeline: LaundryTimeline;
@@ -109,10 +109,10 @@ export class LaundryTime {
 // Ahhhhhhhhhhh!!!!! this should be better!!! but.... i have no idea....
 // hahaha but i have intellij idea!
 @Entity()
-@Unique(['type', 'name'])
+@Unique(["type", "name"])
 export class LaundryMachine {
   @ApiProperty()
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id: string;
 
   @ApiProperty()
@@ -128,7 +128,7 @@ export class LaundryMachine {
   gender: Gender;
 
   @ApiProperty()
-  @Column('boolean')
+  @Column("boolean")
   enabled: boolean;
 
   @OneToMany(
@@ -147,15 +147,15 @@ export class LaundryMachine {
 }
 
 @Entity()
-@Unique(['date', 'laundryTime', 'laundryMachine'])
+@Unique(["date", "laundryTime", "laundryMachine"])
 export class LaundryApply {
   @ApiProperty()
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id: string;
 
   /** YYYY-MM-DD */
   @ApiProperty()
-  @Column('date')
+  @Column("date")
   date: string;
 
   @ApiProperty({ type: () => LaundryTimeline })
@@ -163,8 +163,8 @@ export class LaundryApply {
     () => LaundryTimeline,
     (laundryTimeline) => laundryTimeline.applies,
     {
-      onUpdate: 'CASCADE',
-      onDelete: 'CASCADE',
+      onUpdate: "CASCADE",
+      onDelete: "CASCADE",
     },
   )
   laundryTimeline: LaundryTimeline;
@@ -174,8 +174,8 @@ export class LaundryApply {
     () => LaundryTime,
     (laundryTime) => laundryTime.applies,
     {
-      onUpdate: 'CASCADE',
-      onDelete: 'CASCADE',
+      onUpdate: "CASCADE",
+      onDelete: "CASCADE",
     },
   )
   laundryTime: LaundryTime;
@@ -185,8 +185,8 @@ export class LaundryApply {
     () => LaundryMachine,
     (laundryMachine) => laundryMachine.applies,
     {
-      onUpdate: 'CASCADE',
-      onDelete: 'CASCADE',
+      onUpdate: "CASCADE",
+      onDelete: "CASCADE",
     },
   )
   laundryMachine: LaundryMachine;
@@ -196,13 +196,13 @@ export class LaundryApply {
     () => User,
     (user) => user.laundryApplies,
     {
-      onUpdate: 'CASCADE',
-      onDelete: 'CASCADE',
+      onUpdate: "CASCADE",
+      onDelete: "CASCADE",
     },
   )
   user: User;
 
   @ApiProperty()
-  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP(6)' })
+  @CreateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP(6)" })
   created_at: Date;
 }

@@ -1,7 +1,7 @@
-import { TZDate } from '@date-fns/tz';
-import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
-import { InjectRepository } from '@nestjs/typeorm';
+import { TZDate } from "@date-fns/tz";
+import { HttpException, HttpStatus, Injectable, Logger } from "@nestjs/common";
+import { Cron, CronExpression } from "@nestjs/schedule";
+import { InjectRepository } from "@nestjs/typeorm";
 import {
   addDays,
   addWeeks,
@@ -16,12 +16,12 @@ import {
   setSeconds,
   startOfDay,
   subSeconds,
-} from 'date-fns';
-import { In, IsNull, LessThan, MoreThan, MoreThanOrEqual, Not, type Repository } from 'typeorm';
+} from "date-fns";
+import { In, IsNull, LessThan, MoreThan, MoreThanOrEqual, Not, type Repository } from "typeorm";
 
-import { ErrorMsg } from '../../../common/mapper/error';
-import { safeFindOne } from '../../../common/utils/safeFindOne.util';
-import { isInRange } from '../../../common/utils/staySeat.util';
+import { ErrorMsg } from "../../../common/mapper/error";
+import { safeFindOne } from "../../../common/utils/safeFindOne.util";
+import { isInRange } from "../../../common/utils/staySeat.util";
 import {
   Stay,
   StayApply,
@@ -32,8 +32,8 @@ import {
   StaySeatPreset,
   StaySeatPresetRange,
   User,
-} from '../../../schemas';
-import { UserManageService } from '../../user/providers';
+} from "../../../schemas";
+import { UserManageService } from "../../user/providers";
 import type {
   AuditOutingDTO,
   CreateStayApplyDTO,
@@ -51,7 +51,7 @@ import type {
   UpdateStayDTO,
   UpdateStayScheduleDTO,
   UpdateStaySeatPresetDTO,
-} from '../dto/stay.manage.dto';
+} from "../dto/stay.manage.dto";
 
 @Injectable()
 export class StayManageService {
@@ -338,8 +338,8 @@ export class StayManageService {
     }); // Allow if same as previous user's seat
     if (
       staySeatCheck &&
-      (isInRange(['A1', 'L18'], staySeatCheck.stay_seat) ||
-        isInRange(['M1', 'N18'], staySeatCheck.stay_seat))
+      (isInRange(["A1", "L18"], staySeatCheck.stay_seat) ||
+        isInRange(["M1", "N18"], staySeatCheck.stay_seat))
     ) {
       throw new HttpException(ErrorMsg.StaySeat_Duplication(), HttpStatus.BAD_REQUEST);
     }
@@ -380,8 +380,8 @@ export class StayManageService {
     if (
       staySeatCheck &&
       stayApply.stay_seat.toUpperCase() !== data.stay_seat.toUpperCase() &&
-      (isInRange(['A1', 'L18'], staySeatCheck.stay_seat) ||
-        isInRange(['M1', 'N18'], staySeatCheck.stay_seat))
+      (isInRange(["A1", "L18"], staySeatCheck.stay_seat) ||
+        isInRange(["M1", "N18"], staySeatCheck.stay_seat))
     ) {
       throw new HttpException(ErrorMsg.StaySeat_Duplication(), HttpStatus.BAD_REQUEST);
     }
@@ -444,7 +444,7 @@ export class StayManageService {
   }
 
   async moveToSomewhere(data: MoveToSomewhereDTO) {
-    if (isInRange(['A1', 'L18'], data.to) || isInRange(['M1', 'N18'], data.to)) {
+    if (isInRange(["A1", "L18"], data.to) || isInRange(["M1", "N18"], data.to)) {
       throw new HttpException(ErrorMsg.ItIsStaySeat_ShouldNotBeAllowed(), HttpStatus.BAD_REQUEST);
     }
 
@@ -477,7 +477,7 @@ export class StayManageService {
             apply_end: MoreThanOrEqual(new Date()),
           },
         },
-        relations: ['parent'],
+        relations: ["parent"],
       })
     ).map((x) => x.parent.id);
 
@@ -492,7 +492,7 @@ export class StayManageService {
       stay.stay_seat_preset = target.stay_seat_preset;
       stay.parent = target;
 
-      const now = startOfDay(new TZDate(new Date(), 'Asia/Seoul'));
+      const now = startOfDay(new TZDate(new Date(), "Asia/Seoul"));
       stay.stay_apply_period = target.stay_apply_period.map((period) => {
         const p = new StayApplyPeriod_Stay();
         p.grade = period.grade;
@@ -522,8 +522,8 @@ export class StayManageService {
         to = addWeeks(to, 1);
       }
 
-      stay.stay_from = format(from, 'yyyy-MM-dd');
-      stay.stay_to = format(to, 'yyyy-MM-dd');
+      stay.stay_from = format(from, "yyyy-MM-dd");
+      stay.stay_to = format(to, "yyyy-MM-dd");
 
       let success = true;
       stay.outing_day = target.outing_day.map((day) => {
@@ -535,7 +535,7 @@ export class StayManageService {
             success = false;
           }
         }
-        return format(out, 'yyyy-MM-dd');
+        return format(out, "yyyy-MM-dd");
       });
       if (!success) {
         continue;
@@ -548,7 +548,7 @@ export class StayManageService {
     // remove previous stay
     await this.stayRepository.softRemove(
       await this.stayRepository.find({
-        where: { stay_to: LessThan(format(new Date(), 'yyyy-MM-dd')) },
+        where: { stay_to: LessThan(format(new Date(), "yyyy-MM-dd")) },
         relations: { stay_apply: { outing: true } },
       }),
     );

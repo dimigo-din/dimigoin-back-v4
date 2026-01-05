@@ -1,11 +1,11 @@
-import { PermissionEnum, type PermissionType } from '../mapper/permissions';
+import { PermissionEnum, type PermissionType } from "../mapper/permissions";
 
 export const numberPermission = (...items: number[] | PermissionType[]): number => {
   let val = 0;
   const valList = [];
   for (const item of items) {
     let fixedItem: number;
-    if (typeof item !== 'number') {
+    if (typeof item !== "number") {
       fixedItem = PermissionEnum[item] || 0;
     } else {
       fixedItem = item;
@@ -24,7 +24,7 @@ export const parsePermission = (
   numberedPermission: number | string,
   customPermissionEnum?: { [key: string]: number },
 ): PermissionType[] => {
-  if (typeof numberedPermission === 'string') {
+  if (typeof numberedPermission === "string") {
     numberedPermission = parseInt(numberedPermission, 10);
   }
 
@@ -50,7 +50,7 @@ export const hasPermission = (
   requiredPermission: number[],
   or: boolean = false,
 ) => {
-  if (typeof currentPermission === 'string') {
+  if (typeof currentPermission === "string") {
     currentPermission = parseInt(currentPermission, 10);
   }
 

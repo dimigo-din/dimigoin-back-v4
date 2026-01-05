@@ -1,11 +1,11 @@
-import { applyDecorators, type Type } from '@nestjs/common';
-import { ApiExtraModels, ApiProperty, ApiResponse } from '@nestjs/swagger';
+import { applyDecorators, type Type } from "@nestjs/common";
+import { ApiExtraModels, ApiProperty, ApiResponse } from "@nestjs/swagger";
 
 export function ApiResponseFormat<
   // biome-ignore lint/complexity/noBannedTypes: helper function
   TModel extends Type<unknown> | Function | [Function] | string,
 >(options: {
-  status: number | 'default' | '1XX' | '2XX' | '3XX' | '4XX' | '5XX';
+  status: number | "default" | "1XX" | "2XX" | "3XX" | "4XX" | "5XX";
   type?: TModel;
   description?: string;
 }) {
@@ -33,8 +33,8 @@ export function ApiResponseFormat<
     data: TModel;
   }
 
-  Object.defineProperty(WrapperDTO, 'name', {
-    value: `Wrapper_Response${type.name}${isArray ? 'Array' : ''}`,
+  Object.defineProperty(WrapperDTO, "name", {
+    value: `Wrapper_Response${type.name}${isArray ? "Array" : ""}`,
   });
 
   return applyDecorators(

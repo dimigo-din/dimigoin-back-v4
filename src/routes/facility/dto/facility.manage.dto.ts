@@ -1,14 +1,14 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsIn, IsOptional, IsString, Matches } from 'class-validator';
+import { ApiProperty } from "@nestjs/swagger";
+import { IsIn, IsOptional, IsString, Matches } from "class-validator";
 
 import {
   type FacilityReportStatus,
   FacilityReportStatusValues,
   type FacilityReportType,
   FacilityReportTypeValues,
-} from '../../../common/mapper/types';
-import { User } from '../../../schemas';
-import type { FileDTO } from './facility.dto';
+} from "../../../common/mapper/types";
+import { User } from "../../../schemas";
+import type { FileDTO } from "./facility.dto";
 
 export class ReportFacilityDTO {
   @ApiProperty()
@@ -24,10 +24,10 @@ export class ReportFacilityDTO {
   body: string;
 
   @ApiProperty({
-    type: 'array',
+    type: "array",
     items: {
-      type: 'string',
-      format: 'binary',
+      type: "string",
+      format: "binary",
     },
   })
   @IsOptional()

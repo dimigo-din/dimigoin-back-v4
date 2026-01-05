@@ -1,19 +1,19 @@
-import { fcm, type fcm_v1 } from '@googleapis/fcm';
-import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { InjectRepository } from '@nestjs/typeorm';
-import { GoogleAuth } from 'google-auth-library';
-import type { Repository } from 'typeorm';
+import { fcm, type fcm_v1 } from "@googleapis/fcm";
+import { Injectable, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { InjectRepository } from "@nestjs/typeorm";
+import { GoogleAuth } from "google-auth-library";
+import type { Repository } from "typeorm";
 
-import { safeFindOne } from '../../../common/utils/safeFindOne.util';
-import { PushSubscription, User } from '../../../schemas';
+import { safeFindOne } from "../../../common/utils/safeFindOne.util";
+import { PushSubscription, User } from "../../../schemas";
 import type {
   GetSubscriptionsByCategoryDTO,
   GetSubscriptionsByUserAndCategoryDTO,
   GetSubscriptionsByUserDTO,
   PushNotificationPayloadDTO,
   PushNotificationToSpecificDTO,
-} from '../dto/push.manage.dto';
+} from "../dto/push.manage.dto";
 
 @Injectable()
 export class PushManageService {
@@ -28,16 +28,16 @@ export class PushManageService {
     private readonly pushRepository: Repository<PushSubscription>,
     private readonly configService: ConfigService,
   ) {
-    this.projectId = this.configService.get<string>('FIREBASE_PROJECT_ID') ?? '';
+    this.projectId = this.configService.get<string>("FIREBASE_PROJECT_ID") ?? "";
     const googleAuth = new GoogleAuth({
       credentials: {
-        client_email: configService.get<string>('FIREBASE_CLIENT_EMAIL'),
-        private_key: configService.get<string>('FIREBASE_PRIVATE_KEY')?.replace(/\\n/g, '\n'),
+        client_email: configService.get<string>("FIREBASE_CLIENT_EMAIL"),
+        private_key: configService.get<string>("FIREBASE_PRIVATE_KEY")?.replace(/\\n/g, "\n"),
       },
-      scopes: ['https://www.googleapis.com/auth/firebase.messaging'],
+      scopes: ["https://www.googleapis.com/auth/firebase.messaging"],
     });
     this.fcmClient = fcm({
-      version: 'v1',
+      version: "v1",
       auth: googleAuth,
     });
   }
@@ -47,14 +47,14 @@ export class PushManageService {
       where: {
         subjects: { identifier: data.category },
       },
-      relations: ['subjects'],
+      relations: ["subjects"],
     });
   }
 
   async getSubscriptionsByUser(data: GetSubscriptionsByUserDTO) {
     const target = await safeFindOne<User>(this.userRepository, data.id);
 
-    return await this.pushRepository.find({ where: { user: target }, relations: ['subjects'] });
+    return await this.pushRepository.find({ where: { user: target }, relations: ["subjects"] });
   }
 
   async getSubscriptionsByUserAndCategory(data: GetSubscriptionsByUserAndCategoryDTO) {
@@ -65,7 +65,7 @@ export class PushManageService {
         user: target,
         subjects: { identifier: data.category },
       },
-      relations: ['subjects'],
+      relations: ["subjects"],
     });
   }
 
@@ -99,7 +99,7 @@ export class PushManageService {
 
     await Promise.all(
       results.map(async (r, i) => {
-        if (r.status === 'fulfilled') {
+        if (r.status === "fulfilled") {
           sent++;
         } else {
           failed++;
@@ -134,7 +134,7 @@ export class PushManageService {
         (error as { code?: number }).code ||
         (error as { response?: { status?: number } }).response?.status ||
         500;
-      const message = (error as Error)?.message || 'Unknown error';
+      const message = (error as Error)?.message || "Unknown error";
       throw { statusCode, message };
     }
   }
@@ -148,7 +148,7 @@ export class PushManageService {
       this.logger.warn(`Removed dead FCM token: ${subscription.token}`);
     } else {
       this.logger.warn(
-        `Push send failed: ${(subscription.user ?? subscription).id} code=${code ?? 'N/A'} msg=${(reason as Error)?.message ?? reason}`,
+        `Push send failed: ${(subscription.user ?? subscription).id} code=${code ?? "N/A"} msg=${(reason as Error)?.message ?? reason}`,
       );
     }
   }

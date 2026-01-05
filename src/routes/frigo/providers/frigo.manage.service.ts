@@ -1,18 +1,18 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { format, startOfWeek } from 'date-fns';
-import type { Repository } from 'typeorm';
+import { Injectable } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { format, startOfWeek } from "date-fns";
+import type { Repository } from "typeorm";
 
-import { safeFindOne } from '../../../common/utils/safeFindOne.util';
-import { FrigoApply, FrigoApplyPeriod, User } from '../../../schemas';
-import { UserManageService } from '../../user/providers';
+import { safeFindOne } from "../../../common/utils/safeFindOne.util";
+import { FrigoApply, FrigoApplyPeriod, User } from "../../../schemas";
+import { UserManageService } from "../../user/providers";
 import type {
   AuditFrigoApply,
   FrigoApplyDTO,
   FrigoApplyIdDTO,
   FrigoApplyPeriodIdDTO,
   SetFrigoApplyPeriodDTO,
-} from '../dto/frigo.manage.dto';
+} from "../dto/frigo.manage.dto";
 
 @Injectable()
 export class FrigoManageService {
@@ -50,7 +50,7 @@ export class FrigoManageService {
   }
 
   async getApplyList() {
-    const week = format(startOfWeek(new Date()), 'yyyy-MM-dd');
+    const week = format(startOfWeek(new Date()), "yyyy-MM-dd");
     return await this.frigoApplyRepository.find({ where: { week: week } });
   }
 
@@ -58,7 +58,7 @@ export class FrigoManageService {
   async apply(data: FrigoApplyDTO) {
     const user = await safeFindOne<User>(this.userRepository, data.user);
 
-    const week = format(startOfWeek(new Date()), 'yyyy-MM-dd');
+    const week = format(startOfWeek(new Date()), "yyyy-MM-dd");
     const exists = await this.frigoApplyRepository.findOne({
       where: { week: week, user: { id: user.id } },
     });

@@ -1,28 +1,28 @@
-import * as process from 'node:process';
+import * as process from "node:process";
 
-import { Module } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { TypeOrmModule, type TypeOrmModuleAsyncOptions } from '@nestjs/typeorm';
-import importToArray from 'import-to-array';
+import { Module } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { TypeOrmModule, type TypeOrmModuleAsyncOptions } from "@nestjs/typeorm";
+import importToArray from "import-to-array";
 
-import * as entities from 'src/schemas';
+import * as entities from "src/schemas";
 
-import { CustomConfigModule } from './config.module';
+import { CustomConfigModule } from "./config.module";
 
 const typeOrmModuleOptions: TypeOrmModuleAsyncOptions = {
   imports: [CustomConfigModule],
   inject: [ConfigService],
   useFactory: async (configService: ConfigService) => {
     return {
-      type: 'postgres' as const,
-      host: configService.get<string>('DB_HOST'),
-      port: configService.get<number>('DB_PORT'),
-      username: configService.get<string>('DB_USER'),
-      password: configService.get<string>('DB_PASS'),
-      database: configService.get<string>('DB_NAME'),
+      type: "postgres" as const,
+      host: configService.get<string>("DB_HOST"),
+      port: configService.get<number>("DB_PORT"),
+      username: configService.get<string>("DB_USER"),
+      password: configService.get<string>("DB_PASS"),
+      database: configService.get<string>("DB_NAME"),
       entities: importToArray(entities),
       synchronize: false,
-      logging: process.env.NODE_ENV !== 'prod',
+      logging: process.env.NODE_ENV !== "prod",
     };
   },
 };

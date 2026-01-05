@@ -1,6 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { pick } from 'lodash';
-import type { ClusterDto, Deployment } from 'src/common/dto';
+import { Injectable, Logger } from "@nestjs/common";
+import { pick } from "lodash";
+import type { ClusterDto, Deployment } from "src/common/dto";
 
 @Injectable()
 export class AppService {
@@ -8,10 +8,10 @@ export class AppService {
   private readonly logger = new Logger(AppService.name);
 
   private DisplayMode = {
-    dev: 'Development Mode',
-    test: 'Test Mode',
-    prod: 'Production Mode',
-    stg: 'Stage Mode',
+    dev: "Development Mode",
+    test: "Test Mode",
+    prod: "Production Mode",
+    stg: "Stage Mode",
   };
 
   async onModuleInit() {
@@ -29,9 +29,9 @@ export class AppService {
     }
 
     const packageFile = await import(`${process.cwd()}/package.json`);
-    const packageInfo = pick(packageFile, ['name', 'version', 'description', 'author']);
+    const packageInfo = pick(packageFile, ["name", "version", "description", "author"]);
 
-    const mode = (process.env.NODE_ENV as Deployment) || 'prod';
+    const mode = (process.env.NODE_ENV as Deployment) || "prod";
 
     this.cluster = { ...packageInfo, mode };
     return this.cluster;

@@ -8,7 +8,7 @@ export const deepObjectCompare = (...objects: unknown[]) => {
   function compare2Objects(x: unknown, y: unknown) {
     let p: unknown;
 
-    if (Number.isNaN(x) && Number.isNaN(y) && typeof x === 'number' && typeof y === 'number') {
+    if (Number.isNaN(x) && Number.isNaN(y) && typeof x === "number" && typeof y === "number") {
       return true;
     }
 
@@ -17,7 +17,7 @@ export const deepObjectCompare = (...objects: unknown[]) => {
     }
 
     if (
-      (typeof x === 'function' && typeof y === 'function') ||
+      (typeof x === "function" && typeof y === "function") ||
       (x instanceof Date && y instanceof Date) ||
       (x instanceof RegExp && y instanceof RegExp) ||
       (x instanceof String && y instanceof String) ||
@@ -66,8 +66,8 @@ export const deepObjectCompare = (...objects: unknown[]) => {
       }
 
       switch (typeof x[p]) {
-        case 'object':
-        case 'function':
+        case "object":
+        case "function":
           leftChain.push(x);
           rightChain.push(y);
 

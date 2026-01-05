@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty } from "@nestjs/swagger";
 import {
   Column,
   CreateDateColumn,
@@ -8,11 +8,11 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
   Unique,
-} from 'typeorm';
+} from "typeorm";
 
-import type { Grade, StaySeatTargets } from '../common/mapper/types';
+import type { Grade, StaySeatTargets } from "../common/mapper/types";
 
-import { User } from './user.schema';
+import { User } from "./user.schema";
 
 // I think my schema naming is like shit.
 // someone who have better idea, plz improve these shits
@@ -20,7 +20,7 @@ import { User } from './user.schema';
 @Entity()
 export class StaySeatPreset {
   @ApiProperty()
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id: string;
 
   @ApiProperty()
@@ -28,7 +28,7 @@ export class StaySeatPreset {
   name: string;
 
   @ApiProperty()
-  @Column('boolean')
+  @Column("boolean")
   only_readingRoom: boolean;
 
   @ApiProperty({ type: () => [StaySeatPresetRange] })
@@ -49,7 +49,7 @@ export class StaySeatPreset {
 @Entity()
 export class StaySeatPresetRange {
   @ApiProperty()
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id: string;
 
   @ApiProperty()
@@ -64,8 +64,8 @@ export class StaySeatPresetRange {
     () => StaySeatPreset,
     (staySeatPreset) => staySeatPreset.stay_seat,
     {
-      onUpdate: 'CASCADE',
-      onDelete: 'CASCADE',
+      onUpdate: "CASCADE",
+      onDelete: "CASCADE",
     },
   )
   stay_seat_preset: StaySeatPreset;
@@ -76,7 +76,7 @@ export class StaySeatPresetRange {
 @Entity() // generating "Stay" periodically by cron
 export class StaySchedule {
   @ApiProperty()
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id: string;
 
   /** key */
@@ -90,28 +90,28 @@ export class StaySchedule {
     (stayApplyPeriod_StaySchedule) => stayApplyPeriod_StaySchedule.stay_schedule,
     {
       eager: true,
-      cascade: ['insert', 'update'],
+      cascade: ["insert", "update"],
     },
   )
   stay_apply_period: StayApplyPeriod_StaySchedule[];
 
   /** weekday (sunday is 0) */
-  @ApiProperty({ description: 'weekday (sunday is 0)' })
+  @ApiProperty({ description: "weekday (sunday is 0)" })
   @Column()
   stay_from: number;
 
   /** weekday (sunday is 0) */
-  @ApiProperty({ description: 'weekday (sunday is 0)' })
+  @ApiProperty({ description: "weekday (sunday is 0)" })
   @Column()
   stay_to: number;
 
   /** ex) 0,1,2 <= sunday, monday, tuesday */
-  @ApiProperty({ description: 'ex) 0,1,2 <= sunday, monday, tuesday' })
-  @Column('int', { array: true })
+  @ApiProperty({ description: "ex) 0,1,2 <= sunday, monday, tuesday" })
+  @Column("int", { array: true })
   outing_day: number[];
 
   @ApiProperty()
-  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP(6)' })
+  @CreateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP(6)" })
   created_at: Date;
 
   @ApiProperty({ type: () => StaySeatPreset })
@@ -129,17 +129,17 @@ export class StaySchedule {
     () => Stay,
     (stay) => stay.parent,
     {
-      cascade: ['insert', 'update'],
+      cascade: ["insert", "update"],
     },
   )
   children: Stay[];
 }
 
 @Entity()
-@Unique(['name', 'stay_from', 'stay_to'])
+@Unique(["name", "stay_from", "stay_to"])
 export class Stay {
   @ApiProperty()
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id: string;
 
   @ApiProperty()
@@ -148,17 +148,17 @@ export class Stay {
 
   /** YYYY-MM-DD */
   @ApiProperty()
-  @Column('date')
+  @Column("date")
   stay_from: string;
 
   /** YYYY-MM-DD */
   @ApiProperty()
-  @Column('date')
+  @Column("date")
   stay_to: string;
 
   /** ex) YYYY-MM-DD */
   @ApiProperty()
-  @Column('text', { array: true })
+  @Column("text", { array: true })
   outing_day: string[];
 
   @ApiProperty({ type: () => [StayApplyPeriod_Stay] })
@@ -166,7 +166,7 @@ export class Stay {
     () => StayApplyPeriod_Stay,
     (stayApplyPeriod_Stay) => stayApplyPeriod_Stay.stay,
     {
-      cascade: ['insert', 'update'],
+      cascade: ["insert", "update"],
       eager: true,
     },
   )
@@ -179,7 +179,7 @@ export class Stay {
     (staySeatPreset) => staySeatPreset.stay_schedule,
     {
       eager: true,
-      onUpdate: 'CASCADE',
+      onUpdate: "CASCADE",
       nullable: true,
     },
   )
@@ -190,7 +190,7 @@ export class Stay {
     () => StayApply,
     (stay_apply) => stay_apply.stay,
     {
-      cascade: ['soft-remove', 'recover'],
+      cascade: ["soft-remove", "recover"],
     },
   )
   stay_apply: StayApply[];
@@ -210,70 +210,70 @@ export class Stay {
 @Entity()
 export class StayApplyPeriod_StaySchedule {
   @ApiProperty()
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id: string;
 
   @ApiProperty()
-  @Column('int')
+  @Column("int")
   grade: Grade;
 
   /** weekday (sunday is 0) */
   @ApiProperty()
-  @Column('int')
+  @Column("int")
   apply_start_day: number;
 
   /** 24h */
   @ApiProperty()
-  @Column('int')
+  @Column("int")
   apply_start_hour: number;
 
   /** weekday (sunday is 0) */
   @ApiProperty()
-  @Column('int')
+  @Column("int")
   apply_end_day: number;
 
   /** 24h */
   @ApiProperty()
-  @Column('int')
+  @Column("int")
   apply_end_hour: number;
 
   @ManyToOne(
     () => StaySchedule,
     (staySchedule) => staySchedule.stay_apply_period,
     {
-      onUpdate: 'CASCADE',
-      onDelete: 'CASCADE',
+      onUpdate: "CASCADE",
+      onDelete: "CASCADE",
     },
   )
   stay_schedule: StaySchedule;
 }
 @Entity()
-@Unique(['stay', 'grade'])
+@Unique(["stay", "grade"])
 export class StayApplyPeriod_Stay {
   @ApiProperty()
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id: string;
 
   @ApiProperty()
-  @Column('int')
+  @Column("int")
   grade: Grade;
 
   /** YYYY-MM-DDTHH:mm */
   @ApiProperty()
-  @Column('timestamptz')
+  @Column("timestamptz")
   apply_start: Date;
 
   /** YYYY-MM-DDTHH:mm */
   @ApiProperty()
-  @Column('timestamptz')
+  @Column("timestamptz")
   apply_end: Date;
 
   @ManyToOne(
     () => Stay,
     (stay) => stay.stay_apply_period,
     {
-      onUpdate: 'CASCADE',
-      onDelete: 'CASCADE',
+      onUpdate: "CASCADE",
+      onDelete: "CASCADE",
       nullable: true,
     },
   )
@@ -281,10 +281,10 @@ export class StayApplyPeriod_Stay {
 }
 
 @Entity()
-@Unique(['stay', 'user'])
+@Unique(["stay", "user"])
 export class StayApply {
   @ApiProperty()
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id: string;
 
   @ApiProperty()
@@ -295,8 +295,8 @@ export class StayApply {
     () => Stay,
     (stay) => stay.stay_apply,
     {
-      onUpdate: 'CASCADE',
-      onDelete: 'CASCADE',
+      onUpdate: "CASCADE",
+      onDelete: "CASCADE",
     },
   )
   stay: Stay;
@@ -306,7 +306,7 @@ export class StayApply {
     () => StayOuting,
     (stayOuting) => stayOuting.stay_apply,
     {
-      cascade: ['insert', 'update', 'soft-remove', 'recover'],
+      cascade: ["insert", "update", "soft-remove", "recover"],
       eager: true,
     },
   )
@@ -317,8 +317,8 @@ export class StayApply {
     () => User,
     (user) => user.stay_apply,
     {
-      onUpdate: 'CASCADE',
-      onDelete: 'CASCADE',
+      onUpdate: "CASCADE",
+      onDelete: "CASCADE",
       eager: true,
     },
   )
@@ -331,7 +331,7 @@ export class StayApply {
 @Entity()
 export class StayOuting {
   @ApiProperty()
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id: string;
 
   @ApiProperty()
@@ -339,15 +339,15 @@ export class StayOuting {
   reason: string;
 
   @ApiProperty()
-  @Column('boolean')
+  @Column("boolean")
   breakfast_cancel: boolean;
 
   @ApiProperty()
-  @Column('boolean')
+  @Column("boolean")
   lunch_cancel: boolean;
 
   @ApiProperty()
-  @Column('boolean')
+  @Column("boolean")
   dinner_cancel: boolean;
 
   /** YYYY-MM-DDTHH:mm */
@@ -361,19 +361,19 @@ export class StayOuting {
   to: string;
 
   @ApiProperty({ nullable: true })
-  @Column('boolean', { nullable: true })
+  @Column("boolean", { nullable: true })
   approved: boolean | null;
 
   @ApiProperty({ nullable: true })
-  @Column('varchar', { nullable: true })
+  @Column("varchar", { nullable: true })
   audit_reason: string | null;
 
   @ManyToOne(
     () => StayApply,
     (stayApply) => stayApply.outing,
     {
-      onUpdate: 'CASCADE',
-      onDelete: 'CASCADE',
+      onUpdate: "CASCADE",
+      onDelete: "CASCADE",
     },
   )
   stay_apply: StayApply;

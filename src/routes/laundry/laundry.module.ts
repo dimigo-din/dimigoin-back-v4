@@ -1,8 +1,8 @@
-import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import importToArray from 'import-to-array';
+import { Module } from "@nestjs/common";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import importToArray from "import-to-array";
 
-import { CacheService } from '../../common/modules/cache.module';
+import { CacheService } from "../../common/modules/cache.module";
 import {
   LaundryApply,
   LaundryMachine,
@@ -12,13 +12,13 @@ import {
   PushSubscription,
   Stay,
   User,
-} from '../../schemas';
-import { PushManageService } from '../push/providers';
-import { UserManageService } from '../user/providers';
+} from "../../schemas";
+import { PushManageService } from "../push/providers";
+import { UserManageService } from "../user/providers";
 
-import * as controllers from './controllers';
-import * as providers from './providers';
-import * as schedulers from './schedulers';
+import * as controllers from "./controllers";
+import * as providers from "./providers";
+import * as schedulers from "./schedulers";
 
 @Module({
   imports: [

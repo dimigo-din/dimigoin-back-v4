@@ -1,10 +1,10 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsIn, IsString } from 'class-validator';
+import { ApiProperty } from "@nestjs/swagger";
+import { IsIn, IsString } from "class-validator";
 
 import {
   type PushNotificationSubjectIdentifier,
   PushNotificationSubjectIdentifierValues,
-} from '../../../common/mapper/types';
+} from "../../../common/mapper/types";
 
 export class CreateFCMTokenDTO {
   @ApiProperty()

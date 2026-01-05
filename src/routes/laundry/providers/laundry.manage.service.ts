@@ -1,14 +1,14 @@
-import { TZDate } from '@date-fns/tz';
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { ModuleRef } from '@nestjs/core';
-import { Cron, CronExpression } from '@nestjs/schedule';
-import { InjectRepository } from '@nestjs/typeorm';
-import { addMinutes, format } from 'date-fns';
-import { In, type Repository } from 'typeorm';
-import { LaundrySchedulePriority } from '../../../common/mapper/constants';
-import { ErrorMsg } from '../../../common/mapper/error';
-import { CacheService } from '../../../common/modules/cache.module';
-import { safeFindOne } from '../../../common/utils/safeFindOne.util';
+import { TZDate } from "@date-fns/tz";
+import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
+import { ModuleRef } from "@nestjs/core";
+import { Cron, CronExpression } from "@nestjs/schedule";
+import { InjectRepository } from "@nestjs/typeorm";
+import { addMinutes, format } from "date-fns";
+import { In, type Repository } from "typeorm";
+import { LaundrySchedulePriority } from "../../../common/mapper/constants";
+import { ErrorMsg } from "../../../common/mapper/error";
+import { CacheService } from "../../../common/modules/cache.module";
+import { safeFindOne } from "../../../common/utils/safeFindOne.util";
 import {
   LaundryApply,
   LaundryMachine,
@@ -16,9 +16,9 @@ import {
   LaundryTimeline,
   Stay,
   User,
-} from '../../../schemas';
-import { PushNotificationToSpecificDTO } from '../../push/dto/push.manage.dto';
-import { PushManageService } from '../../push/providers';
+} from "../../../schemas";
+import { PushNotificationToSpecificDTO } from "../../push/dto/push.manage.dto";
+import { PushManageService } from "../../push/providers";
 import type {
   CreateLaundryApplyDTO,
   CreateLaundryMachineDTO,
@@ -29,8 +29,8 @@ import type {
   UpdateLaundryApplyDTO,
   UpdateLaundryMachineDTO,
   UpdateLaundryTimelineDTO,
-} from '../dto/laundry.manage.dto';
-import type { LaundryTimelineScheduler } from '../schedulers/scheduler.interface';
+} from "../dto/laundry.manage.dto";
+import type { LaundryTimelineScheduler } from "../schedulers/scheduler.interface";
 
 @Injectable()
 export class LaundryManageService {
@@ -167,7 +167,7 @@ export class LaundryManageService {
 
   async getLaundryApplyList() {
     return await this.laundryApplyRepository.find({
-      where: { laundryTimeline: { enabled: true }, date: format(new Date(), 'yyyy-MM-dd') },
+      where: { laundryTimeline: { enabled: true }, date: format(new Date(), "yyyy-MM-dd") },
       relations: { user: true, laundryMachine: true, laundryTime: true, laundryTimeline: true },
     });
   }
@@ -189,7 +189,7 @@ export class LaundryManageService {
     const applyExists = await this.laundryApplyRepository.findOne({ where: { user: user } });
     if (applyExists) {
       throw new HttpException(
-        ErrorMsg.LaundryApply_AlreadyExists(laundryMachine.type === 'washer' ? '세탁' : '건조'),
+        ErrorMsg.LaundryApply_AlreadyExists(laundryMachine.type === "washer" ? "세탁" : "건조"),
         HttpStatus.BAD_REQUEST,
       );
     }
@@ -201,7 +201,7 @@ export class LaundryManageService {
       throw new HttpException(ErrorMsg.LaundryMachine_AlreadyTaken(), HttpStatus.BAD_REQUEST);
     }
 
-    const date = format(new Date(), 'yyyy-MM-dd');
+    const date = format(new Date(), "yyyy-MM-dd");
 
     const laundryApply = new LaundryApply();
     laundryApply.date = date;
@@ -274,10 +274,10 @@ export class LaundryManageService {
   @Cron(CronExpression.EVERY_MINUTE)
   private async laundryNotificationScheduler() {
     const now = new Date();
-    const inFifteenMinutes = format(addMinutes(new TZDate(now, 'Asia/Seoul'), 15), 'HH:mm');
+    const inFifteenMinutes = format(addMinutes(new TZDate(now, "Asia/Seoul"), 15), "HH:mm");
     const applies = await this.laundryApplyRepository.find({
       where: {
-        date: format(new TZDate(now, 'Asia/Seoul'), 'yyyy-MM-dd'),
+        date: format(new TZDate(now, "Asia/Seoul"), "yyyy-MM-dd"),
         laundryTime: { time: inFifteenMinutes },
       },
       relations: { user: true, laundryMachine: true, laundryTime: true },
@@ -290,7 +290,7 @@ export class LaundryManageService {
 
       const user = apply.user;
 
-      const machineType = apply.laundryMachine.type === 'washer' ? '세탁' : '건조';
+      const machineType = apply.laundryMachine.type === "washer" ? "세탁" : "건조";
       const title = `${machineType} 알림`;
       const body = `15분뒤 ${apply.laundryTime.time}에 ${machineType}이 예약되어 있습니다. (${apply.laundryMachine.name})`;
 
@@ -298,12 +298,12 @@ export class LaundryManageService {
         to: [user.id],
         title: title,
         body: body,
-        category: 'Laundry',
-        url: '/laundry',
+        category: "Laundry",
+        url: "/laundry",
         data: undefined,
         actions: [],
-        icon: 'https://dimigoin.io/dimigoin.png',
-        badge: 'https://dimigoin.io/dimigoin.png',
+        icon: "https://dimigoin.io/dimigoin.png",
+        badge: "https://dimigoin.io/dimigoin.png",
       };
 
       await this.pushManageService.sendToSpecificUsers(dto);

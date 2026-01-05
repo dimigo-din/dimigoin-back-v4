@@ -1,1 +1,1 @@
-export * from './laundry.module';
+export * from "./laundry.module";

@@ -1,22 +1,22 @@
-import fs from 'node:fs';
-import path from 'node:path';
+import fs from "node:fs";
+import path from "node:path";
 
-import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import type { Repository } from 'typeorm';
+import { HttpException, HttpStatus, Injectable, NotFoundException } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import type { Repository } from "typeorm";
 
-import { ErrorMsg } from '../../../common/mapper/error';
-import type { UserJWT } from '../../../common/mapper/types';
-import { safeFindOne } from '../../../common/utils/safeFindOne.util';
-import { FacilityImg, FacilityReport, FacilityReportComment, User } from '../../../schemas';
-import type { FileDTO } from '../dto/facility.dto';
+import { ErrorMsg } from "../../../common/mapper/error";
+import type { UserJWT } from "../../../common/mapper/types";
+import { safeFindOne } from "../../../common/utils/safeFindOne.util";
+import { FacilityImg, FacilityReport, FacilityReportComment, User } from "../../../schemas";
+import type { FileDTO } from "../dto/facility.dto";
 import type {
   FacilityImgIdDTO,
   FacilityReportIdDTO,
   GetReportListDTO,
   PostCommentDTO,
   ReportFacilityDTO,
-} from '../dto/facility.student.dto';
+} from "../dto/facility.student.dto";
 
 @Injectable()
 export class FacilityStudentService {
@@ -35,7 +35,7 @@ export class FacilityStudentService {
     const img = await safeFindOne<FacilityImg>(this.facilityImgRepository, data.id);
 
     return {
-      stream: fs.createReadStream(path.join(process.cwd(), 'uploads/facility', img.location)),
+      stream: fs.createReadStream(path.join(process.cwd(), "uploads/facility", img.location)),
       filename: img.name,
     };
   }
@@ -43,10 +43,10 @@ export class FacilityStudentService {
   async reportList(data: GetReportListDTO) {
     return (
       await this.facilityReportRepository.find({
-        relations: ['user'],
+        relations: ["user"],
         take: 10,
         skip: (data.page ? data.page - 1 : 0) * 10,
-        order: { created_at: 'DESC' },
+        order: { created_at: "DESC" },
       })
     ).map((r) => {
       return { ...r, user: { id: r.user.id } };
@@ -55,17 +55,17 @@ export class FacilityStudentService {
 
   async getReport(data: FacilityReportIdDTO) {
     const report = await this.facilityReportRepository
-      .createQueryBuilder('report')
-      .leftJoinAndSelect('report.comment', 'comment')
-      .leftJoinAndSelect('report.file', 'file')
-      .leftJoinAndSelect('report.user', 'user')
-      .loadRelationIdAndMap('comment.parentId', 'comment.parent')
-      .loadRelationIdAndMap('comment.commentParentId', 'comment.comment_parent')
-      .where('report.id = :id', { id: data.id })
+      .createQueryBuilder("report")
+      .leftJoinAndSelect("report.comment", "comment")
+      .leftJoinAndSelect("report.file", "file")
+      .leftJoinAndSelect("report.user", "user")
+      .loadRelationIdAndMap("comment.parentId", "comment.parent")
+      .loadRelationIdAndMap("comment.commentParentId", "comment.comment_parent")
+      .where("report.id = :id", { id: data.id })
       .getOne();
 
     if (!report) {
-      throw new NotFoundException('Report not found');
+      throw new NotFoundException("Report not found");
     }
 
     return report;
@@ -84,7 +84,7 @@ export class FacilityStudentService {
     for (const file of files) {
       const img = new FacilityImg();
       img.name = file.originalname;
-      img.location = file.filename ?? '';
+      img.location = file.filename ?? "";
       img.parent = facilityReport;
 
       imgs.push(img);
@@ -102,7 +102,7 @@ export class FacilityStudentService {
     const parentComment = data.parent_comment
       ? await safeFindOne<FacilityReportComment>(this.facilityReportCommentRepository, {
           where: { id: data.parent_comment },
-          relations: ['parent'],
+          relations: ["parent"],
         })
       : null;
     if (parentComment && parentComment.parent.id !== data.post) {

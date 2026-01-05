@@ -1,5 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsString } from 'nestjs-swagger-dto';
+import { ApiProperty } from "@nestjs/swagger";
+import { IsString } from "nestjs-swagger-dto";
 
 export class PasswordLoginDTO {
   @ApiProperty()

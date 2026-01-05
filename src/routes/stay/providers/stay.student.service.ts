@@ -1,16 +1,16 @@
-import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { isEqual } from 'date-fns';
-import { LessThanOrEqual, MoreThanOrEqual, type Repository } from 'typeorm';
+import { HttpException, HttpStatus, Injectable, NotFoundException } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { isEqual } from "date-fns";
+import { LessThanOrEqual, MoreThanOrEqual, type Repository } from "typeorm";
 
 import {
   SelfDevelopment_Outing_From,
   SelfDevelopment_Outing_To,
-} from '../../../common/mapper/constants';
-import { ErrorMsg } from '../../../common/mapper/error';
-import type { Gender, Grade, UserJWT } from '../../../common/mapper/types';
-import { safeFindOne } from '../../../common/utils/safeFindOne.util';
-import { isInRange } from '../../../common/utils/staySeat.util';
+} from "../../../common/mapper/constants";
+import { ErrorMsg } from "../../../common/mapper/error";
+import type { Gender, Grade, UserJWT } from "../../../common/mapper/types";
+import { safeFindOne } from "../../../common/utils/safeFindOne.util";
+import { isInRange } from "../../../common/utils/staySeat.util";
 import {
   Stay,
   StayApply,
@@ -18,8 +18,8 @@ import {
   StayOuting,
   type StaySeatPreset,
   User,
-} from '../../../schemas';
-import { UserManageService } from '../../user/providers';
+} from "../../../schemas";
+import { UserManageService } from "../../user/providers";
 import type {
   AddStayOutingDTO,
   CreateUserStayApplyDTO,
@@ -27,7 +27,7 @@ import type {
   GetStayListDTO,
   StayIdDTO,
   StayOutingIdDTO,
-} from '../dto/stay.student.dto';
+} from "../dto/stay.student.dto";
 
 @Injectable()
 export class StayStudentService {
@@ -48,27 +48,27 @@ export class StayStudentService {
     const _now = new Date().toISOString();
 
     const stays = await this.stayRepository
-      .createQueryBuilder('stay')
-      .innerJoin('stay.stay_apply_period', 'stay_apply_period')
-      .leftJoin('stay.stay_apply', 'stay_apply')
-      .leftJoin('stay_apply.user', 'user')
-      .leftJoin('stay.stay_seat_preset', 'stay_seat_preset')
-      .leftJoin('stay_seat_preset.stay_seat', 'stay_seat')
+      .createQueryBuilder("stay")
+      .innerJoin("stay.stay_apply_period", "stay_apply_period")
+      .leftJoin("stay.stay_apply", "stay_apply")
+      .leftJoin("stay_apply.user", "user")
+      .leftJoin("stay.stay_seat_preset", "stay_seat_preset")
+      .leftJoin("stay_seat_preset.stay_seat", "stay_seat")
       .select([
-        'stay.id',
-        'stay.name',
-        'stay.stay_from',
-        'stay.stay_to',
-        'stay.outing_day',
-        'stay_apply.id',
-        'stay_apply.stay_seat',
-        'stay_seat_preset',
-        'stay_seat',
-        'stay_apply_period',
-        'user.id',
-        'user.name',
+        "stay.id",
+        "stay.name",
+        "stay.stay_from",
+        "stay.stay_to",
+        "stay.outing_day",
+        "stay_apply.id",
+        "stay_apply.stay_seat",
+        "stay_seat_preset",
+        "stay_seat",
+        "stay_apply_period",
+        "user.id",
+        "user.name",
       ])
-      .orderBy('stay.stay_from', 'ASC')
+      .orderBy("stay.stay_from", "ASC")
       .getMany();
 
     return stays.map((stay) => ({
@@ -124,8 +124,8 @@ export class StayStudentService {
     });
     if (
       staySeatCheck &&
-      (isInRange(['A1', 'L18'], staySeatCheck.stay_seat) ||
-        isInRange(['M1', 'N18'], staySeatCheck.stay_seat))
+      (isInRange(["A1", "L18"], staySeatCheck.stay_seat) ||
+        isInRange(["M1", "N18"], staySeatCheck.stay_seat))
     ) {
       throw new HttpException(ErrorMsg.StaySeat_Duplication(), HttpStatus.BAD_REQUEST);
     }
@@ -159,7 +159,7 @@ export class StayStudentService {
       outing.to = outingData.to;
       outing.stay_apply = stayApply;
       outing.approved =
-        (outingData.reason === '자기계발외출' &&
+        (outingData.reason === "자기계발외출" &&
           !outingData.breakfast_cancel &&
           !outingData.dinner_cancel &&
           stay.outing_day.every((d) =>
@@ -197,8 +197,8 @@ export class StayStudentService {
     if (
       staySeatCheck &&
       staySeatCheck.id !== stayApply.id &&
-      (isInRange(['A1', 'L18'], staySeatCheck.stay_seat) ||
-        isInRange(['M1', 'N18'], staySeatCheck.stay_seat))
+      (isInRange(["A1", "L18"], staySeatCheck.stay_seat) ||
+        isInRange(["M1", "N18"], staySeatCheck.stay_seat))
     ) {
       throw new HttpException(ErrorMsg.StaySeat_Duplication(), HttpStatus.BAD_REQUEST);
     }
@@ -231,7 +231,7 @@ export class StayStudentService {
       outing.approved = null;
       outing.stay_apply = stayApply;
       outing.approved =
-        (outingData.reason === '자기계발외출' &&
+        (outingData.reason === "자기계발외출" &&
           !outingData.breakfast_cancel &&
           !outingData.dinner_cancel &&
           stayApply.stay.outing_day.every((d) =>
@@ -256,7 +256,7 @@ export class StayStudentService {
 
     const stayApply = await this.stayApplyRepository.findOne({
       where: { id: data.id },
-      relations: ['stay', 'stay.stay_apply_period'],
+      relations: ["stay", "stay.stay_apply_period"],
     });
     if (!stayApply) {
       throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
@@ -312,7 +312,7 @@ export class StayStudentService {
     outing.audit_reason = null;
     outing.stay_apply = apply;
     outing.approved =
-      (data.outing.reason === '자기계발외출' &&
+      (data.outing.reason === "자기계발외출" &&
         !data.outing.breakfast_cancel &&
         !data.outing.dinner_cancel &&
         apply.stay.outing_day.every((d) =>
@@ -339,7 +339,7 @@ export class StayStudentService {
       loadEagerRelations: false,
     });
     if (!outing) {
-      throw new NotFoundException('Stay outing not found');
+      throw new NotFoundException("Stay outing not found");
     }
     if (outing.stay_apply.user.id !== target.id) {
       throw new HttpException(ErrorMsg.PermissionDenied_Resource(), HttpStatus.FORBIDDEN);
@@ -360,7 +360,7 @@ export class StayStudentService {
     outing.to = data.outing.to;
     outing.audit_reason = null;
     outing.approved =
-      (data.outing.reason === '자기계발외출' &&
+      (data.outing.reason === "자기계발외출" &&
         !data.outing.breakfast_cancel &&
         !data.outing.dinner_cancel &&
         outing.stay_apply.stay.outing_day.every((d) =>
@@ -411,7 +411,7 @@ export class StayStudentService {
         .filter((stay_seat) => stay_seat.target === `${grade}_${gender}`)
         .some(
           (range) =>
-            (preset.only_readingRoom && isInRange(range.range.split(':'), target)) ||
+            (preset.only_readingRoom && isInRange(range.range.split(":"), target)) ||
             !preset.only_readingRoom,
         ) && (await this.userManageService.checkUserDetail(user.email, { gender, grade }))
     );
@@ -423,9 +423,9 @@ export class StayStudentService {
     stay_apply_period: StayApplyPeriod_Stay[],
   ) {
     let isSame = true;
-    let last = '';
+    let last = "";
     for (const period of stay_apply_period) {
-      if (last === '') {
+      if (last === "") {
         last = period.apply_start.getTime().toString() + period.apply_end.getTime().toString();
         continue;
       }

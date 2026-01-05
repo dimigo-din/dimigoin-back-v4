@@ -1,1 +1,1 @@
-export * from './wakeup.module';
+export * from "./wakeup.module";

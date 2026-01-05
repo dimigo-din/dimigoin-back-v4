@@ -1,12 +1,12 @@
-import { forwardRef, Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import importToArray from 'import-to-array';
+import { forwardRef, Module } from "@nestjs/common";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import importToArray from "import-to-array";
 
-import { AuthModule } from '../../auth';
-import { LaundryApply, Login, StayApply, User } from '../../schemas';
+import { AuthModule } from "../../auth";
+import { LaundryApply, Login, StayApply, User } from "../../schemas";
 
-import * as controllers from './controllers';
-import * as providers from './providers';
+import * as controllers from "./controllers";
+import * as providers from "./providers";
 
 @Module({
   imports: [

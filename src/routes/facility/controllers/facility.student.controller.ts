@@ -1,5 +1,5 @@
-import * as fs from 'node:fs';
-import * as path from 'node:path';
+import * as fs from "node:fs";
+import * as path from "node:path";
 
 import {
   Body,
@@ -11,17 +11,17 @@ import {
   Res,
   StreamableFile,
   UseInterceptors,
-} from '@nestjs/common';
-import { ApiBody, ApiConsumes, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import type { FastifyReply } from 'fastify';
+} from "@nestjs/common";
+import { ApiBody, ApiConsumes, ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
+import type { FastifyReply } from "fastify";
 
-import { CustomJwtAuthGuard } from '../../../auth/guards';
-import { PermissionGuard } from '../../../auth/guards/permission.guard';
-import { UseGuardsWithSwagger } from '../../../auth/guards/useGuards';
-import { CurrentUser } from '../../../common/decorators/user.decorator';
-import { ApiResponseFormat } from '../../../common/dto/response_format.dto';
-import { PermissionEnum } from '../../../common/mapper/permissions';
-import { FacilityReport, FacilityReportComment, type User } from '../../../schemas';
+import { CustomJwtAuthGuard } from "../../../auth/guards";
+import { PermissionGuard } from "../../../auth/guards/permission.guard";
+import { UseGuardsWithSwagger } from "../../../auth/guards/useGuards";
+import { CurrentUser } from "../../../common/decorators/user.decorator";
+import { ApiResponseFormat } from "../../../common/dto/response_format.dto";
+import { PermissionEnum } from "../../../common/mapper/permissions";
+import { FacilityReport, FacilityReportComment, type User } from "../../../schemas";
 import {
   type FacilityImgIdDTO,
   type FacilityReportIdDTO,
@@ -29,69 +29,69 @@ import {
   type GetReportListDTO,
   type PostCommentDTO,
   ReportFacilityDTO,
-} from '../dto/facility.student.dto';
-import { ImageUploadInterceptor } from '../interceptor/image-upload.interceptor';
-import { FacilityStudentService } from '../providers';
+} from "../dto/facility.student.dto";
+import { ImageUploadInterceptor } from "../interceptor/image-upload.interceptor";
+import { FacilityStudentService } from "../providers";
 
-@ApiTags('Facility Student')
-@Controller('/student/facility')
+@ApiTags("Facility Student")
+@Controller("/student/facility")
 @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.STUDENT]))
 export class FacilityStudentController {
   constructor(private readonly facilityService: FacilityStudentService) {}
 
   @ApiOperation({
-    summary: '이미지 불러오기',
-    description: '업로드된 이미지를 불러옵니다.',
+    summary: "이미지 불러오기",
+    description: "업로드된 이미지를 불러옵니다.",
   })
   @ApiResponse({
     status: HttpStatus.OK,
     type: StreamableFile,
   })
-  @Get('/img')
+  @Get("/img")
   async getImg(@Res() res: FastifyReply, @Query() data: FacilityImgIdDTO) {
     const result = await this.facilityService.getImg(data);
 
-    res.header('Content-Disposition', `attachment; filename="${result.filename}"`);
+    res.header("Content-Disposition", `attachment; filename="${result.filename}"`);
     return res.send(result.stream);
   }
 
   @ApiOperation({
-    summary: '시설 제보 목록',
-    description: '시설 제보 목록을 불러옵니다.',
+    summary: "시설 제보 목록",
+    description: "시설 제보 목록을 불러옵니다.",
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
     type: [FacilityReportListResDTO],
   })
-  @Get('/list')
+  @Get("/list")
   async getReportList(@Query() data: GetReportListDTO) {
     return await this.facilityService.reportList(data);
   }
 
   @ApiOperation({
-    summary: '시설 제보 불러오기',
-    description: '특정 시설 제보를 불러옵니다.',
+    summary: "시설 제보 불러오기",
+    description: "특정 시설 제보를 불러옵니다.",
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
     type: FacilityReport,
   })
-  @Get('/')
+  @Get("/")
   async getReport(@Query() data: FacilityReportIdDTO) {
     return await this.facilityService.getReport(data);
   }
 
   @ApiOperation({
-    summary: '시설 제보',
-    description: '고장나거나 개선사항이 필요한 시설을 제보합니다. 삭제가 불가능합니다.',
+    summary: "시설 제보",
+    description: "고장나거나 개선사항이 필요한 시설을 제보합니다. 삭제가 불가능합니다.",
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
     type: FacilityReport,
   })
-  @ApiConsumes('multipart/form-data')
+  @ApiConsumes("multipart/form-data")
   @ApiBody({ type: ReportFacilityDTO })
-  @Post('/')
+  @Post("/")
   @UseInterceptors(ImageUploadInterceptor)
   async report(@CurrentUser() user: User, @Body() data: ReportFacilityDTO) {
     const files = data.file || [];
@@ -99,7 +99,7 @@ export class FacilityStudentController {
       return await this.facilityService.createReport(user, data, files);
     } catch (e) {
       for (const f of files) {
-        fs.rmSync(path.join(process.cwd(), 'uploads/facility', f.filename ?? ''), {
+        fs.rmSync(path.join(process.cwd(), "uploads/facility", f.filename ?? ""), {
           force: true,
           recursive: true,
         });
@@ -109,14 +109,14 @@ export class FacilityStudentController {
   }
 
   @ApiOperation({
-    summary: '댓글 작성',
-    description: '시설 제보문에 댓글을 추가합니다. 삭제가 불가능합니다.',
+    summary: "댓글 작성",
+    description: "시설 제보문에 댓글을 추가합니다. 삭제가 불가능합니다.",
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
     type: FacilityReportComment,
   })
-  @Post('/comment')
+  @Post("/comment")
   async postComment(@CurrentUser() user: User, @Body() data: PostCommentDTO) {
     return await this.facilityService.writeComment(user, data);
   }
