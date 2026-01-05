@@ -10,7 +10,7 @@ import * as bcrypt from "bcrypt";
 import { OAuth2Client } from "google-auth-library";
 import { google } from "googleapis";
 import * as jwt from "jsonwebtoken";
-import * as moment from "moment";
+import { subMonths } from "date-fns";
 import { LessThan, Repository } from "typeorm";
 
 import { ErrorMsg } from "../common/mapper/error";
@@ -203,7 +203,7 @@ export class AuthService {
   // @Cron(CronExpression.EVERY_SECOND)
   private async expiredSessionClear() {
     await this.sessionRepository.delete({
-      updated_at: LessThan(moment().subtract("1", "M").toDate()),
+      updated_at: LessThan(subMonths(new Date(), 1)),
     });
   }
 }

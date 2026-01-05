@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { InjectRepository } from "@nestjs/typeorm";
 import { google } from "googleapis";
-import * as moment from "moment/moment";
+import { format, startOfWeek } from "date-fns";
 import { Repository } from "typeorm";
 
 import { ErrorMsg } from "../../../common/mapper/error";
@@ -52,7 +52,7 @@ export class WakeupStudentService {
   }
 
   async getApplications(user: UserJWT) {
-    const week = moment().startOf("week").format("YYYY-MM-DD");
+    const week = format(startOfWeek(new Date()), "yyyy-MM-dd");
 
     const applications = await this.wakeupSongApplicationRepository
       .createQueryBuilder("application")
@@ -79,7 +79,7 @@ export class WakeupStudentService {
   }
 
   async registerVideo(user: UserJWT, data: RegisterVideoDTO) {
-    const week = moment().startOf("week").format("YYYY-MM-DD");
+    const week = format(startOfWeek(new Date()), "yyyy-MM-dd");
 
     const exists = await this.wakeupSongApplicationRepository.findOne({
       where: {
@@ -132,7 +132,7 @@ export class WakeupStudentService {
   }
 
   async getMyVotes(user: UserJWT) {
-    const week = moment().startOf("week").format("YYYY-MM-DD");
+    const week = format(startOfWeek(new Date()), "yyyy-MM-dd");
     const dbUser = await safeFindOne<User>(this.userRepository, user.id);
 
     return await this.wakeupSongVoteRepository.find({

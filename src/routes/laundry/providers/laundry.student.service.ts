@@ -1,6 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import * as moment from "moment";
+import { format, isAfter, addHours, startOfDay } from "date-fns";
+import { formatInTimeZone, toZonedTime } from "date-fns-tz";
 import { Repository } from "typeorm";
 
 import { ErrorMsg } from "../../../common/mapper/error";
@@ -36,7 +37,7 @@ export class LaundryStudentService {
   async getApplies() {
     return (
       await this.laundryApplyRepository.find({
-        where: { laundryTimeline: { enabled: true }, date: moment().format("YYYY-MM-DD") },
+        where: { laundryTimeline: { enabled: true }, date: format(new Date(), "yyyy-MM-dd") },
         relations: { laundryTime: true, laundryMachine: true, user: true },
       })
     ).map((a) => {
@@ -45,7 +46,10 @@ export class LaundryStudentService {
   }
 
   async createApply(user: UserJWT, data: LaundryApplyDTO) {
-    if (!moment().isAfter(moment().tz("Asia/Seoul").startOf("day").add("8", "hours")))
+    const now = new Date();
+    const seoulNow = toZonedTime(now, "Asia/Seoul");
+    const eightAM = addHours(startOfDay(seoulNow), 8);
+    if (!isAfter(seoulNow, eightAM))
       throw new HttpException(ErrorMsg.LaundryApplyIsAfterEightAM(), HttpStatus.BAD_REQUEST);
 
     const dbUser = await safeFindOne<User>(this.userRepository, user.id);
@@ -55,7 +59,7 @@ export class LaundryStudentService {
     const applyExists = await this.laundryApplyRepository.findOne({
       where: {
         user: dbUser,
-        date: moment().tz("Asia/Seoul").format("YYYY-MM-DD"),
+        date: formatInTimeZone(now, "Asia/Seoul", "yyyy-MM-dd"),
         laundryMachine: { type: machine.type },
       },
     });
@@ -82,7 +86,7 @@ export class LaundryStudentService {
     const machineTaken = await this.laundryApplyRepository.findOne({
       where: {
         laundryMachine: machine,
-        date: moment().tz("Asia/Seoul").format("YYYY-MM-DD"),
+        date: formatInTimeZone(now, "Asia/Seoul", "yyyy-MM-dd"),
         laundryTime: time,
       },
     });
@@ -94,7 +98,7 @@ export class LaundryStudentService {
     apply.laundryTime = time;
     apply.laundryMachine = machine;
     apply.user = dbUser;
-    apply.date = moment().tz("Asia/Seoul").format("YYYY-MM-DD");
+    apply.date = formatInTimeZone(now, "Asia/Seoul", "yyyy-MM-dd");
 
     return await this.laundryApplyRepository.save(apply);
   }

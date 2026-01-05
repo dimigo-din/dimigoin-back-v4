@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import axios from "axios";
-import * as moment from "moment";
+import { format } from "date-fns";
 import { Repository } from "typeorm";
 
 import { UserJWT } from "../../../common/mapper/types";
@@ -24,7 +24,7 @@ export class UserStudentService {
 
     const stayApply = await this.stayApplyRepository.findOne({ where: { user: dbUser } });
     const laundryApply = await this.laundryApplyRepository.findOne({
-      where: { user: dbUser, date: moment().format("YYYY-MM-DD") },
+      where: { user: dbUser, date: format(new Date(), "yyyy-MM-dd") },
       relations: { laundryTime: true, laundryMachine: true },
     });
 
