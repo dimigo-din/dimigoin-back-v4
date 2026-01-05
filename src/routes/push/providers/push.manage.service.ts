@@ -1,7 +1,8 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { InjectRepository } from "@nestjs/typeorm";
-import * as admin from "firebase-admin";
+import { GoogleAuth } from "google-auth-library";
+import { fcm, fcm_v1 } from "@googleapis/fcm";
 import { In, Repository } from "typeorm";
 
 import { safeFindOne } from "../../../common/utils/safeFindOne.util";
@@ -17,6 +18,8 @@ import {
 @Injectable()
 export class PushManageService {
   private readonly logger = new Logger(PushManageService.name);
+  private readonly fcmClient: fcm_v1.Fcm;
+  private projectId: string;
 
   constructor(
     @InjectRepository(User)
@@ -25,15 +28,18 @@ export class PushManageService {
     private readonly pushRepository: Repository<PushSubscription>,
     private readonly configService: ConfigService,
   ) {
-    if (!admin.apps.length) {
-      admin.initializeApp({
-        credential: admin.credential.cert({
-          projectId: configService.get<string>("FIREBASE_PROJECT_ID"),
-          privateKey: configService.get<string>("FIREBASE_PRIVATE_KEY"),
-          clientEmail: configService.get<string>("FIREBASE_CLIENT_EMAIL"),
-        }),
-      });
-    }
+    this.projectId = this.configService.get<string>("FIREBASE_PROJECT_ID");
+    let googleAuth = new GoogleAuth({
+      credentials: {
+        client_email: configService.get<string>("FIREBASE_CLIENT_EMAIL"),
+        private_key: configService.get<string>("FIREBASE_PRIVATE_KEY")?.replace(/\\n/g, "\n"),
+      },
+      scopes: ["https://www.googleapis.com/auth/firebase.messaging"],
+    });
+    this.fcmClient = fcm({
+      version: "v1",
+      auth: googleAuth,
+    });
   }
 
   async getSubscriptionsByCategory(data: GetSubscriptionsByCategoryDTO) {
@@ -79,6 +85,7 @@ export class PushManageService {
 
   private async sendBatch(subscriptions: PushSubscription[], payload: PushNotificationPayloadDTO) {
     if (!subscriptions.length) return { sent: 0, failed: 0 };
+
     let sent = 0;
     let failed = 0;
 
@@ -103,22 +110,27 @@ export class PushManageService {
   }
 
   private async sendFCM(fcmToken: string, payload: PushNotificationPayloadDTO) {
-    const fcmPayload = {
-      token: fcmToken,
-      notification: {
-        title: payload.title,
-        body: payload.body,
-      },
-      data: {
-        body: payload.body,
-      },
-    };
-
     try {
-      const response = await admin.messaging().send(fcmPayload);
-      return { sent_message: response };
+      const response = await this.fcmClient.projects.messages.send({
+        parent: `projects/${this.projectId}`,
+        requestBody: {
+          message: {
+            token: fcmToken,
+            notification: {
+              title: payload.title,
+              body: payload.body,
+            },
+            data: {
+              body: payload.body,
+            },
+          },
+        },
+      });
+      return { sent_message: response.data };
     } catch (error: any) {
-      throw { statusCode: error.code ?? 500, message: error.message ?? error };
+      const statusCode = error.code || error.response?.status || 500;
+      const message = error.message || "Unknown error";
+      throw { statusCode, message };
     }
   }
 

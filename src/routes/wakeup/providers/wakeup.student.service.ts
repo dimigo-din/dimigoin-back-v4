@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { InjectRepository } from "@nestjs/typeorm";
-import { google } from "googleapis";
+import { youtube } from "@googleapis/youtube";
 import { format, startOfWeek } from "date-fns";
 import { Repository } from "typeorm";
 
@@ -36,8 +36,8 @@ export class WakeupStudentService {
     if (!(await this.cacheService.musicSearchRateLimit(user.id)))
       throw new HttpException(ErrorMsg.RateLimit_Exceeded(), HttpStatus.TOO_MANY_REQUESTS);
 
-    const youtube = google.youtube("v3");
-    const search = await youtube.search.list({
+    const yt = youtube("v3");
+    const search = await yt.search.list({
       key: this.configService.get<string>("GCP_YOUTUBE_DATA_API_KEY"),
       part: ["snippet"],
       type: ["video"],
@@ -96,8 +96,8 @@ export class WakeupStudentService {
 
     const cache = await this.cacheService.getCachedVideo(data.videoId);
     if (!cache) {
-      const youtube = google.youtube("v3");
-      const search = await youtube.search.list({
+      const yt = youtube("v3");
+      const search = await yt.search.list({
         key: this.configService.get<string>("GCP_YOUTUBE_DATA_API_KEY"),
         part: ["snippet"],
         type: ["video"],
