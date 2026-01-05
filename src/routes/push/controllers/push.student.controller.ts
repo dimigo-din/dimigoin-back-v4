@@ -4,10 +4,10 @@ import { ApiOperation, ApiTags } from "@nestjs/swagger";
 import { CustomJwtAuthGuard } from "src/auth/guards";
 import { PermissionGuard } from "src/auth/guards/permission.guard";
 import { UseGuardsWithSwagger } from "src/auth/guards/useGuards";
+import { CurrentUser } from "src/common/decorators/user.decorator";
 import { ApiResponseFormat } from "src/common/dto/response_format.dto";
 import { PermissionEnum } from "src/common/mapper/permissions";
-
-import { PushSubject, PushSubscription } from "../../../schemas";
+import { PushSubject, PushSubscription, User } from "../../../schemas";
 import {
   CreateFCMTokenDTO,
   DeleteFCMTokenDTO,
@@ -16,8 +16,6 @@ import {
   SetSubscribeSubjectDTO,
 } from "../dto/push.student.dto";
 import { PushStudentService } from "../providers";
-import { CurrentUser } from "src/common/decorators/user.decorator";
-import { User } from "../../../schemas";
 
 @ApiTags("Push Student")
 @Controller("/student/push")

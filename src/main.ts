@@ -1,11 +1,10 @@
 import * as process from "node:process";
-
+import fastifyCookie from "@fastify/cookie";
+import fastifyMultipart from "@fastify/multipart";
 import { ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { NestFactory } from "@nestjs/core";
 import { FastifyAdapter, NestFastifyApplication } from "@nestjs/platform-fastify";
-import fastifyCookie from "@fastify/cookie";
-import fastifyMultipart from "@fastify/multipart";
 import importToArray from "import-to-array";
 
 import { AppModule } from "./app";

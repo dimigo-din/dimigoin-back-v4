@@ -4,12 +4,12 @@ import { ApiOperation, ApiTags } from "@nestjs/swagger";
 import { CustomJwtAuthGuard } from "../../../auth/guards";
 import { PermissionGuard } from "../../../auth/guards/permission.guard";
 import { UseGuardsWithSwagger } from "../../../auth/guards/useGuards";
+import { CurrentUser } from "../../../common/decorators/user.decorator";
 import { ApiResponseFormat } from "../../../common/dto/response_format.dto";
 import { PermissionEnum } from "../../../common/mapper/permissions";
+import type { User } from "../../../schemas";
 import { ApplyResponseDTO, GetTimelineDTO } from "../dto/user.student.dto";
 import { UserStudentService } from "../providers";
-import { CurrentUser } from "../../../common/decorators/user.decorator";
-import type { User } from "../../../schemas";
 
 @ApiTags("User Student")
 @Controller("/student/user")

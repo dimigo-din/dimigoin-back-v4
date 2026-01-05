@@ -1,6 +1,6 @@
-import { LaundryTimelineScheduler } from "./scheduler.interface";
-import { LaundryTimeline } from "../../../schemas";
 import { Injectable } from "@nestjs/common";
+import { LaundryTimeline } from "../../../schemas";
+import { LaundryTimelineScheduler } from "./scheduler.interface";
 
 @Injectable()
 export class EtcScheduler extends LaundryTimelineScheduler {

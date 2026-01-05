@@ -1,13 +1,13 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import {
+  addWeeks,
   format,
-  startOfWeek,
+  isAfter,
+  isWithinInterval,
   setDay,
   setHours,
-  isAfter,
-  addWeeks,
-  isWithinInterval,
+  startOfWeek,
 } from "date-fns";
 import { Repository } from "typeorm";
 

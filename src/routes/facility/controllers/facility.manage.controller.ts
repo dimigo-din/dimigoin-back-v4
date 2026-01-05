@@ -21,24 +21,23 @@ import { FastifyReply, FastifyRequest } from "fastify";
 import { CustomJwtAuthGuard } from "../../../auth/guards";
 import { PermissionGuard } from "../../../auth/guards/permission.guard";
 import { UseGuardsWithSwagger } from "../../../auth/guards/useGuards";
+import { CurrentUser } from "../../../common/decorators/user.decorator";
 import { ApiResponseFormat } from "../../../common/dto/response_format.dto";
 import { PermissionEnum } from "../../../common/mapper/permissions";
-import { FacilityImg, FacilityReport, FacilityReportComment } from "../../../schemas";
+import { FacilityImg, FacilityReport, FacilityReportComment, User } from "../../../schemas";
 import {
+  ChangeFacilityReportStatusDTO,
+  ChangeFacilityReportTypeDTO,
   FacilityImgIdDTO,
-  ReportFacilityDTO,
+  FacilityReportCommentIdDTO,
   FacilityReportIdDTO,
   FacilityReportListResDTO,
   GetReportListDTO,
   PostCommentDTO,
-  FacilityReportCommentIdDTO,
-  ChangeFacilityReportTypeDTO,
-  ChangeFacilityReportStatusDTO,
+  ReportFacilityDTO,
 } from "../dto/facility.manage.dto";
 import { ImageUploadInterceptor } from "../interceptor/image-upload.interceptor";
 import { FacilityManageService } from "../providers";
-import { User } from "../../../schemas";
-import { CurrentUser } from "../../../common/decorators/user.decorator";
 
 @ApiTags("Facility Manage")
 @Controller("/manage/facility")

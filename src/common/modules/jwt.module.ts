@@ -1,7 +1,6 @@
-import type { JwtModuleAsyncOptions } from "@nestjs/jwt";
-
 import { Module } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import type { JwtModuleAsyncOptions } from "@nestjs/jwt";
 import { JwtModule } from "@nestjs/jwt";
 
 import { CustomConfigModule } from "./config.module";

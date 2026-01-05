@@ -14,10 +14,10 @@ import {
 } from "class-validator";
 
 import {
-  StaySeatTargets,
-  StaySeatMappingValues,
-  GradeValues,
   Grade,
+  GradeValues,
+  StaySeatMappingValues,
+  StaySeatTargets,
 } from "../../../common/mapper/types";
 import { Stay, User } from "../../../schemas";
 

@@ -6,7 +6,7 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "biome": "pnpm format && pnpm lint",
+    "biome": "biome check --write",
     "build": "nest build",
     "format": "biome format --write",
     "predev": "doppler run -- pnpm migration:dev",

@@ -4,9 +4,10 @@ import { ApiOperation, ApiTags } from "@nestjs/swagger";
 import { CustomJwtAuthGuard } from "../../../auth/guards";
 import { PermissionGuard } from "../../../auth/guards/permission.guard";
 import { UseGuardsWithSwagger } from "../../../auth/guards/useGuards";
+import { CurrentUser } from "../../../common/decorators/user.decorator";
 import { ApiResponseFormat } from "../../../common/dto/response_format.dto";
 import { PermissionEnum } from "../../../common/mapper/permissions";
-import { Stay, StayApply, StayOuting } from "../../../schemas";
+import { Stay, StayApply, StayOuting, User } from "../../../schemas";
 import {
   AddStayOutingDTO,
   CreateUserStayApplyDTO,
@@ -16,8 +17,6 @@ import {
   StayOutingIdDTO,
 } from "../dto/stay.student.dto";
 import { StayStudentService } from "../providers";
-import { CurrentUser } from "../../../common/decorators/user.decorator";
-import { User } from "../../../schemas";
 
 @ApiTags("Stay Student")
 @Controller("/student/stay")

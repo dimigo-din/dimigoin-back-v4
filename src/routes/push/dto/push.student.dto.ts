@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsString, IsOptional, IsIn } from "class-validator";
+import { IsIn, IsOptional, IsString } from "class-validator";
 
 import {
   PushNotificationSubject,

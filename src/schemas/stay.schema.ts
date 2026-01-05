@@ -2,11 +2,11 @@ import { ApiProperty } from "@nestjs/swagger";
 import {
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   Entity,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
-  DeleteDateColumn,
   Unique,
 } from "typeorm";
 

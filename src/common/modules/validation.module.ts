@@ -3,15 +3,15 @@ import { InjectRepository, TypeOrmModule } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 
 import { PermissionValidator, Session, User } from "../../schemas";
+import { LaundrySchedulePriority } from "../mapper/constants";
 import {
   NumberedPermissionGroupsEnum,
   PermissionEnum,
   PermissionType,
 } from "../mapper/permissions";
+import { LaundryTimelineSchedulerValues } from "../mapper/types";
 import { deepObjectCompare } from "../utils/compare.util";
 import { numberPermission, parsePermission } from "../utils/permission.util";
-import { LaundryTimelineSchedulerValues } from "../mapper/types";
-import { LaundrySchedulePriority } from "../mapper/constants";
 
 @Injectable()
 export class ValidationService {

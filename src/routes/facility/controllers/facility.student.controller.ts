@@ -19,9 +19,10 @@ import { FastifyReply, FastifyRequest } from "fastify";
 import { CustomJwtAuthGuard } from "../../../auth/guards";
 import { PermissionGuard } from "../../../auth/guards/permission.guard";
 import { UseGuardsWithSwagger } from "../../../auth/guards/useGuards";
+import { CurrentUser } from "../../../common/decorators/user.decorator";
 import { ApiResponseFormat } from "../../../common/dto/response_format.dto";
 import { PermissionEnum } from "../../../common/mapper/permissions";
-import { FacilityReport, FacilityReportComment } from "../../../schemas";
+import { FacilityReport, FacilityReportComment, User } from "../../../schemas";
 import {
   FacilityImgIdDTO,
   FacilityReportIdDTO,
@@ -32,8 +33,6 @@ import {
 } from "../dto/facility.student.dto";
 import { ImageUploadInterceptor } from "../interceptor/image-upload.interceptor";
 import { FacilityStudentService } from "../providers";
-import { CurrentUser } from "../../../common/decorators/user.decorator";
-import { User } from "../../../schemas";
 
 @ApiTags("Facility Student")
 @Controller("/student/facility")

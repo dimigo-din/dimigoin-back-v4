@@ -1,13 +1,13 @@
-import { generateRange } from "../utils/staySeat.util";
-import { LaundryTimelineSchedule } from "./types";
-import { LaundryTimelineScheduler } from "../../routes/laundry/schedulers/scheduler.interface";
+import { Type } from "@nestjs/common";
 import {
   EtcScheduler,
   PrimaryScheduler,
   StayScheduler,
   VacationScheduler,
 } from "../../routes/laundry/schedulers";
-import { Type } from "@nestjs/common";
+import { LaundryTimelineScheduler } from "../../routes/laundry/schedulers/scheduler.interface";
+import { generateRange } from "../utils/staySeat.util";
+import { LaundryTimelineSchedule } from "./types";
 
 export const StaySeats = [].concat(generateRange(["A1", "L18"]), generateRange(["M1", "N7"]));
 

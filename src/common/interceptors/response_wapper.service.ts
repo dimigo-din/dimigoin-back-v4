@@ -1,12 +1,12 @@
 import {
   CallHandler,
   ExecutionContext,
+  HttpException,
   Injectable,
   NestInterceptor,
-  HttpException,
 } from "@nestjs/common";
 import { Observable, of } from "rxjs";
-import { map, catchError } from "rxjs/operators";
+import { catchError, map } from "rxjs/operators";
 
 @Injectable()
 export class ResponseWrapperInterceptor implements NestInterceptor {

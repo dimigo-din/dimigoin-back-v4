@@ -1,8 +1,8 @@
-import { LaundryTimelineScheduler } from "./scheduler.interface";
-import { LaundryTimeline, Stay } from "../../../schemas";
 import { Injectable } from "@nestjs/common";
-import { LessThanOrEqual, MoreThanOrEqual, Repository } from "typeorm";
 import { InjectRepository } from "@nestjs/typeorm";
+import { LessThanOrEqual, MoreThanOrEqual, Repository } from "typeorm";
+import { LaundryTimeline, Stay } from "../../../schemas";
+import { LaundryTimelineScheduler } from "./scheduler.interface";
 
 @Injectable()
 export class VacationScheduler extends LaundryTimelineScheduler {
