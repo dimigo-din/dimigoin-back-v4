@@ -59,6 +59,7 @@
     "import-to-array": "^1.0.0",
     "ioredis": "^5.8.2",
     "jsonwebtoken": "^9.0.3",
+    "jwks-rsa": "^3.2.0",
     "keyv": "^5.5.5",
     "lodash": "^4.17.21",
     "ms": "^2.1.3",

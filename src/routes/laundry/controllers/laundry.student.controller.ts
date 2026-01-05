@@ -1,7 +1,7 @@
-import { Body, Controller, Delete, Get, HttpStatus, Post, Query, Req } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpStatus, Post, Query, Req, UseGuards } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
 
-import { CustomJwtAuthGuard } from "../../../auth/guards";
+import { CustomJwtAuthGuard, AppCheckGuard } from "../../../auth/guards";
 import { PermissionGuard } from "../../../auth/guards/permission.guard";
 import { UseGuardsWithSwagger } from "../../../auth/guards/useGuards";
 import { ApiResponseFormat } from "../../../common/dto/response_format.dto";
@@ -52,6 +52,7 @@ export class LaundryStudentController {
     type: LaundryApply,
   })
   @Post("/")
+  @UseGuards(AppCheckGuard)
   async createApply(@Req() req, @Body() data: LaundryApplyDTO) {
     return await this.laundryService.createApply(req.user, data);
   }
