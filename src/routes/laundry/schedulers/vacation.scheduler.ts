@@ -4,8 +4,6 @@ import { Injectable } from "@nestjs/common";
 import { LessThanOrEqual, MoreThanOrEqual, Repository } from "typeorm";
 import { InjectRepository } from "@nestjs/typeorm";
 
-import * as moment from "moment";
-
 @Injectable()
 export class VacationScheduler extends LaundryTimelineScheduler {
   constructor() {

@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import * as moment from "moment";
+import { isEqual, parseISO } from "date-fns";
 import { FindOneOptions, LessThanOrEqual, MoreThanOrEqual, Repository } from "typeorm";
 
 import {
@@ -160,10 +160,10 @@ export class StayStudentService {
           !outingData.breakfast_cancel &&
           !outingData.dinner_cancel &&
           stay.outing_day.every((d) =>
-            moment(SelfDevelopment_Outing_From(d)).isSame(outingData.from),
+            isEqual(new Date(SelfDevelopment_Outing_From(d)), new Date(outingData.from)),
           ) &&
           stay.outing_day.every((d) =>
-            moment(SelfDevelopment_Outing_To(d)).isSame(outingData.to),
+            isEqual(new Date(SelfDevelopment_Outing_To(d)), new Date(outingData.to)),
           )) ||
         null;
 
@@ -229,10 +229,10 @@ export class StayStudentService {
           !outingData.breakfast_cancel &&
           !outingData.dinner_cancel &&
           stayApply.stay.outing_day.every((d) =>
-            moment(SelfDevelopment_Outing_From(d)).isSame(outingData.from),
+            isEqual(new Date(SelfDevelopment_Outing_From(d)), new Date(outingData.from)),
           ) &&
           stayApply.stay.outing_day.every((d) =>
-            moment(SelfDevelopment_Outing_To(d)).isSame(outingData.to),
+            isEqual(new Date(SelfDevelopment_Outing_To(d)), new Date(outingData.to)),
           )) ||
         null;
 
@@ -307,10 +307,10 @@ export class StayStudentService {
         !data.outing.breakfast_cancel &&
         !data.outing.dinner_cancel &&
         apply.stay.outing_day.every((d) =>
-          moment(SelfDevelopment_Outing_From(d)).isSame(data.outing.from),
+          isEqual(new Date(SelfDevelopment_Outing_From(d)), new Date(data.outing.from)),
         ) &&
         apply.stay.outing_day.every((d) =>
-          moment(SelfDevelopment_Outing_To(d)).isSame(data.outing.to),
+          isEqual(new Date(SelfDevelopment_Outing_To(d)), new Date(data.outing.to)),
         )) ||
       null;
 
@@ -353,10 +353,10 @@ export class StayStudentService {
         !data.outing.breakfast_cancel &&
         !data.outing.dinner_cancel &&
         outing.stay_apply.stay.outing_day.every((d) =>
-          moment(SelfDevelopment_Outing_From(d)).isSame(data.outing.from),
+          isEqual(new Date(SelfDevelopment_Outing_From(d)), new Date(data.outing.from)),
         ) &&
         outing.stay_apply.stay.outing_day.every((d) =>
-          moment(SelfDevelopment_Outing_To(d)).isSame(data.outing.to),
+          isEqual(new Date(SelfDevelopment_Outing_To(d)), new Date(data.outing.to)),
         )) ||
       null;
 

@@ -1,5 +1,5 @@
 import { INestApplication } from "@nestjs/common";
-import * as moment from "moment";
+import { format } from "date-fns";
 import * as request from "supertest";
 
 import { closeApp, getApp } from "../app.e2e";
@@ -132,7 +132,7 @@ describe("laundry manage", () => {
       .expect(201)
       .then((res) => {
         apply_id = res.body.data.id;
-        expect(res.body.data.date).toBe(moment().format("YYYY-MM-DD"));
+        expect(res.body.data.date).toBe(format(new Date(), "yyyy-MM-dd"));
       });
   });
 
@@ -143,7 +143,7 @@ describe("laundry manage", () => {
       .send({ id: apply_id, user: user.user.id })
       .expect(200)
       .then((res) => {
-        expect(res.body.data.date).toBe(moment().format("YYYY-MM-DD"));
+        expect(res.body.data.date).toBe(format(new Date(), "yyyy-MM-dd"));
       });
   });
 
@@ -154,7 +154,7 @@ describe("laundry manage", () => {
       .auth(admin.jwt, { type: "bearer" })
       .expect(200)
       .then((res) => {
-        expect(res.body.data.date).toBe(moment().format("YYYY-MM-DD"));
+        expect(res.body.data.date).toBe(format(new Date(), "yyyy-MM-dd"));
       });
   });
 

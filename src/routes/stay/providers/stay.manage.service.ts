@@ -1,7 +1,22 @@
 import { HttpException, HttpStatus, Injectable, Logger } from "@nestjs/common";
 import { Cron, CronExpression } from "@nestjs/schedule";
 import { InjectRepository } from "@nestjs/typeorm";
-import * as moment from "moment";
+import {
+  format,
+  setDay,
+  isBefore,
+  addWeeks,
+  startOfDay,
+  setHours,
+  setMinutes,
+  setSeconds,
+  max,
+  addDays,
+  subSeconds,
+  isWithinInterval,
+  getDay,
+} from "date-fns";
+import { toZonedTime, formatInTimeZone } from "date-fns-tz";
 import { In, IsNull, LessThan, MoreThan, MoreThanOrEqual, Not, Repository } from "typeorm";
 
 import { ErrorMsg } from "../../../common/mapper/error";
@@ -410,9 +425,9 @@ export class StayManageService {
     return await this.stayOutingRepository.save(outing);
   }
 
-  private weekday2date(base: moment.Moment, weekday: number) {
-    const target = base.clone().weekday(weekday);
-    if (target.isBefore(base)) target.add(1, "week");
+  private weekday2date(base: Date, weekday: number) {
+    let target = setDay(base, weekday);
+    if (isBefore(target, base)) target = addWeeks(target, 1);
     return target;
   }
 
@@ -436,7 +451,7 @@ export class StayManageService {
     const schedules = await this.stayScheduleRepository.find({
       where: {
         stay_apply_period: {
-          apply_end_day: MoreThan(moment().weekday()),
+          apply_end_day: MoreThan(getDay(new Date())),
         },
       },
     });
@@ -462,50 +477,44 @@ export class StayManageService {
       stay.stay_seat_preset = target.stay_seat_preset;
       stay.parent = target;
 
-      const now = moment().tz("Asia/Seoul").startOf("day");
+      const now = startOfDay(toZonedTime(new Date(), "Asia/Seoul"));
       stay.stay_apply_period = target.stay_apply_period.map((period) => {
         const p = new StayApplyPeriod_Stay();
         p.grade = period.grade;
 
-        p.apply_start = now
-          .clone()
-          .weekday(period.apply_start_day)
-          .hour(period.apply_start_hour)
-          .minute(0)
-          .second(0)
-          .toDate();
-        p.apply_end = now
-          .clone()
-          .weekday(period.apply_end_day)
-          .hour(period.apply_end_hour)
-          .minute(0)
-          .second(0)
-          .toDate();
+        p.apply_start = setSeconds(
+          setMinutes(setHours(setDay(now, period.apply_start_day), period.apply_start_hour), 0),
+          0,
+        );
+        p.apply_end = setSeconds(
+          setMinutes(setHours(setDay(now, period.apply_end_day), period.apply_end_hour), 0),
+          0,
+        );
         p.stay = stay;
         return p;
       });
 
-      const applyEnd = moment.max(stay.stay_apply_period.map((p) => moment(p.apply_end)));
-      const from = this.weekday2date(now, target.stay_from);
-      const to = this.weekday2date(now, target.stay_to).add("1", "d").subtract("1", "s");
-      if (applyEnd.isAfter(from)) from.add("1", "w");
-      if (applyEnd.isAfter(to)) to.add("1", "w");
-      if (from.isAfter(to)) to.add("1", "w");
+      const applyEnd = max(stay.stay_apply_period.map((p) => p.apply_end));
+      let from = this.weekday2date(now, target.stay_from);
+      let to = subSeconds(addDays(this.weekday2date(now, target.stay_to), 1), 1);
+      if (isBefore(from, applyEnd)) from = addWeeks(from, 1);
+      if (isBefore(to, applyEnd)) to = addWeeks(to, 1);
+      if (isBefore(to, from)) to = addWeeks(to, 1);
 
-      stay.stay_from = from.format("YYYY-MM-DD");
-      stay.stay_to = to.format("YYYY-MM-DD");
+      stay.stay_from = format(from, "yyyy-MM-dd");
+      stay.stay_to = format(to, "yyyy-MM-dd");
 
       let success = true;
       stay.outing_day = target.outing_day.map((day) => {
-        const out = this.weekday2date(now, day);
-        if (!out.isBetween(from, to)) {
-          out.add(1, "w");
-          if (!out.isBetween(from, to)) {
+        let out = this.weekday2date(now, day);
+        if (!isWithinInterval(out, { start: from, end: to })) {
+          out = addWeeks(out, 1);
+          if (!isWithinInterval(out, { start: from, end: to })) {
             this.logger.error(`Error. Invalid outing range on ${target.name}`);
             success = false;
           }
         }
-        return out.format("YYYY-MM-DD");
+        return format(out, "yyyy-MM-dd");
       });
       if (!success) continue;
 
@@ -516,7 +525,7 @@ export class StayManageService {
     // remove previous stay
     await this.stayRepository.softRemove(
       await this.stayRepository.find({
-        where: { stay_to: LessThan(moment().format("YYYY-MM-DD")) },
+        where: { stay_to: LessThan(format(new Date(), "yyyy-MM-dd")) },
         relations: { stay_apply: { outing: true } },
       }),
     );

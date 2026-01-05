@@ -1,7 +1,8 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { Cron, CronExpression } from "@nestjs/schedule";
 import { InjectRepository } from "@nestjs/typeorm";
-import * as moment from "moment";
+import { format, addMinutes } from "date-fns";
+import { formatInTimeZone, toZonedTime } from "date-fns-tz";
 import {
   FindOneOptions,
   In,
@@ -177,7 +178,7 @@ export class LaundryManageService {
 
   async getLaundryApplyList() {
     return await this.laundryApplyRepository.find({
-      where: { laundryTimeline: { enabled: true }, date: moment().format("YYYY-MM-DD") },
+      where: { laundryTimeline: { enabled: true }, date: format(new Date(), "yyyy-MM-dd") },
       relations: { user: true, laundryMachine: true, laundryTime: true, laundryTimeline: true },
     });
   }
@@ -209,7 +210,7 @@ export class LaundryManageService {
     if (machineTaken)
       throw new HttpException(ErrorMsg.LaundryMachine_AlreadyTaken(), HttpStatus.BAD_REQUEST);
 
-    const date = moment().format("YYYY-MM-DD");
+    const date = format(new Date(), "yyyy-MM-dd");
 
     const laundryApply = new LaundryApply();
     laundryApply.date = date;
@@ -277,11 +278,11 @@ export class LaundryManageService {
 
   @Cron(CronExpression.EVERY_MINUTE)
   private async laundryNotificationScheduler() {
-    const now = moment().tz("Asia/Seoul");
-    const inFifteenMinutes = now.add(15, "minutes").format("HH:mm");
+    const now = new Date();
+    const inFifteenMinutes = formatInTimeZone(addMinutes(now, 15), "Asia/Seoul", "HH:mm");
     const applies = await this.laundryApplyRepository.find({
       where: {
-        date: moment().format("YYYY-MM-DD"),
+        date: formatInTimeZone(now, "Asia/Seoul", "yyyy-MM-dd"),
         laundryTime: { time: inFifteenMinutes },
       },
       relations: { user: true, laundryMachine: true, laundryTime: true },

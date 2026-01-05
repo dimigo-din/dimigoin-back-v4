@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import * as moment from "moment";
+import { format, startOfWeek } from "date-fns";
 import { Repository } from "typeorm";
 
 import { safeFindOne } from "../../../common/utils/safeFindOne.util";
@@ -19,7 +19,7 @@ export class WakeupManageService {
   ) {}
 
   async getList() {
-    const week = moment().startOf("week").format("YYYY-MM-DD");
+    const week = format(startOfWeek(new Date()), "yyyy-MM-dd");
 
     return await this.wakeupSongApplicationRepository.find({
       where: {
@@ -30,14 +30,14 @@ export class WakeupManageService {
   }
 
   async selectApply(data: WakeupSongSelectDTO) {
-    const week = moment().startOf("week").format("YYYY-MM-DD");
+    const week = format(startOfWeek(new Date()), "yyyy-MM-dd");
     const apply = await safeFindOne<WakeupSongApplication>(this.wakeupSongApplicationRepository, {
       where: { id: data.id },
       relations: { wakeupSongVote: true },
     });
 
     const history = new WakeupSongHistory();
-    history.date = moment().format("YYYY-MM-DD");
+    history.date = format(new Date(), "yyyy-MM-dd");
     history.video_id = apply.video_id;
     history.video_title = apply.video_title;
     history.up = apply.wakeupSongVote.filter((v) => v.upvote).length;
