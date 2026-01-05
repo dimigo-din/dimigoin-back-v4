@@ -35,7 +35,7 @@ export class FacilityStudentService {
     const img = await safeFindOne<FacilityImg>(this.facilityImgRepository, data.id);
 
     return {
-      stream: fs.createReadStream(path.join(__dirname, '../upload', img.location)),
+      stream: fs.createReadStream(path.join(process.cwd(), 'uploads/facility', img.location)),
       filename: img.name,
     };
   }
@@ -89,8 +89,7 @@ export class FacilityStudentService {
 
       imgs.push(img);
     }
-
-    await this.facilityImgRepository.save(imgs);
+    facilityReport.file = imgs;
 
     const saved = await this.facilityReportRepository.save(facilityReport);
     return await safeFindOne<FacilityReport>(this.facilityReportRepository, saved.id);

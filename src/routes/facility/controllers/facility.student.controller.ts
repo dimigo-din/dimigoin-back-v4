@@ -8,13 +8,12 @@ import {
   HttpStatus,
   Post,
   Query,
-  Req,
   Res,
   StreamableFile,
   UseInterceptors,
 } from '@nestjs/common';
 import { ApiBody, ApiConsumes, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import type { FastifyReply, FastifyRequest } from 'fastify';
+import type { FastifyReply } from 'fastify';
 
 import { CustomJwtAuthGuard } from '../../../auth/guards';
 import { PermissionGuard } from '../../../auth/guards/permission.guard';
@@ -23,7 +22,6 @@ import { CurrentUser } from '../../../common/decorators/user.decorator';
 import { ApiResponseFormat } from '../../../common/dto/response_format.dto';
 import { PermissionEnum } from '../../../common/mapper/permissions';
 import { FacilityReport, FacilityReportComment, type User } from '../../../schemas';
-import type { FileDTO } from '../dto/facility.dto';
 import {
   type FacilityImgIdDTO,
   type FacilityReportIdDTO,
@@ -95,21 +93,17 @@ export class FacilityStudentController {
   @ApiBody({ type: ReportFacilityDTO })
   @Post('/')
   @UseInterceptors(ImageUploadInterceptor)
-  async report(
-    @Req() req: FastifyRequest & { files: { file: FileDTO[] } },
-    @CurrentUser() user: User,
-    @Body() data: ReportFacilityDTO,
-  ) {
-    const files = req.files?.file || [];
+  async report(@CurrentUser() user: User, @Body() data: ReportFacilityDTO) {
+    const files = data.file || [];
     try {
       return await this.facilityService.createReport(user, data, files);
     } catch (e) {
-      files.forEach((f: FileDTO) => {
-        fs.rmSync(path.join(__dirname, './upload', f.filename ?? ''), {
+      for (const f of files) {
+        fs.rmSync(path.join(process.cwd(), 'uploads/facility', f.filename ?? ''), {
           force: true,
           recursive: true,
         });
-      });
+      }
       throw e;
     }
   }

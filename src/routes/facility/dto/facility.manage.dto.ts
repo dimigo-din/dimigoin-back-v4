@@ -8,6 +8,7 @@ import {
   FacilityReportTypeValues,
 } from '../../../common/mapper/types';
 import { User } from '../../../schemas';
+import type { FileDTO } from './facility.dto';
 
 export class ReportFacilityDTO {
   @ApiProperty()
@@ -29,7 +30,8 @@ export class ReportFacilityDTO {
       format: 'binary',
     },
   })
-  file: unknown;
+  @IsOptional()
+  file: FileDTO[];
 }
 
 export class PostCommentDTO {

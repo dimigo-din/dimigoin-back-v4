@@ -22,9 +22,11 @@ import type { FileDTO } from '../dto/facility.dto';
 
 @Injectable()
 export class ImageUploadInterceptor implements NestInterceptor {
+  private readonly uploadDir = path.join(process.cwd(), 'uploads/facility');
+
   async intercept(context: ExecutionContext, next: CallHandler): Promise<Observable<unknown>> {
     const ctx = context.switchToHttp();
-    const req = ctx.getRequest<FastifyRequest & { files: { file: FileDTO[] } }>();
+    const req = ctx.getRequest<FastifyRequest & { body: Record<string, unknown> }>();
 
     const files: FileDTO[] = [];
 
@@ -47,40 +49,35 @@ export class ImageUploadInterceptor implements NestInterceptor {
             buffer,
             size: buffer.length,
           });
-        } else if (part.type === 'field') {
-          (req.body as Record<string, string>)[part.fieldname ?? ''] = part.value;
+        } else if (part.type === 'field' && part.fieldname) {
+          req.body[part.fieldname] = part.value;
         }
       }
     }
 
-    let malicious = true;
     for (const file of files) {
       const ext = path.extname(file.originalname).toLowerCase().slice(1);
+      const isAllowedExt = Allowed_Image_Extensions.includes(ext);
+      const isAllowedSig = Allowed_Image_Signatures.some((s) =>
+        file.buffer.toString('hex', 0, 20).startsWith(s),
+      );
 
-      if (Allowed_Image_Extensions.includes(ext)) {
-        malicious = false;
-      }
-      if (Allowed_Image_Signatures.some((s) => file.buffer.toString('hex', 0, 20).startsWith(s))) {
-        malicious = false;
+      if (!isAllowedExt || !isAllowedSig) {
+        throw new HttpException(ErrorMsg.Not_A_Valid_Image(), HttpStatus.BAD_REQUEST);
       }
     }
 
-    if (files.length > 0 && malicious) {
-      throw new HttpException(ErrorMsg.Not_A_Valid_Image(), HttpStatus.BAD_REQUEST);
-    }
-
-    const uploadDir = path.join(__dirname, '../upload');
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
+    if (!fs.existsSync(this.uploadDir)) {
+      fs.mkdirSync(this.uploadDir, { recursive: true });
     }
 
     for (const file of files) {
       const filename = crypto.randomBytes(32).toString('hex');
       file.filename = filename;
-      fs.writeFileSync(path.join(uploadDir, filename), file.buffer);
+      fs.writeFileSync(path.join(this.uploadDir, filename), file.buffer);
     }
 
-    req.files = { file: files };
+    req.body.file = files;
     return next.handle();
   }
 }
