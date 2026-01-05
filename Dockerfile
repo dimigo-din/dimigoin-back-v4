@@ -1,38 +1,9 @@
 FROM node:22-alpine AS base
-
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable
 
-###################
-# BUILD FOR LOCAL DEVELOPMENT
-###################
-FROM base AS development
-WORKDIR /usr/src/app
-COPY --chown=node:node package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
-COPY --chown=node:node . .
-USER node
-
-###################
-# BUILD FOR PRODUCTION
-###################
-FROM base AS build
-WORKDIR /usr/src/app
-COPY --chown=node:node package.json pnpm-lock.yaml ./
-COPY --chown=node:node --from=development /usr/src/app/node_modules ./node_modules
-COPY --chown=node:node . .
-
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-
-RUN pnpm run build \
-    && pnpm install --frozen-lockfile --prod
-
-###################
-# PRODUCTION
-###################
-FROM base AS production
-
+FROM base AS system-deps
 RUN apk add --no-cache curl ca-certificates chromium \
     && update-ca-certificates \
     && npm install -g pm2 \
@@ -40,18 +11,34 @@ RUN apk add --no-cache curl ca-certificates chromium \
     && echo 'https://packages.doppler.com/public/cli/alpine/any-version/main' | tee -a /etc/apk/repositories \
     && apk add doppler
 
+FROM base AS deps
+WORKDIR /usr/src/app
+COPY package.json pnpm-lock.yaml ./
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm fetch
+
+FROM deps AS build
+WORKDIR /usr/src/app
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile --offline
+
+COPY . .
+
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+RUN pnpm run build
+
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm prune --prod
+
+FROM system-deps AS production
+
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+ENV NODE_ENV=production
 
 WORKDIR /usr/src/app
 
-COPY --chown=node:node --from=build /usr/src/app/node_modules ./node_modules
 COPY --chown=node:node --from=build /usr/src/app/dist ./dist
-
-COPY --chown=node:node entrypoint.sh package.json pnpm-lock.yaml ./
+COPY --chown=node:node --from=build /usr/src/app/node_modules ./node_modules
+COPY --chown=node:node entrypoint.sh package.json ./
 
 RUN chmod 700 ./entrypoint.sh
-
-ENV NODE_ENV production
 
 USER node
 
