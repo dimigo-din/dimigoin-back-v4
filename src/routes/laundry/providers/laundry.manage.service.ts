@@ -1,11 +1,11 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import type { ModuleRef } from '@nestjs/core';
+import { ModuleRef } from '@nestjs/core';
 import { InjectRepository } from '@nestjs/typeorm';
 import { format } from 'date-fns';
 
 import { In, type Repository } from 'typeorm';
 import { ErrorMsg } from '../../../common/mapper/error';
-import type { CacheService } from '../../../common/modules/cache.module';
+import { CacheService } from '../../../common/modules/cache.module';
 import { safeFindOne } from '../../../common/utils/safeFindOne.util';
 import {
   LaundryApply,
@@ -15,7 +15,7 @@ import {
   Stay,
   User,
 } from '../../../schemas';
-import type { PushManageService } from '../../push/providers';
+import { PushManageService } from '../../push/providers';
 import type {
   CreateLaundryApplyDTO,
   CreateLaundryMachineDTO,

@@ -19,7 +19,7 @@ import {
   type StaySeatPreset,
   User,
 } from '../../../schemas';
-import type { UserManageService } from '../../user/providers';
+import { UserManageService } from '../../user/providers';
 import type {
   AddStayOutingDTO,
   CreateUserStayApplyDTO,

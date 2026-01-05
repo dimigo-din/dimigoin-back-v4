@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 
-import type { CacheService } from '../../common/modules/cache.module';
+import { CacheService } from '../../common/modules/cache.module';
 
 @Injectable()
 export class PersonalInformationVerifyTokenStrategy extends PassportStrategy(

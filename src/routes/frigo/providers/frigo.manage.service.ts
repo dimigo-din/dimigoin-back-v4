@@ -5,7 +5,7 @@ import type { Repository } from 'typeorm';
 
 import { safeFindOne } from '../../../common/utils/safeFindOne.util';
 import { FrigoApply, FrigoApplyPeriod, User } from '../../../schemas';
-import type { UserManageService } from '../../user/providers';
+import { UserManageService } from '../../user/providers';
 import type {
   AuditFrigoApply,
   FrigoApplyDTO,

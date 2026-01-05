@@ -12,7 +12,7 @@ import {
   WakeupSongListResponseDTO,
   type WakeupSongSelectDTO,
 } from '../dto/wakeup.manage.dto';
-import type { WakeupManageService } from '../providers/';
+import { WakeupManageService } from '../providers/';
 
 @ApiTags('Wakeup Manage')
 @Controller('/manage/wakeup')

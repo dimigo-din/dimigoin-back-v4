@@ -8,7 +8,7 @@ import { ErrorMsg } from '../../../common/mapper/error';
 import type { Grade, UserJWT } from '../../../common/mapper/types';
 import { safeFindOne } from '../../../common/utils/safeFindOne.util';
 import { LaundryApply, LaundryMachine, LaundryTime, LaundryTimeline, User } from '../../../schemas';
-import type { UserManageService } from '../../user/providers';
+import { UserManageService } from '../../user/providers';
 import type { LaundryApplyDTO, LaundryApplyIdDTO } from '../dto/laundry.student.dto';
 
 @Injectable()

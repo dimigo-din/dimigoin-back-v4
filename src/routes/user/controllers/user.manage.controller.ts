@@ -26,7 +26,7 @@ import type {
   SearchUserDTO,
   SetPermissionDTO,
 } from '../dto';
-import type { UserManageService } from '../providers';
+import { UserManageService } from '../providers';
 
 @ApiTags('User Manage')
 @Controller('/manage/user')

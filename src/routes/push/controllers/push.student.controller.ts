@@ -15,7 +15,7 @@ import {
   PushNotificationSubjectsResponseDTO,
   type SetSubscribeSubjectDTO,
 } from '../dto/push.student.dto';
-import type { PushStudentService } from '../providers';
+import { PushStudentService } from '../providers';
 
 @ApiTags('Push Student')
 @Controller('/student/push')

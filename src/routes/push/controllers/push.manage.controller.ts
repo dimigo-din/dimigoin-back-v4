@@ -14,7 +14,7 @@ import {
   PushNotificationResultResponseDTO,
   type PushNotificationToSpecificDTO,
 } from '../dto/push.manage.dto';
-import type { PushManageService } from '../providers';
+import { PushManageService } from '../providers';
 
 @ApiTags('Push Manage')
 @Controller('/manage/push')

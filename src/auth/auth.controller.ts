@@ -1,7 +1,7 @@
 import * as process from 'node:process';
 
 import { Body, Controller, Get, HttpStatus, Post, Query, Req, Res } from '@nestjs/common';
-import type { ConfigService } from '@nestjs/config';
+import { ConfigService } from '@nestjs/config';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { CurrentUser } from '../common/decorators/user.decorator';
@@ -18,7 +18,7 @@ import {
   type RefreshTokenDTO,
   type RunPersonalInformationVerifyTokenDTO,
 } from './auth.dto';
-import type { AuthService } from './auth.service';
+import { AuthService } from './auth.service';
 import { CustomJwtAuthGuard } from './guards';
 import { PermissionGuard } from './guards/permission.guard';
 import { PersonalInformationVerifyTokenAuthGuard } from './guards/personalInformationVerifyToken.guard';

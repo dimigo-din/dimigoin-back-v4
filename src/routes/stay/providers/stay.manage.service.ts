@@ -33,7 +33,7 @@ import {
   StaySeatPresetRange,
   User,
 } from '../../../schemas';
-import type { UserManageService } from '../../user/providers';
+import { UserManageService } from '../../user/providers';
 import type {
   AuditOutingDTO,
   CreateStayApplyDTO,

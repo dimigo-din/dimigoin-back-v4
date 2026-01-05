@@ -36,7 +36,7 @@ import {
   ReportFacilityDTO,
 } from '../dto/facility.manage.dto';
 import { ImageUploadInterceptor } from '../interceptor/image-upload.interceptor';
-import type { FacilityManageService } from '../providers';
+import { FacilityManageService } from '../providers';
 
 @ApiTags('Facility Manage')
 @Controller('/manage/facility')

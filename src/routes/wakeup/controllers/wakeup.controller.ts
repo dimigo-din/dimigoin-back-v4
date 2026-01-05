@@ -4,7 +4,7 @@ import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiResponseFormat } from '../../../common/dto/response_format.dto';
 import { WakeupSongHistory } from '../../../schemas';
 import type { GetDateSongDTO } from '../dto/wakeup.dto';
-import type { WakeupService } from '../providers/wakeup.service';
+import { WakeupService } from '../providers/wakeup.service';
 
 @ApiTags('Wakeup')
 @Controller('/wakeup')

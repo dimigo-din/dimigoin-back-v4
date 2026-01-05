@@ -9,7 +9,7 @@ import { ApiResponseFormat } from '../../../common/dto/response_format.dto';
 import { PermissionEnum } from '../../../common/mapper/permissions';
 import type { User } from '../../../schemas';
 import { ApplyResponseDTO, type GetTimelineDTO } from '../dto/user.student.dto';
-import type { UserStudentService } from '../providers';
+import { UserStudentService } from '../providers';
 
 @ApiTags('User Student')
 @Controller('/student/user')

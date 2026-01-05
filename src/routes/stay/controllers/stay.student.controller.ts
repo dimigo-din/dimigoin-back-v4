@@ -16,7 +16,7 @@ import type {
   StayIdDTO,
   StayOutingIdDTO,
 } from '../dto/stay.student.dto';
-import type { StayStudentService } from '../providers';
+import { StayStudentService } from '../providers';
 
 @ApiTags('Stay Student')
 @Controller('/student/stay')

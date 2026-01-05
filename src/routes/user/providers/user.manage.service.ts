@@ -1,6 +1,6 @@
 import * as process from 'node:process';
 import { Injectable, NotFoundException } from '@nestjs/common';
-import type { ConfigService } from '@nestjs/config';
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import axios, { type AxiosInstance } from 'axios';
 import * as bcrypt from 'bcrypt';

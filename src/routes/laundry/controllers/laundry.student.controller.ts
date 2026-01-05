@@ -9,7 +9,7 @@ import { PermissionEnum } from '../../../common/mapper/permissions';
 import { LaundryApply, LaundryTimeline, type User } from '../../../schemas';
 import type { LaundryApplyIdDTO } from '../dto/laundry.manage.dto';
 import type { LaundryApplyDTO } from '../dto/laundry.student.dto';
-import type { LaundryStudentService } from '../providers/laundry.student.service';
+import { LaundryStudentService } from '../providers/laundry.student.service';
 
 @ApiTags('Laundry Student')
 @Controller('/student/laundry')

@@ -38,7 +38,8 @@
         "useAsConstAssertion": "error",
         "useBlockStatements": "error",
         "useConst": "error",
-        "useTemplate": "error"
+        "useTemplate": "error",
+        "useImportType": "off"
       },
       "suspicious": {
         "noExplicitAny": "error",

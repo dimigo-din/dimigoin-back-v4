@@ -31,7 +31,7 @@ import {
   ReportFacilityDTO,
 } from '../dto/facility.student.dto';
 import { ImageUploadInterceptor } from '../interceptor/image-upload.interceptor';
-import type { FacilityStudentService } from '../providers';
+import { FacilityStudentService } from '../providers';
 
 @ApiTags('Facility Student')
 @Controller('/student/facility')

@@ -16,7 +16,7 @@ import {
   type VoteIdDTO,
   type VoteVideoDTO,
 } from '../dto/wakeup.student.dto';
-import type { WakeupStudentService } from '../providers';
+import { WakeupStudentService } from '../providers';
 
 @ApiTags('Wakeup Student')
 @Controller('/student/wakeup')

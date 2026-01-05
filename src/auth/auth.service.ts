@@ -7,8 +7,8 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import type { ConfigService } from '@nestjs/config';
-import type { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { OAuth2Client, type TokenPayload } from 'google-auth-library';
@@ -18,7 +18,7 @@ import type { Repository } from 'typeorm';
 import { ErrorMsg } from '../common/mapper/error';
 import { PermissionEnum } from '../common/mapper/permissions';
 import type { UserJWT } from '../common/mapper/types';
-import type { CacheService } from '../common/modules/cache.module';
+import { CacheService } from '../common/modules/cache.module';
 import { hasPermission } from '../common/utils/permission.util';
 import { UserManageService } from '../routes/user/providers';
 import { Login, Session, User } from '../schemas';

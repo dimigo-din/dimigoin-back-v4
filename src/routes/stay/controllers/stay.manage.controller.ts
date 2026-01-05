@@ -24,7 +24,7 @@ import type {
   UpdateStayScheduleDTO,
   UpdateStaySeatPresetDTO,
 } from '../dto/stay.manage.dto';
-import type { StayManageService } from '../providers/stay.manage.service';
+import { StayManageService } from '../providers/stay.manage.service';
 
 @ApiTags('Stay Manage')
 @Controller('/manage/stay')

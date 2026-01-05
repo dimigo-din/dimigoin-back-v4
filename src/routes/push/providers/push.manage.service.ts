@@ -1,6 +1,6 @@
 import { fcm, type fcm_v1 } from '@googleapis/fcm';
 import { Injectable, Logger } from '@nestjs/common';
-import type { ConfigService } from '@nestjs/config';
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { GoogleAuth } from 'google-auth-library';
 import type { Repository } from 'typeorm';

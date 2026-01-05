@@ -1,16 +1,16 @@
 import { youtube } from '@googleapis/youtube';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import type { ConfigService } from '@nestjs/config';
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { format, startOfWeek } from 'date-fns';
 import type { Repository } from 'typeorm';
 
 import { ErrorMsg } from '../../../common/mapper/error';
 import type { UserJWT, YoutubeSearchResults, YoutubeVideoItem } from '../../../common/mapper/types';
-import type { CacheService } from '../../../common/modules/cache.module';
+import { CacheService } from '../../../common/modules/cache.module';
 import { safeFindOne } from '../../../common/utils/safeFindOne.util';
 import { User, WakeupSongApplication, WakeupSongVote } from '../../../schemas';
-import type { UserManageService } from '../../user/providers';
+import { UserManageService } from '../../user/providers';
 import type {
   RegisterVideoDTO,
   SearchVideoDTO,

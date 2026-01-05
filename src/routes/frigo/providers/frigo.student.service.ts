@@ -16,7 +16,7 @@ import type { UserJWT } from '../../../common/mapper/types';
 import { DayNumber2String } from '../../../common/utils/date.util';
 import { safeFindOne } from '../../../common/utils/safeFindOne.util';
 import { FrigoApply, FrigoApplyPeriod, User } from '../../../schemas';
-import type { UserManageService } from '../../user/providers';
+import { UserManageService } from '../../user/providers';
 import type { ClientFrigoApplyDTO } from '../dto/frigo.dto';
 
 @Injectable()

@@ -9,7 +9,7 @@ import { ApiResponseFormat } from '../../../common/dto/response_format.dto';
 import { PermissionEnum } from '../../../common/mapper/permissions';
 import { FrigoApply, type User } from '../../../schemas';
 import type { ClientFrigoApplyDTO } from '../dto/frigo.dto';
-import type { FrigoStudentService } from '../providers';
+import { FrigoStudentService } from '../providers';
 
 @ApiTags('Frigo Student')
 @Controller('/student/frigo')

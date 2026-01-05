@@ -37,7 +37,7 @@ export class LaundryTimeline {
   name: string;
 
   @ApiProperty({ nullable: true })
-  @Column({ nullable: true, default: 'etc' })
+  @Column({ type: 'varchar', nullable: true, default: 'etc' })
   scheduler: LaundryTimelineSchedule | null = 'etc';
 
   @ApiProperty()

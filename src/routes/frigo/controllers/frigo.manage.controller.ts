@@ -15,7 +15,7 @@ import type {
   FrigoApplyPeriodIdDTO,
   SetFrigoApplyPeriodDTO,
 } from '../dto/frigo.manage.dto';
-import type { FrigoManageService } from '../providers';
+import { FrigoManageService } from '../providers';
 
 @ApiTags('Frigo Manage')
 @Controller('/manage/frigo')
