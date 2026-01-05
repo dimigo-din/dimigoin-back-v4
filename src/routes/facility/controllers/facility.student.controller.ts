@@ -11,10 +11,10 @@ import {
   Req,
   Res,
   StreamableFile,
-  UploadedFiles,
   UseInterceptors,
 } from "@nestjs/common";
 import { ApiBody, ApiConsumes, ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
+import { FastifyReply, FastifyRequest } from "fastify";
 
 import { CustomJwtAuthGuard } from "../../../auth/guards";
 import { PermissionGuard } from "../../../auth/guards/permission.guard";
@@ -48,12 +48,12 @@ export class FacilityStudentController {
     type: StreamableFile,
   })
   @Get("/img")
-  async getImg(@Res() res, @Query() data: FacilityImgIdDTO) {
+  async getImg(@Res() res: FastifyReply, @Query() data: FacilityImgIdDTO) {
     const result = await this.facilityService.getImg(data);
     console.log(result);
 
-    res.set("Content-Disposition", `attachment; filename="${result.filename}"`);
-    result.stream.pipe(res);
+    res.header("Content-Disposition", `attachment; filename="${result.filename}"`);
+    return res.send(result.stream);
   }
 
   @ApiOperation({
@@ -95,15 +95,15 @@ export class FacilityStudentController {
   @Post("/")
   @UseInterceptors(ImageUploadInterceptor)
   async report(
-    @Req() req,
+    @Req() req: FastifyRequest & { user: any; files: any },
     @Body() data: ReportFacilityDTO,
-    @UploadedFiles() files: { file: Array<Express.Multer.File> },
   ) {
+    const files = req.files?.file || [];
     try {
-      return await this.facilityService.createReport(req.user, data, files.file);
+      return await this.facilityService.createReport(req.user, data, files);
     } catch (e) {
       console.log(e);
-      files.file.forEach((f) =>
+      files.forEach((f: any) =>
         fs.rmSync(path.join(__dirname, "./upload", f.filename), { force: true, recursive: true }),
       );
       throw e;
@@ -119,7 +119,7 @@ export class FacilityStudentController {
     type: FacilityReportComment,
   })
   @Post("/comment")
-  async postComment(@Req() req, @Body() data: PostCommentDTO) {
+  async postComment(@Req() req: FastifyRequest & { user: any }, @Body() data: PostCommentDTO) {
     return await this.facilityService.writeComment(req.user, data);
   }
 }

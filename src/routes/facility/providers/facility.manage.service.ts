@@ -73,7 +73,7 @@ export class FacilityManageService {
     return report;
   }
 
-  async createReport(user: UserJWT, data: ReportFacilityDTO, files: Array<Express.Multer.File>) {
+  async createReport(user: UserJWT, data: ReportFacilityDTO, files: Array<FileDTO>) {
     const dbUser = await safeFindOne<User>(this.userRepository, user.id);
 
     const facilityReport = new FacilityReport();

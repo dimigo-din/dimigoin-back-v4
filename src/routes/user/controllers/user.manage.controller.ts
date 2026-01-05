@@ -10,6 +10,7 @@ import {
   StreamableFile,
 } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
+import { FastifyReply, FastifyRequest } from "fastify";
 
 import { CustomJwtAuthGuard } from "../../../auth/guards";
 import { PermissionGuard } from "../../../auth/guards/permission.guard";
@@ -41,7 +42,7 @@ export class UserManageController {
   })
   @UseGuardsWithSwagger(CustomJwtAuthGuard)
   @Post("/login/password")
-  async addPasswordLogin(@Req() req, @Body() data: AddPasswordLoginDTO) {
+  async addPasswordLogin(@Req() req: FastifyRequest & { user: any }, @Body() data: AddPasswordLoginDTO) {
     return await this.userManageService.addPasswordLogin(req.user.id, data.password);
   }
 
@@ -114,15 +115,13 @@ export class UserManageController {
   })
   @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.TEACHER]))
   @Post("/renderHtml")
-  async renderHtml(@Res() res, @Body() data: RenderHTMLDTO) {
+  async renderHtml(@Res() res: FastifyReply, @Body() data: RenderHTMLDTO) {
     const buffer = await this.userManageService.renderHtml(data);
 
-    res.set({
-      "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename="${encodeURIComponent(data.filename)}"`,
-      "Content-Length": buffer.length,
-    });
+    res.header("Content-Type", "application/pdf");
+    res.header("Content-Disposition", `attachment; filename="${encodeURIComponent(data.filename)}"`);
+    res.header("Content-Length", buffer.length.toString());
 
-    res.end(buffer);
+    return res.send(buffer);
   }
 }

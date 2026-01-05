@@ -1,5 +1,5 @@
-import * as fs from "node:fs";
-import * as path from "node:path";
+import fs from "node:fs";
+import path from "node:path";
 
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -9,7 +9,6 @@ import { ErrorMsg } from "../../../common/mapper/error";
 import { UserJWT } from "../../../common/mapper/types";
 import { safeFindOne } from "../../../common/utils/safeFindOne.util";
 import { FacilityImg, FacilityReport, FacilityReportComment, User } from "../../../schemas";
-import { UserManageService } from "../../user/providers";
 import {
   FacilityImgIdDTO,
   FacilityReportIdDTO,
@@ -29,7 +28,6 @@ export class FacilityStudentService {
     private readonly facilityReportCommentRepository: Repository<FacilityReportComment>,
     @InjectRepository(FacilityImg)
     private readonly facilityImgRepository: Repository<FacilityImg>,
-    private readonly userManageService: UserManageService,
   ) {}
 
   async getImg(data: FacilityImgIdDTO) {
@@ -68,7 +66,7 @@ export class FacilityStudentService {
     return report;
   }
 
-  async createReport(user: UserJWT, data: ReportFacilityDTO, files: Array<Express.Multer.File>) {
+  async createReport(user: UserJWT, data: ReportFacilityDTO, files: Array<FileDTO>) {
     const dbUser = await safeFindOne<User>(this.userRepository, user.id);
 
     const facilityReport = new FacilityReport();
@@ -86,6 +84,8 @@ export class FacilityStudentService {
 
       imgs.push(img);
     }
+
+    await this.facilityImgRepository.save(imgs);
 
     const saved = await this.facilityReportRepository.save(facilityReport);
     return await safeFindOne<FacilityReport>(this.facilityReportRepository, saved.id);

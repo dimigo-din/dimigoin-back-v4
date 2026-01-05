@@ -1,32 +1,34 @@
-import { Injectable, NestMiddleware, Logger } from "@nestjs/common";
-import { Request, Response, NextFunction } from "express";
+import { Injectable, Logger, NestMiddleware } from "@nestjs/common";
+import { FastifyReply, FastifyRequest } from "fastify";
 
 @Injectable()
 export class CustomLoggerMiddleware implements NestMiddleware {
   private logger = new Logger(CustomLoggerMiddleware.name);
 
-  use(req: Request, res: Response, next: NextFunction) {
+  use(req: FastifyRequest["raw"], res: FastifyReply["raw"], next: () => void) {
     const startTimestamp = Date.now();
-    const requestMethod = req.method;
-    const originURL = req.originalUrl;
-    const httpVersion = `HTTP/${req.httpVersion}`;
-    const userAgent = req.headers["user-agent"];
-    const ipAddress = req.socket.remoteAddress;
-    const forwardedFor = Array.isArray(req.headers["x-forwarded-for"])
-      ? req.headers["x-forwarded-for"].join(" > ")
-      : (req.headers["x-forwarded-for"] || "").replaceAll(",", " > ");
+    const request = req as any;
+    const requestMethod = request.method;
+    const originURL = request.url;
+    const httpVersion = `HTTP/${request.httpVersion}`;
+    const userAgent = request.headers["user-agent"];
+    const ipAddress = request.socket?.remoteAddress;
+    const forwardedFor = Array.isArray(request.headers["x-forwarded-for"])
+      ? request.headers["x-forwarded-for"].join(" > ")
+      : (request.headers["x-forwarded-for"] || "").replace(/,/g, " > ");
+
     let authorization = "";
+    const cookies = this.parseCookies(request.headers.cookie || "");
+
     if (
-      (typeof req.headers["authorization"] === "string" &&
-        req.headers["authorization"].startsWith("Bearer")) ||
-      (req.cookies &&
-        req.cookies["access-token"] &&
-        typeof req.cookies["access-token"] === "string")
+      (typeof request.headers["authorization"] === "string" &&
+        request.headers["authorization"].startsWith("Bearer")) ||
+      (cookies && cookies["access-token"])
     ) {
       const authorizationTmp =
-        (req.cookies ? req.cookies["access-token"] : null) ||
-        req.headers["authorization"].replace("Bearer ", "");
-      if (authorizationTmp.split(".").length === 3) {
+        cookies["access-token"] ||
+        request.headers["authorization"]?.replace("Bearer ", "");
+      if (authorizationTmp && authorizationTmp.split(".").length === 3) {
         try {
           authorization = `${this.parseJwt(authorizationTmp).id}(${this.parseJwt(authorizationTmp).name})`;
         } catch (e) {
@@ -44,19 +46,23 @@ export class CustomLoggerMiddleware implements NestMiddleware {
       this.logger.log(
         `From ${forwardedFor ? `${forwardedFor} through ${ipAddress}` : ipAddress} (${userAgent}) - Requested "${requestMethod} ${originURL} ${httpVersion}" | Responded with HTTP ${statusCode} by uid{${authorization}} +${endTimestamp}ms `,
       );
-
-      if (
-        req.body &&
-        Object.keys(req.body).length > 0 &&
-        Buffer.byteLength(JSON.stringify(req.body), "utf8") < 1024 * 1024 && // 1mb
-        req.path !== "/manage/user/renderHtml"
-      )
-        this.logger.log(`Request Body: ${JSON.stringify(req.body)}`);
-
-      if (req.body && Buffer.byteLength(JSON.stringify(req.body), "utf8") > 1024 * 1024)
-        this.logger.log("Request Body: [Too large to log]");
     });
+
     next();
+  }
+
+  private parseCookies(cookieHeader: string): Record<string, string> {
+    const cookies: Record<string, string> = {};
+    if (!cookieHeader) return cookies;
+
+    cookieHeader.split(";").forEach((cookie) => {
+      const [name, ...rest] = cookie.split("=");
+      if (name && rest.length) {
+        cookies[name.trim()] = rest.join("=").trim();
+      }
+    });
+
+    return cookies;
   }
 
   parseJwt(token: string) {

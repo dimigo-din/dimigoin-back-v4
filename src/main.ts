@@ -3,8 +3,9 @@ import * as process from "node:process";
 import { ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { NestFactory } from "@nestjs/core";
-import * as cookieParser from "cookie-parser";
-import { json, urlencoded } from "express";
+import { FastifyAdapter, NestFastifyApplication } from "@nestjs/platform-fastify";
+import fastifyCookie from "@fastify/cookie";
+import fastifyMultipart from "@fastify/multipart";
 import importToArray from "import-to-array";
 
 import { AppModule } from "./app";
@@ -13,7 +14,12 @@ import { CustomSwaggerSetup } from "./common/modules/swagger.module";
 import { ValidationService } from "./common/modules/validation.module";
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestFastifyApplication>(
+    AppModule,
+    new FastifyAdapter({
+      bodyLimit: 50 * 1024 * 1024,
+    }),
+  );
 
   const configService = app.get(ConfigService);
 
@@ -30,16 +36,22 @@ async function bootstrap() {
             .map((d) => `http://${d}`),
     credentials: true,
   });
-  app.use(cookieParser());
-  app.use(json({ limit: "5000mb" }));
-  app.use(urlencoded({ limit: "5000mb" }));
+
+  await app.register(fastifyCookie);
+  await app.register(fastifyMultipart, {
+    limits: {
+      fileSize: 20 * 1024 * 1024,
+      files: 5,
+    },
+  });
+
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
   app.useGlobalInterceptors(...importToArray(interceptors).map((i) => new i()));
 
   await CustomSwaggerSetup(app);
 
   const port = configService.get<number>("APPLICATION_PORT");
-  await app.listen(port);
+  await app.listen(port, "0.0.0.0");
 
   const validationService = app.get<ValidationService>(ValidationService);
   await validationService.validatePermissionEnum();
