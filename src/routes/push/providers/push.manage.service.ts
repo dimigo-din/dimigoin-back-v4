@@ -28,7 +28,7 @@ export class PushManageService {
     private readonly pushRepository: Repository<PushSubscription>,
     private readonly configService: ConfigService,
   ) {
-    this.projectId = this.configService.get<string>("FIREBASE_PROJECT_ID");
+    this.projectId = this.configService.get<string>("FIREBASE_PROJECT_ID")!;
     let googleAuth = new GoogleAuth({
       credentials: {
         client_email: configService.get<string>("FIREBASE_CLIENT_EMAIL"),

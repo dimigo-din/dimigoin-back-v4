@@ -108,7 +108,7 @@ export class FacilityReportComment {
     onUpdate: "CASCADE",
     onDelete: "CASCADE",
   })
-  comment_parent?: FacilityReportComment;
+  comment_parent: FacilityReportComment | null;
 
   @ApiProperty({ type: () => FacilityReport })
   @ManyToOne(

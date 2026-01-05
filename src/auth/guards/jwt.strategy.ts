@@ -20,7 +20,7 @@ export class CustomJwtStrategy extends PassportStrategy(Strategy, "jwt") {
         cookieExtractor,
       ]),
       ignoreExpiration: false,
-      secretOrKey: configService.get<string>("JWT_PRIVATE"),
+      secretOrKey: configService.get<string>("JWT_PRIVATE")!,
       algorithms: ["RS256"],
     });
   }

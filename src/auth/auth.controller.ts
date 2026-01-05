@@ -126,7 +126,7 @@ export class AuthController {
   ) {
     let token: { accessToken: string; refreshToken: string };
     if (!data || !data.refreshToken) {
-      token = await this.authService.refresh(req.cookies[REFRESH_TOKEN_COOKIE]);
+      token = await this.authService.refresh(req.cookies[REFRESH_TOKEN_COOKIE]!);
       this.generateCookie(res, token);
     } else {
       token = await this.authService.refresh(data.refreshToken);
@@ -152,7 +152,7 @@ export class AuthController {
     const sameSite = process.env.NODE_ENV !== "dev" ? "none" : "lax";
     const domains =
       process.env.NODE_ENV !== "dev"
-        ? this.configService.get<string>("ALLOWED_DOMAIN").split(",")
+        ? this.configService.get<string>("ALLOWED_DOMAIN")!.split(",")
         : [undefined];
     const secure = process.env.NODE_ENV !== "dev";
 
@@ -216,7 +216,7 @@ export class AuthController {
     const sameSite = process.env.NODE_ENV !== "dev" ? "none" : "lax";
     const domains =
       process.env.NODE_ENV !== "dev"
-        ? this.configService.get<string>("ALLOWED_DOMAIN").split(",")
+        ? this.configService.get<string>("ALLOWED_DOMAIN")!.split(",")
         : [undefined];
 
     for (const domain of domains) {

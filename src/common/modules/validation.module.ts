@@ -72,7 +72,7 @@ export class ValidationService {
         users.splice(users.indexOf(u), 1);
         const groupName = Object.entries(deprecatedPermissionGroups).find(
           (v) => v[1].toString() === u.permission,
-        )[0];
+        )![0];
         u.permission = NumberedPermissionGroupsEnum[groupName].toString();
         return u;
       });
@@ -113,7 +113,7 @@ export class ValidationService {
     // Commit changes
     this.logger.log("Commiting changes:");
 
-    users = [].concat(groupUsers, users);
+    users = groupUsers.concat(users);
     await this.userRepository.save(users);
 
     await this.permissionValidatorRepository.clear();

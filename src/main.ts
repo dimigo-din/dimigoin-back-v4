@@ -26,11 +26,11 @@ async function bootstrap() {
     origin:
       process.env.NODE_ENV !== "dev"
         ? configService
-            .get<string>("ALLOWED_DOMAIN")
+            .get<string>("ALLOWED_DOMAIN")!
             .split(",")
             .map((d) => `https://${d}`)
         : configService
-            .get<string>("ALLOWED_DOMAIN")
+            .get<string>("ALLOWED_DOMAIN")!
             .split(",")
             .map((d) => `http://${d}`),
     credentials: true,
@@ -49,7 +49,7 @@ async function bootstrap() {
 
   await CustomSwaggerSetup(app);
 
-  const port = configService.get<number>("APPLICATION_PORT");
+  const port = configService.get<number>("APPLICATION_PORT")!;
   await app.listen(port, "0.0.0.0");
 
   const validationService = app.get<ValidationService>(ValidationService);

@@ -350,8 +350,8 @@ export class StayManageService {
       outing.dinner_cancel = outingData.dinner_cancel;
       outing.from = outingData.from;
       outing.to = outingData.to;
-      outing.approved = outingData.approved;
-      outing.audit_reason = outingData.audit_reason;
+      outing.approved = outingData.approved || null;
+      outing.audit_reason = outingData.audit_reason || null;
       outing.stay_apply = stayApply;
 
       stayApply.outing.push(outing);
@@ -390,8 +390,8 @@ export class StayManageService {
       outing.dinner_cancel = outingData.dinner_cancel;
       outing.from = outingData.from;
       outing.to = outingData.to;
-      outing.approved = outingData.approved;
-      outing.audit_reason = outingData.audit_reason;
+      outing.approved = outingData.approved || null;
+      outing.audit_reason = outingData.audit_reason || null;
       outing.stay_apply = stayApply;
 
       stayApply.outing.push(outing);

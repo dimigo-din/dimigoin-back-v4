@@ -9,7 +9,7 @@ import { LaundryTimelineScheduler } from "../../routes/laundry/schedulers/schedu
 import { generateRange } from "../utils/staySeat.util";
 import { LaundryTimelineSchedule } from "./types";
 
-export const StaySeats = [].concat(generateRange(["A1", "L18"]), generateRange(["M1", "N7"]));
+export const StaySeats = generateRange(["A1", "L18"]).concat(generateRange(["M1", "N7"]));
 
 export const ACCESS_TOKEN_COOKIE = "access-token";
 export const REFRESH_TOKEN_COOKIE = "refresh-token";

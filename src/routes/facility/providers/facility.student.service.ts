@@ -53,7 +53,7 @@ export class FacilityStudentService {
   }
 
   async getReport(data: FacilityReportIdDTO) {
-    const report: FacilityReport = await this.facilityReportRepository
+    const report = (await this.facilityReportRepository
       .createQueryBuilder("report")
       .leftJoinAndSelect("report.comment", "comment")
       .leftJoinAndSelect("report.file", "file")
@@ -61,7 +61,7 @@ export class FacilityStudentService {
       .loadRelationIdAndMap("comment.parentId", "comment.parent")
       .loadRelationIdAndMap("comment.commentParentId", "comment.comment_parent")
       .where("report.id = :id", { id: data.id })
-      .getOne();
+      .getOne())!;
 
     return report;
   }
@@ -79,7 +79,7 @@ export class FacilityStudentService {
     for (const file of files) {
       const img = new FacilityImg();
       img.name = file.originalname;
-      img.location = file.filename;
+      img.location = file.filename!;
       img.parent = facilityReport;
 
       imgs.push(img);

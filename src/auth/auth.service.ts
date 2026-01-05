@@ -53,7 +53,7 @@ export class AuthService {
     });
     if (!login)
       throw new HttpException(ErrorMsg.UserIdentifier_NotFound(), HttpStatus.UNAUTHORIZED);
-    if (!bcrypt.compareSync(password, login.identifier2))
+    if (!bcrypt.compareSync(password, login.identifier2!))
       throw new HttpException(ErrorMsg.UserIdentifier_NotMatched(), HttpStatus.UNAUTHORIZED);
 
     return await this.generateJWTKeyPair(login.user, "30m");
@@ -77,9 +77,9 @@ export class AuthService {
   }
 
   async loginByGoogle(
-    code?: string,
-    idToken?: string,
-    redirect_uri?: string,
+    code: string | null,
+    idToken: string | null,
+    redirect_uri: string | null,
   ): Promise<JWTResponse> {
     let ticketPayload;
     try {
@@ -95,7 +95,7 @@ export class AuthService {
           ...(redirect_uri ? { redirect_uri } : {}),
         });
         const ticket = await this.googleOauthClient.verifyIdToken({
-          idToken: tokenRes.tokens.id_token,
+          idToken: tokenRes.tokens.id_token!,
           audience: this.configService.get<string>("GCP_OAUTH_ID"),
         });
         ticketPayload = ticket.getPayload();
@@ -106,20 +106,20 @@ export class AuthService {
       throw new HttpException(ErrorMsg.GoogleOauthCode_Invalid(), HttpStatus.BAD_REQUEST);
     }
 
-    let loginUser: User = null;
+    let loginUser: User;
     const login = await this.loginRepository.findOne({
-      where: { identifier1: ticketPayload.sub || "", type: "google" },
+      where: { identifier1: ticketPayload?.sub || "", type: "google" },
     });
     if (!login) {
       loginUser = await this.userManageService.createUser({
         loginType: "google",
-        identifier1: ticketPayload.sub,
+        identifier1: ticketPayload!.sub!,
         identifier2: null,
-        email: ticketPayload.email,
+        email: ticketPayload!.email!,
         picture:
-          ticketPayload.picture ||
+          ticketPayload!.picture ||
           "https://i.pinimg.com/236x/80/f6/ce/80f6ce7b8828349aa277cf3bcb19c477.jpg",
-        name: `${ticketPayload.family_name || ""}${ticketPayload.given_name || ""}`,
+        name: `${ticketPayload!.family_name || ""}${ticketPayload!.given_name || ""}`,
       });
     } else loginUser = login.user;
 
@@ -143,9 +143,9 @@ export class AuthService {
     });
     if (!session) throw new HttpException(ErrorMsg.UserSession_NotFound(), HttpStatus.NOT_FOUND);
 
-    const user = await this.userRepository.findOne({
+    const user = (await this.userRepository.findOne({
       where: { id: session.user.id },
-    });
+    }))!;
 
     return await this.generateJWTKeyPair(user, "30m", session);
   }

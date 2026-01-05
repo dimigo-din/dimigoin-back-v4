@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsArray, IsNotEmpty, IsNumber, IsString, Max, Min } from "class-validator";
+import { IsArray, IsNotEmpty, IsNumber, IsOptional, IsString, Max, Min } from "class-validator";
 
 import { PermissionType } from "../../../common/mapper/permissions";
 import { LoginType } from "../../../common/mapper/types";
@@ -15,7 +15,8 @@ export class CreateUserDTO {
 
   @ApiProperty()
   @IsString()
-  identifier2: string;
+  @IsOptional()
+  identifier2: string | null;
 
   @ApiProperty()
   @IsString()

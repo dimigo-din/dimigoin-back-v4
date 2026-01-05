@@ -55,7 +55,7 @@ export class UserManageService {
   }
 
   async getUserById(id: string): Promise<User> {
-    return await this.userRepository.findOne({ where: { id } });
+    return (await this.userRepository.findOne({ where: { id } }))!;
   }
 
   // TODO: get from array like fetchUserDetail(...email)
@@ -132,7 +132,7 @@ export class UserManageService {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    const dbUser = await this.userRepository.findOne({ where: { id: user } });
+    const dbUser = (await this.userRepository.findOne({ where: { id: user } }))!;
     const login = new Login();
     login.type = "password";
     login.identifier1 = dbUser.email;
@@ -145,14 +145,14 @@ export class UserManageService {
   // this bunch of code can be shortened.
   // but I left it like this for optimization.
   async setPermission(data: SetPermissionDTO) {
-    const user = await this.userRepository.findOne({ where: { id: data.id } });
+    const user = (await this.userRepository.findOne({ where: { id: data.id } }))!;
     user.permission = numberPermission(...data.permissions).toString();
 
     return await this.userRepository.save(user);
   }
 
   async addPermission(data: AddPermissionDTO) {
-    const user = await this.userRepository.findOne({ where: { id: data.id } });
+    const user = (await this.userRepository.findOne({ where: { id: data.id } }))!;
 
     const permissions = parsePermission(user.permission);
 
@@ -160,7 +160,7 @@ export class UserManageService {
       (p: PermissionType) => !permissions.find((p2) => p2 === p),
     );
 
-    const resultPermission = [].concat(permissions, addPermissionTarget);
+    const resultPermission = permissions.concat(addPermissionTarget);
 
     user.permission = numberPermission(...resultPermission).toString();
 
@@ -168,7 +168,7 @@ export class UserManageService {
   }
 
   async removePermission(data: RemovePermissionDTO) {
-    const user = await this.userRepository.findOne({ where: { id: data.id } });
+    const user = (await this.userRepository.findOne({ where: { id: data.id } }))!;
 
     const resultPermissions = parsePermission(user.permission).filter(
       (p: PermissionType) => !data.permissions.find((p2) => p2 === p),

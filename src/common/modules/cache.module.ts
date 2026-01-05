@@ -34,7 +34,7 @@ export class CacheService {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly configService: ConfigService,
   ) {
-    this.redis = new Redis(this.configService.get<string>("REDIS_HOST"));
+    this.redis = new Redis(this.configService.get<string>("REDIS_HOST")!);
   }
 
   async musicSearchRateLimit(userid: string) {

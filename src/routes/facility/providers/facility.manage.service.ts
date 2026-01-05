@@ -86,7 +86,7 @@ export class FacilityManageService {
     for (const file of files) {
       const img = new FacilityImg();
       img.name = file.originalname;
-      img.location = file.filename;
+      img.location = file.filename!;
       img.parent = facilityReport;
 
       imgs.push(img);

@@ -362,11 +362,11 @@ export class StayOuting {
 
   @ApiProperty({ nullable: true })
   @Column("boolean", { nullable: true })
-  approved?: boolean;
+  approved: boolean | null;
 
   @ApiProperty({ nullable: true })
   @Column("varchar", { nullable: true })
-  audit_reason?: string;
+  audit_reason: string | null;
 
   @ManyToOne(
     () => StayApply,

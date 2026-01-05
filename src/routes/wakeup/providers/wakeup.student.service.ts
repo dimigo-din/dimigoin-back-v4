@@ -104,7 +104,7 @@ export class WakeupStudentService {
         q: data.videoId,
         maxResults: 1,
       });
-      videoData = (search.data.items[0] as YoutubeVideoItem) || null;
+      videoData = (search.data.items?.[0] as YoutubeVideoItem) || null;
     } else {
       videoData = cache;
     }

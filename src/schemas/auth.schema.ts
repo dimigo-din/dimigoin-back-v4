@@ -35,11 +35,11 @@ export class Login {
 
   @ApiProperty()
   @Column({ enum: LoginTypeValues })
-  type: LoginType = null;
+  type: LoginType;
 
   @ApiProperty()
   @Column("text")
-  identifier1: string = null;
+  identifier1: string;
 
   @ApiProperty()
   @Column("text", { nullable: true })
@@ -54,11 +54,11 @@ export class Session {
 
   @ApiProperty()
   @Column()
-  refreshToken: string = null;
+  refreshToken: string;
 
   @ApiProperty()
   @Column()
-  sessionIdentifier: string = null;
+  sessionIdentifier: string;
 
   @ApiProperty()
   @CreateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP(6)" })
