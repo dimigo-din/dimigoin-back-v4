@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { format, isAfter, addHours, startOfDay } from "date-fns";
-import { formatInTimeZone, toZonedTime } from "date-fns-tz";
+import { TZDate } from "@date-fns/tz";
 import { Repository } from "typeorm";
 
 import { ErrorMsg } from "../../../common/mapper/error";
@@ -47,7 +47,7 @@ export class LaundryStudentService {
 
   async createApply(user: UserJWT, data: LaundryApplyDTO) {
     const now = new Date();
-    const seoulNow = toZonedTime(now, "Asia/Seoul");
+    const seoulNow = new TZDate(now, "Asia/Seoul");
     const eightAM = addHours(startOfDay(seoulNow), 8);
     if (!isAfter(seoulNow, eightAM))
       throw new HttpException(ErrorMsg.LaundryApplyIsAfterEightAM(), HttpStatus.BAD_REQUEST);
@@ -59,7 +59,7 @@ export class LaundryStudentService {
     const applyExists = await this.laundryApplyRepository.findOne({
       where: {
         user: dbUser,
-        date: formatInTimeZone(now, "Asia/Seoul", "yyyy-MM-dd"),
+        date: format(new TZDate(now, "Asia/Seoul"), "yyyy-MM-dd"),
         laundryMachine: { type: machine.type },
       },
     });
@@ -86,7 +86,7 @@ export class LaundryStudentService {
     const machineTaken = await this.laundryApplyRepository.findOne({
       where: {
         laundryMachine: machine,
-        date: formatInTimeZone(now, "Asia/Seoul", "yyyy-MM-dd"),
+        date: format(new TZDate(now, "Asia/Seoul"), "yyyy-MM-dd"),
         laundryTime: time,
       },
     });
@@ -98,7 +98,7 @@ export class LaundryStudentService {
     apply.laundryTime = time;
     apply.laundryMachine = machine;
     apply.user = dbUser;
-    apply.date = formatInTimeZone(now, "Asia/Seoul", "yyyy-MM-dd");
+    apply.date = format(new TZDate(now, "Asia/Seoul"), "yyyy-MM-dd");
 
     return await this.laundryApplyRepository.save(apply);
   }

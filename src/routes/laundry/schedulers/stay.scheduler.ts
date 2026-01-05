@@ -3,8 +3,8 @@ import { LaundryTimeline, Stay } from "../../../schemas";
 import { Injectable } from "@nestjs/common";
 import { LessThanOrEqual, MoreThanOrEqual, Repository } from "typeorm";
 import { InjectRepository } from "@nestjs/typeorm";
-
-import { formatInTimeZone } from "date-fns-tz";
+import { format } from "date-fns";
+import { TZDate } from "@date-fns/tz";
 
 @Injectable()
 export class StayScheduler extends LaundryTimelineScheduler {
@@ -19,7 +19,7 @@ export class StayScheduler extends LaundryTimelineScheduler {
   async evaluate(timelines: LaundryTimeline[]): Promise<boolean> {
     const stayTimeline = timelines.find((x) => x.scheduler === "stay");
     if (stayTimeline) {
-      const today = formatInTimeZone(new Date(), "Asia/Seoul", "yyyy-MM-dd");
+      const today = format(new TZDate(new Date(), "Asia/Seoul"), "yyyy-MM-dd");
       const stay = await this.stayRepository.findOne({
         where: { stay_from: LessThanOrEqual(today), stay_to: MoreThanOrEqual(today) },
       });

@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { Cron, CronExpression } from "@nestjs/schedule";
 import { InjectRepository } from "@nestjs/typeorm";
 import { format, addMinutes } from "date-fns";
-import { formatInTimeZone, toZonedTime } from "date-fns-tz";
+import { TZDate } from "@date-fns/tz";
 import {
   FindOneOptions,
   In,
@@ -279,10 +279,10 @@ export class LaundryManageService {
   @Cron(CronExpression.EVERY_MINUTE)
   private async laundryNotificationScheduler() {
     const now = new Date();
-    const inFifteenMinutes = formatInTimeZone(addMinutes(now, 15), "Asia/Seoul", "HH:mm");
+    const inFifteenMinutes = format(addMinutes(new TZDate(now, "Asia/Seoul"), 15), "HH:mm");
     const applies = await this.laundryApplyRepository.find({
       where: {
-        date: formatInTimeZone(now, "Asia/Seoul", "yyyy-MM-dd"),
+        date: format(new TZDate(now, "Asia/Seoul"), "yyyy-MM-dd"),
         laundryTime: { time: inFifteenMinutes },
       },
       relations: { user: true, laundryMachine: true, laundryTime: true },
