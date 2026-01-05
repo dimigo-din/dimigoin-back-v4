@@ -9,14 +9,7 @@ import { LaundrySchedulePriority } from "../../../common/mapper/constants";
 import { ErrorMsg } from "../../../common/mapper/error";
 import { CacheService } from "../../../common/modules/cache.module";
 import { safeFindOne } from "../../../common/utils/safeFindOne.util";
-import {
-  LaundryApply,
-  LaundryMachine,
-  LaundryTime,
-  LaundryTimeline,
-  Stay,
-  User,
-} from "../../../schemas";
+import { LaundryApply, LaundryMachine, LaundryTime, LaundryTimeline, User } from "../../../schemas";
 import { PushNotificationToSpecificDTO } from "../../push/dto/push.manage.dto";
 import { PushManageService } from "../../push/providers";
 import type {
@@ -37,7 +30,6 @@ export class LaundryManageService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-    @InjectRepository(Stay) readonly _stayRepository: Repository<Stay>,
     @InjectRepository(LaundryTime)
     private readonly laundryTimeRepository: Repository<LaundryTime>,
     @InjectRepository(LaundryApply)

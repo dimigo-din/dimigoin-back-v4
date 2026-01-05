@@ -5,7 +5,6 @@ import type { Repository } from "typeorm";
 
 import { safeFindOne } from "../../../common/utils/safeFindOne.util";
 import { FrigoApply, FrigoApplyPeriod, User } from "../../../schemas";
-import { UserManageService } from "../../user/providers";
 import type {
   AuditFrigoApply,
   FrigoApplyDTO,
@@ -23,7 +22,6 @@ export class FrigoManageService {
     private readonly frigoApplyRepository: Repository<FrigoApply>,
     @InjectRepository(FrigoApplyPeriod)
     private readonly frigoApplyPeriodRepository: Repository<FrigoApplyPeriod>,
-    readonly _userManageService: UserManageService,
   ) {}
 
   async getApplyPeriod() {

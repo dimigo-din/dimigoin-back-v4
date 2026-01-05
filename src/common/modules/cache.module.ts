@@ -1,7 +1,7 @@
 import * as crypto from "node:crypto";
 import KeyvRedis from "@keyv/redis";
 import { CACHE_MANAGER, type Cache, CacheModule } from "@nestjs/cache-manager";
-import { Inject, Module } from "@nestjs/common";
+import { Inject, Logger, Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import Redis from "ioredis";
 
@@ -29,6 +29,7 @@ export class CacheService {
   private NOTIFICATION_PREFIX = "notification_";
   private PERSONALINFORMATIONVERIFY_SECRET = "PersonalInformationVerifyTokenSecret";
   private redis: Redis;
+  private logger = new Logger(CacheService.name);
 
   constructor(
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
@@ -55,6 +56,7 @@ export class CacheService {
         result,
         1000 * 60 * 10,
       );
+      this.logger.log(this.YOUTUBESEARCH_PREFIX + result.id.videoId);
     }
   }
 

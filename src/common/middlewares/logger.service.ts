@@ -5,11 +5,11 @@ import type { FastifyReply, FastifyRequest } from "fastify";
 export class CustomLoggerMiddleware implements NestMiddleware {
   private logger = new Logger(CustomLoggerMiddleware.name);
 
-  use(req: FastifyRequest["raw"], res: FastifyReply["raw"], next: () => void) {
+  use(req: FastifyRequest, res: FastifyReply["raw"], next: () => void) {
     const startTimestamp = Date.now();
     const reqMethod = req.method;
     const originURL = req.url;
-    const httpVersion = `HTTP/${req.httpVersion}`;
+    const httpVersion = `HTTP/${req.raw.httpVersion}`;
     const userAgent = req.headers["user-agent"];
     const ipAddress = req.socket?.remoteAddress;
     const forwardedFor = Array.isArray(req.headers["x-forwarded-for"])
@@ -42,9 +42,22 @@ export class CustomLoggerMiddleware implements NestMiddleware {
       const endTimestamp = Date.now() - startTimestamp;
 
       this.logger.log(
-        `From ${forwardedFor ? `${forwardedFor} through ${ipAddress}` : ipAddress} (${userAgent}) - reqed "${reqMethod} ${originURL} ${httpVersion}" | Responded with HTTP ${statusCode} by uid{${authorization}} +${endTimestamp}ms `,
+        `From ${forwardedFor ? `${forwardedFor} through ${ipAddress}` : ipAddress} (${userAgent}) - Requested "${reqMethod} ${originURL} ${httpVersion}" | Responded with HTTP ${statusCode} by uid{${authorization}} +${endTimestamp}ms `,
       );
     });
+
+    if (
+      req.body &&
+      Object.keys(req.body).length > 0 &&
+      Buffer.byteLength(JSON.stringify(req.body), "utf8") < 1024 * 1024 && // 1mb
+      originURL !== "/manage/user/renderHtml"
+    ) {
+      this.logger.log(`Request Body: ${JSON.stringify(req.body)}`);
+    }
+
+    if (req.body && Buffer.byteLength(JSON.stringify(req.body), "utf8") > 1024 * 1024) {
+      this.logger.log("Request Body: [Too large to log]");
+    }
 
     next();
   }

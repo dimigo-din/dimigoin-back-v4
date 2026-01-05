@@ -16,7 +16,6 @@ import {
   type PasswordLoginDTO,
   type RedirectUriDTO,
   type RefreshTokenDTO,
-  type RunPersonalInformationVerifyTokenDTO,
 } from "./auth.dto";
 import { AuthService } from "./auth.service";
 import { CustomJwtAuthGuard } from "./guards";
@@ -198,10 +197,7 @@ export class AuthController {
   })
   @UseGuardsWithSwagger(PersonalInformationVerifyTokenAuthGuard)
   @Post("/personalInformationVerifyToken")
-  async runPersonalInformationVerifyToken(
-    @CurrentUser() user: User,
-    @Body() _data: RunPersonalInformationVerifyTokenDTO,
-  ) {
+  async runPersonalInformationVerifyToken(@CurrentUser() user: User) {
     return user.email;
   }
 

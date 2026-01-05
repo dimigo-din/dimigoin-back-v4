@@ -18,7 +18,6 @@ export class ValidationService {
   private logger = new Logger(ValidationModule.name);
 
   constructor(
-    @InjectRepository(Session) readonly _sessionRepository: Repository<Session>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     @InjectRepository(PermissionValidator)

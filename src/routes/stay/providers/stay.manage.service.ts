@@ -33,7 +33,6 @@ import {
   StaySeatPresetRange,
   User,
 } from "../../../schemas";
-import { UserManageService } from "../../user/providers";
 import type {
   AuditOutingDTO,
   CreateStayApplyDTO,
@@ -75,7 +74,6 @@ export class StayManageService {
     private readonly stayApplyPeriod_Stay_Repository: Repository<StayApplyPeriod_Stay>,
     @InjectRepository(StayApplyPeriod_StaySchedule)
     private readonly stayApplyPeriod_StaySchedule_Repository: Repository<StayApplyPeriod_StaySchedule>,
-    readonly _userManageService: UserManageService,
   ) {}
 
   async getStaySeatPresetList() {

@@ -34,13 +34,11 @@ export class UserStudentService {
     };
   }
 
-  async getTimeTable(grade: number, klass: number, _opts: unknown = {}) {
+  async getTimeTable(grade: number, klass: number) {
     const rawData = (await axios.get("http://comci.net:4082/36179?NzM2MjlfMjkxNzVfMF8x")).data;
     const data = JSON.parse(rawData.substring(0, rawData.lastIndexOf("}") + 1));
 
     const DIV = data.분리 ?? 100; // division value (100 or 1000)
-    const _subjects = data.자료492; // subject array
-    const _teachers = data.자료446; // teacher array
     const MAX_P = 8; // 1~8 periods
     const MAX_D = 5; // Mon~Fri
 

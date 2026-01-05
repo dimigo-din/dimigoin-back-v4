@@ -9,7 +9,6 @@ import { ErrorMsg } from "../../../common/mapper/error";
 import type { UserJWT } from "../../../common/mapper/types";
 import { safeFindOne } from "../../../common/utils/safeFindOne.util";
 import { FacilityImg, FacilityReport, FacilityReportComment, User } from "../../../schemas";
-import { UserManageService } from "../../user/providers";
 import type { FileDTO } from "../dto/facility.dto";
 import type {
   ChangeFacilityReportStatusDTO,
@@ -33,7 +32,6 @@ export class FacilityManageService {
     private readonly facilityReportCommentRepository: Repository<FacilityReportComment>,
     @InjectRepository(FacilityImg)
     private readonly facilityImgRepository: Repository<FacilityImg>,
-    readonly _userManageService: UserManageService,
   ) {}
 
   async getImg(data: FacilityImgIdDTO) {
