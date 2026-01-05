@@ -34,7 +34,13 @@ import * as schedulers from "./schedulers";
     ]),
   ],
   controllers: importToArray(controllers),
-  providers: [...importToArray(providers), ...importToArray(schedulers),UserManageService, PushManageService, CacheService],
+  providers: [
+    ...importToArray(providers),
+    ...importToArray(schedulers),
+    UserManageService,
+    PushManageService,
+    CacheService,
+  ],
   exports: importToArray(providers),
 })
 export class LaundryModule {}

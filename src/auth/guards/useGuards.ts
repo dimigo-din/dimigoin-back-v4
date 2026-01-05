@@ -1,6 +1,6 @@
-import { applyDecorators, UseGuards } from "@nestjs/common";
+import { applyDecorators, type CanActivate, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth } from "@nestjs/swagger";
 
-export function UseGuardsWithSwagger(...args) {
+export function UseGuardsWithSwagger(...args: (CanActivate | Function)[]) {
   return applyDecorators(ApiBearerAuth("access-token"), UseGuards(...args));
 }

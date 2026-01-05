@@ -28,7 +28,9 @@ export const parsePermission = (
     if (numberedPermission - permission >= 0) {
       numberedPermission = numberedPermission - permission;
       permissions.push(
-        Object.keys(permissionEnum).find((p) => permissionEnum[p] === permission) as PermissionType,
+        Object.keys(permissionEnum).find(
+          (p) => (permissionEnum as Record<string, number>)[p] === permission,
+        ) as PermissionType,
       );
     }
   }

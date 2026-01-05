@@ -26,5 +26,8 @@ export const PermissionGroups = {
   AdminUserPermission,
 };
 export const NumberedPermissionGroupsEnum = Object.fromEntries(
-  Object.keys(PermissionGroups).map((v) => [v, numberPermission(...PermissionGroups[v])]),
+  Object.keys(PermissionGroups).map((v) => [
+    v,
+    numberPermission(...PermissionGroups[v as keyof typeof PermissionGroups]),
+  ]),
 ) as { [key in string]: number };

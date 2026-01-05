@@ -8,7 +8,6 @@ import { InjectRepository } from "@nestjs/typeorm";
 export class VacationScheduler extends LaundryTimelineScheduler {
   constructor() {
     super();
-
   }
 
   async evaluate(timelines: LaundryTimeline[]): Promise<boolean> {

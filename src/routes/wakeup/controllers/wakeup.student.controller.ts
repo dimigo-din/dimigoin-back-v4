@@ -15,6 +15,8 @@ import {
   VoteVideoDTO,
 } from "../dto/wakeup.student.dto";
 import { WakeupStudentService } from "../providers";
+import { CurrentUser } from "../../../common/decorators/user.decorator";
+import type { User } from "../../../schemas";
 
 @ApiTags("Wakeup Student")
 @Controller("/student/wakeup")
@@ -31,8 +33,8 @@ export class WakeupStudentController {
     // type: ,
   })
   @Get("/search")
-  async searchMusic(@Req() req, @Query() data: SearchVideoDTO) {
-    return await this.wakeupService.search(req.user, data);
+  async searchMusic(@CurrentUser() user: User, @Query() data: SearchVideoDTO) {
+    return await this.wakeupService.search(user, data);
   }
 
   @ApiOperation({
@@ -44,8 +46,8 @@ export class WakeupStudentController {
     type: ApplicationsResponseDTO,
   })
   @Get("/")
-  async getApplications(@Req() req) {
-    return await this.wakeupService.getApplications(req.user);
+  async getApplications(@CurrentUser() user: User) {
+    return await this.wakeupService.getApplications(user);
   }
 
   @ApiOperation({
@@ -57,8 +59,8 @@ export class WakeupStudentController {
     type: WakeupSongApplication,
   })
   @Post("/")
-  async registerVideo(@Req() req, @Body() data: RegisterVideoDTO) {
-    return await this.wakeupService.registerVideo(req.user, data);
+  async registerVideo(@CurrentUser() user: User, @Body() data: RegisterVideoDTO) {
+    return await this.wakeupService.registerVideo(user, data);
   }
 
   @ApiOperation({
@@ -70,8 +72,8 @@ export class WakeupStudentController {
     type: [WakeupSongVote],
   })
   @Get("/vote")
-  async getMyVotes(@Req() req) {
-    return await this.wakeupService.getMyVotes(req.user);
+  async getMyVotes(@CurrentUser() user: User) {
+    return await this.wakeupService.getMyVotes(user);
   }
 
   @ApiOperation({
@@ -83,8 +85,8 @@ export class WakeupStudentController {
     type: WakeupSongVote,
   })
   @Post("/vote")
-  async vote(@Req() req, @Body() data: VoteVideoDTO) {
-    return await this.wakeupService.vote(req.user, data);
+  async vote(@CurrentUser() user: User, @Body() data: VoteVideoDTO) {
+    return await this.wakeupService.vote(user, data);
   }
 
   @ApiOperation({
@@ -96,7 +98,7 @@ export class WakeupStudentController {
     type: WakeupSongVote,
   })
   @Delete("/vote")
-  async unVote(@Req() req, @Query() data: VoteIdDTO) {
-    return await this.wakeupService.unVote(req.user, data);
+  async unVote(@CurrentUser() user: User, @Query() data: VoteIdDTO) {
+    return await this.wakeupService.unVote(user, data);
   }
 }

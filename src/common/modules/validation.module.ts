@@ -43,7 +43,7 @@ export class ValidationService {
         .sort()
         .map((v) => [v.key, parseInt(v.value as unknown as string)]),
     ) as {
-      [K in PermissionType]: number;
+      [key: string]: number;
     };
 
     if (
@@ -81,11 +81,11 @@ export class ValidationService {
 
     this.logger.log("Individual Permission migration: ");
 
-    const exceptions = [];
+    const exceptions: User[] = [];
     users = users.map((user) => {
       const permissions = parsePermission(parseInt(user.permission), fixedPermissionMappings);
 
-      const newPermissions = [];
+      const newPermissions: number[] = [];
       permissions.forEach((permission) => {
         if (exceptions.includes(user)) return;
         if (!PermissionEnum[permission]) {
@@ -123,7 +123,7 @@ export class ValidationService {
       const permission = new PermissionValidator();
       permission.type = "permission";
       permission.key = K;
-      permission.value = PermissionEnum[K];
+      permission.value = PermissionEnum[K as PermissionType].toString();
       permissions.push(permission);
     });
     Object.keys(NumberedPermissionGroupsEnum).forEach((pg) => {
@@ -146,10 +146,12 @@ export class ValidationService {
     this.logger.log("NOP");
   }
 
-  async validateLaundrySchedulePriority(){
+  async validateLaundrySchedulePriority() {
     for (let schedule of LaundryTimelineSchedulerValues) {
       if (!LaundrySchedulePriority.some((s) => s.schedule === schedule)) {
-        throw new Error(`There is an unlisted LaundryTimelineScheduler value on LaundrySchedule Priority. ${schedule}`);
+        throw new Error(
+          `There is an unlisted LaundryTimelineScheduler value on LaundrySchedule Priority. ${schedule}`,
+        );
       }
     }
 

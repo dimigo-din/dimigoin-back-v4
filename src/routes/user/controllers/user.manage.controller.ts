@@ -17,6 +17,7 @@ import { PermissionGuard } from "../../../auth/guards/permission.guard";
 import { UseGuardsWithSwagger } from "../../../auth/guards/useGuards";
 import { ApiResponseFormat } from "../../../common/dto/response_format.dto";
 import { PermissionEnum } from "../../../common/mapper/permissions";
+import { CurrentUser } from "../../../common/decorators/user.decorator";
 import { User } from "../../../schemas";
 import {
   AddPasswordLoginDTO,
@@ -42,8 +43,8 @@ export class UserManageController {
   })
   @UseGuardsWithSwagger(CustomJwtAuthGuard)
   @Post("/login/password")
-  async addPasswordLogin(@Req() req: FastifyRequest & { user: any }, @Body() data: AddPasswordLoginDTO) {
-    return await this.userManageService.addPasswordLogin(req.user.id, data.password);
+  async addPasswordLogin(@CurrentUser() user: User, @Body() data: AddPasswordLoginDTO) {
+    return await this.userManageService.addPasswordLogin(user.id, data.password);
   }
 
   @ApiOperation({
@@ -119,7 +120,10 @@ export class UserManageController {
     const buffer = await this.userManageService.renderHtml(data);
 
     res.header("Content-Type", "application/pdf");
-    res.header("Content-Disposition", `attachment; filename="${encodeURIComponent(data.filename)}"`);
+    res.header(
+      "Content-Disposition",
+      `attachment; filename="${encodeURIComponent(data.filename)}"`,
+    );
     res.header("Content-Length", buffer.length.toString());
 
     return res.send(buffer);

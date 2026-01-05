@@ -16,6 +16,8 @@ import {
   SetSubscribeSubjectDTO,
 } from "../dto/push.student.dto";
 import { PushStudentService } from "../providers";
+import { CurrentUser } from "src/common/decorators/user.decorator";
+import { User } from "../../../schemas";
 
 @ApiTags("Push Student")
 @Controller("/student/push")
@@ -32,8 +34,8 @@ export class PushStudentController {
     type: PushSubscription,
   })
   @Put("/subscribe")
-  async createFCMToken(@Req() req, @Body() data: CreateFCMTokenDTO) {
-    return await this.pushService.upsertToken(req.user, data);
+  async createFCMToken(@CurrentUser() user: User, @Body() data: CreateFCMTokenDTO) {
+    return await this.pushService.upsertToken(user, data);
   }
 
   @ApiOperation({
@@ -45,8 +47,8 @@ export class PushStudentController {
     type: PushSubscription,
   })
   @Delete("/subscribe")
-  async removeFCMToken(@Req() req, @Body() data: DeleteFCMTokenDTO) {
-    return await this.pushService.removeToken(req.user, data);
+  async removeFCMToken(@CurrentUser() user: User, @Body() data: DeleteFCMTokenDTO) {
+    return await this.pushService.removeToken(user, data);
   }
 
   @ApiOperation({
@@ -58,8 +60,8 @@ export class PushStudentController {
     type: [PushSubscription],
   })
   @Delete("/unsubscribe/all")
-  async unsubscribeAll(@Req() req) {
-    return await this.pushService.removeAllByUser(req.user);
+  async unsubscribeAll(@CurrentUser() user: User) {
+    return await this.pushService.removeAllByUser(user);
   }
 
   @ApiOperation({
@@ -84,8 +86,8 @@ export class PushStudentController {
     type: [PushSubject],
   })
   @Get("/subjects/subscribed")
-  async getSubscribedSubject(@Req() req, @Query() data: GetSubscribedSubjectDTO) {
-    return await this.pushService.getSubscribedSubject(req.user, data);
+  async getSubscribedSubject(@CurrentUser() user: User, @Query() data: GetSubscribedSubjectDTO) {
+    return await this.pushService.getSubscribedSubject(user, data);
   }
 
   @ApiOperation({
@@ -98,7 +100,7 @@ export class PushStudentController {
     type: [PushSubject],
   })
   @Patch("/subjects/subscribed")
-  async setSubscribeSubject(@Req() req, @Body() data: SetSubscribeSubjectDTO) {
-    return await this.pushService.setSubscribeSubject(req.user, data);
+  async setSubscribeSubject(@CurrentUser() user: User, @Body() data: SetSubscribeSubjectDTO) {
+    return await this.pushService.setSubscribeSubject(user, data);
   }
 }

@@ -26,8 +26,7 @@ export class CustomLoggerMiddleware implements NestMiddleware {
       (cookies && cookies["access-token"])
     ) {
       const authorizationTmp =
-        cookies["access-token"] ||
-        request.headers["authorization"]?.replace("Bearer ", "");
+        cookies["access-token"] || request.headers["authorization"]?.replace("Bearer ", "");
       if (authorizationTmp && authorizationTmp.split(".").length === 3) {
         try {
           authorization = `${this.parseJwt(authorizationTmp).id}(${this.parseJwt(authorizationTmp).name})`;

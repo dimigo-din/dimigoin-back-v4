@@ -5,7 +5,7 @@ import {
   EtcScheduler,
   PrimaryScheduler,
   StayScheduler,
-  VacationScheduler
+  VacationScheduler,
 } from "../../routes/laundry/schedulers";
 import { Type } from "@nestjs/common";
 
@@ -28,7 +28,10 @@ export const Allowed_Image_Signatures = [
 export const SelfDevelopment_Outing_From = (date: string) => `${date}T10:20:00.000+09:00`;
 export const SelfDevelopment_Outing_To = (date: string) => `${date}T14:00:00.000+09:00`;
 
-export const LaundrySchedulePriority: { schedule: LaundryTimelineSchedule, scheduler: Type<LaundryTimelineScheduler> }[] = [
+export const LaundrySchedulePriority: {
+  schedule: LaundryTimelineSchedule;
+  scheduler: Type<LaundryTimelineScheduler>;
+}[] = [
   { schedule: "etc", scheduler: EtcScheduler },
   { schedule: "vacation", scheduler: VacationScheduler },
   { schedule: "stay", scheduler: StayScheduler },

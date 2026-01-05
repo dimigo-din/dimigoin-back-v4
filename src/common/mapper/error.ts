@@ -48,7 +48,12 @@ export const ErrorMsg = {
     "FrigoPeriod_NotExistsForGrade",
     "해당 학년은 금요귀가 신청이 불가능합니다. 담임 선생님께 문의주세요.",
   ],
-  FrigoPeriod_NotInApplyPeriod: (from_day, from_hour, to_hour, to_day) => [
+  FrigoPeriod_NotInApplyPeriod: (
+    from_day: string,
+    from_hour: number,
+    to_hour: string,
+    to_day: number,
+  ) => [
     "FrigoPeriod_NotInApplyPeriod",
     `금요귀가 신청기간이 아닙니다. 신청기간: ${from_day}요일 ${from_hour}시 ~ ${to_day}요일 ${to_hour}`,
   ],

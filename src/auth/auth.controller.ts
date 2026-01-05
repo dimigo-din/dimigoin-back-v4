@@ -52,7 +52,10 @@ export class AuthController {
     type: JWTResponse,
   })
   @Post("/login/password")
-  async passwordLogin(@Res({ passthrough: true }) res: FastifyReply, @Body() data: PasswordLoginDTO) {
+  async passwordLogin(
+    @Res({ passthrough: true }) res: FastifyReply,
+    @Body() data: PasswordLoginDTO,
+  ) {
     const token = await this.authService.loginByIdPassword(data.email, data.password);
     this.generateCookie(res, token);
 
@@ -80,7 +83,10 @@ export class AuthController {
     type: JWTResponse,
   })
   @Post("/login/google/callback")
-  async googleWebLoginCallback(@Res({ passthrough: true }) res: FastifyReply, @Body() data: GoogleWebLoginDTO) {
+  async googleWebLoginCallback(
+    @Res({ passthrough: true }) res: FastifyReply,
+    @Body() data: GoogleWebLoginDTO,
+  ) {
     const token = await this.authService.loginByGoogle(data.code, null, data.redirect_uri);
     this.generateCookie(res, token);
     return token;
@@ -95,7 +101,10 @@ export class AuthController {
     type: JWTResponse,
   })
   @Post("/login/google/callback/app")
-  async googleAppLoginCallback(@Res({ passthrough: true }) res: FastifyReply, @Body() data: GoogleAppLoginDTO) {
+  async googleAppLoginCallback(
+    @Res({ passthrough: true }) res: FastifyReply,
+    @Body() data: GoogleAppLoginDTO,
+  ) {
     const token = await this.authService.loginByGoogle(null, data.idToken, null);
     this.generateCookie(res, token);
     return token;
@@ -134,7 +143,10 @@ export class AuthController {
   })
   @UseGuardsWithSwagger(CustomJwtAuthGuard)
   @Get("/logout")
-  async logout(@Req() req: FastifyRequest & { user: any }, @Res({ passthrough: true }) res: FastifyReply) {
+  async logout(
+    @Req() req: FastifyRequest & { user: any },
+    @Res({ passthrough: true }) res: FastifyReply,
+  ) {
     await this.authService.logout(req.user);
 
     const sameSite = process.env.NODE_ENV !== "dev" ? "none" : "lax";

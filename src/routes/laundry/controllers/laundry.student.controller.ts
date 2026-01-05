@@ -10,6 +10,8 @@ import { LaundryApply, LaundryTimeline } from "../../../schemas";
 import { LaundryApplyDTO } from "../dto/laundry.student.dto";
 import { LaundryStudentService } from "../providers/laundry.student.service";
 import { LaundryApplyIdDTO } from "../dto/laundry.manage.dto";
+import { CurrentUser } from "src/common/decorators/user.decorator";
+import { User } from "../../../schemas";
 
 @ApiTags("Laundry Student")
 @Controller("/student/laundry")
@@ -52,8 +54,8 @@ export class LaundryStudentController {
     type: LaundryApply,
   })
   @Post("/")
-  async createApply(@Req() req, @Body() data: LaundryApplyDTO) {
-    return await this.laundryService.createApply(req.user, data);
+  async createApply(@CurrentUser() user: User, @Body() data: LaundryApplyDTO) {
+    return await this.laundryService.createApply(user, data);
   }
 
   @ApiOperation({
@@ -65,7 +67,7 @@ export class LaundryStudentController {
     type: LaundryApply,
   })
   @Delete("/")
-  async deleteApply(@Req() req, @Query() data: LaundryApplyIdDTO) {
-    return await this.laundryService.deleteApply(req.user, data);
+  async deleteApply(@CurrentUser() user: User, @Query() data: LaundryApplyIdDTO) {
+    return await this.laundryService.deleteApply(user, data);
   }
 }

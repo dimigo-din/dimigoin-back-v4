@@ -8,6 +8,8 @@ import { ApiResponseFormat } from "../../../common/dto/response_format.dto";
 import { PermissionEnum } from "../../../common/mapper/permissions";
 import { ApplyResponseDTO, GetTimelineDTO } from "../dto/user.student.dto";
 import { UserStudentService } from "../providers";
+import { CurrentUser } from "../../../common/decorators/user.decorator";
+import type { User } from "../../../schemas";
 
 @ApiTags("User Student")
 @Controller("/student/user")
@@ -36,7 +38,7 @@ export class UserStudentController {
     type: ApplyResponseDTO,
   })
   @Get("/apply")
-  async getApplies(@Req() req) {
-    return await this.userService.getMyApplies(req.user);
+  async getApplies(@CurrentUser() user: User) {
+    return await this.userService.getMyApplies(user);
   }
 }

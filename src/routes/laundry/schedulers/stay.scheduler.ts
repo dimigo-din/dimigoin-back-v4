@@ -13,7 +13,6 @@ export class StayScheduler extends LaundryTimelineScheduler {
     private readonly stayRepository: Repository<Stay>,
   ) {
     super();
-
   }
 
   async evaluate(timelines: LaundryTimeline[]): Promise<boolean> {

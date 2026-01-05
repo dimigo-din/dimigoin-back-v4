@@ -32,6 +32,8 @@ import {
 } from "../dto/facility.student.dto";
 import { ImageUploadInterceptor } from "../interceptor/image-upload.interceptor";
 import { FacilityStudentService } from "../providers";
+import { CurrentUser } from "../../../common/decorators/user.decorator";
+import { User } from "../../../schemas";
 
 @ApiTags("Facility Student")
 @Controller("/student/facility")
@@ -95,12 +97,13 @@ export class FacilityStudentController {
   @Post("/")
   @UseInterceptors(ImageUploadInterceptor)
   async report(
-    @Req() req: FastifyRequest & { user: any; files: any },
+    @Req() req: FastifyRequest & { files: any },
+    @CurrentUser() user: User,
     @Body() data: ReportFacilityDTO,
   ) {
     const files = req.files?.file || [];
     try {
-      return await this.facilityService.createReport(req.user, data, files);
+      return await this.facilityService.createReport(user, data, files);
     } catch (e) {
       console.log(e);
       files.forEach((f: any) =>
@@ -119,7 +122,7 @@ export class FacilityStudentController {
     type: FacilityReportComment,
   })
   @Post("/comment")
-  async postComment(@Req() req: FastifyRequest & { user: any }, @Body() data: PostCommentDTO) {
-    return await this.facilityService.writeComment(req.user, data);
+  async postComment(@CurrentUser() user: User, @Body() data: PostCommentDTO) {
+    return await this.facilityService.writeComment(user, data);
   }
 }

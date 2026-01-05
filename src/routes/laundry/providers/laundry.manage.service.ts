@@ -254,13 +254,17 @@ export class LaundryManageService {
     };
 
     for (let schedulerItem of LaundrySchedulePriority) {
-      const scheduler: LaundryTimelineScheduler = this.moduleRef.get(schedulerItem.scheduler, { strict: false });
+      const scheduler: LaundryTimelineScheduler = this.moduleRef.get(schedulerItem.scheduler, {
+        strict: false,
+      });
 
       const shouldEnable = await scheduler.evaluate(timelines);
       if (shouldEnable) {
         const target = timelines.filter((t) => t.scheduler === schedulerItem.schedule);
-        if (target.length === 1) { // not a etc
-          if (target[0].enabled === true) // already on
+        if (target.length === 1) {
+          // not a etc
+          if (target[0].enabled === true)
+            // already on
             break; // keep it.
           else {
             await disable();
@@ -268,7 +272,7 @@ export class LaundryManageService {
             await this.laundryTimelineRepository.save(target[0]); // enable it
             break;
           }
-        }else {
+        } else {
           break; // etc and current enabled is etc
         }
       }
