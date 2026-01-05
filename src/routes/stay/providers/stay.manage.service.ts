@@ -16,7 +16,7 @@ import {
   isWithinInterval,
   getDay,
 } from "date-fns";
-import { toZonedTime, formatInTimeZone } from "date-fns-tz";
+import { TZDate } from "@date-fns/tz";
 import { In, IsNull, LessThan, MoreThan, MoreThanOrEqual, Not, Repository } from "typeorm";
 
 import { ErrorMsg } from "../../../common/mapper/error";
@@ -477,7 +477,7 @@ export class StayManageService {
       stay.stay_seat_preset = target.stay_seat_preset;
       stay.parent = target;
 
-      const now = startOfDay(toZonedTime(new Date(), "Asia/Seoul"));
+      const now = startOfDay(new TZDate(new Date(), "Asia/Seoul"));
       stay.stay_apply_period = target.stay_apply_period.map((period) => {
         const p = new StayApplyPeriod_Stay();
         p.grade = period.grade;

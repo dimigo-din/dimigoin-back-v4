@@ -30,6 +30,7 @@
   },
   "dependencies": {
     "@biomejs/biome": "^2.3.8",
+    "@date-fns/tz": "^1.4.1",
     "@keyv/redis": "^5.1.2",
     "@nestjs/axios": "^4.0.0",
     "@nestjs/cache-manager": "^3.0.1",
@@ -51,7 +52,6 @@
     "class-validator": "^0.14.1",
     "cookie-parser": "^1.4.7",
     "date-fns": "^4.1.0",
-    "date-fns-tz": "^3.2.0",
     "firebase-admin": "^13.5.0",
     "google-auth-library": "^10.5.0",
     "googleapis": "^169.0.0",
