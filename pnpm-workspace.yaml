@@ -1,0 +1,7 @@
+onlyBuiltDependencies:
+  - '@nestjs/core'
+  - '@scarf/scarf'
+  - bcrypt
+  - protobufjs
+  - puppeteer
+  - unrs-resolver

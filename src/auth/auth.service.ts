@@ -8,8 +8,6 @@ import { Cron, CronExpression } from "@nestjs/schedule";
 import { InjectRepository } from "@nestjs/typeorm";
 import * as bcrypt from "bcrypt";
 import { OAuth2Client } from "google-auth-library";
-import { google } from "googleapis";
-import * as jwt from "jsonwebtoken";
 import { subMonths } from "date-fns";
 import { LessThan, Repository } from "typeorm";
 
@@ -41,11 +39,13 @@ export class AuthService {
     @InjectRepository(Session)
     private readonly sessionRepository: Repository<Session>,
   ) {
-    this.genURLOauthClient = new google.auth.OAuth2(configService.get<string>("GCP_OAUTH_ID"));
-    this.googleOauthClient = new google.auth.OAuth2(
-      configService.get<string>("GCP_OAUTH_ID"),
-      configService.get<string>("GCP_OAUTH_SECRET"),
-    );
+    this.genURLOauthClient = new OAuth2Client({
+      clientId: configService.get<string>("GCP_OAUTH_ID"),
+    });
+    this.googleOauthClient = new OAuth2Client({
+      clientId: configService.get<string>("GCP_OAUTH_ID"),
+      clientSecret: configService.get<string>("GCP_OAUTH_SECRET"),
+    });
   }
 
   async loginByIdPassword(id: string, password: string) {
