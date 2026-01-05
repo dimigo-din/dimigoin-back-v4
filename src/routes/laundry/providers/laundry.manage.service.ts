@@ -5,7 +5,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { addMinutes, format } from 'date-fns';
 import { In, type Repository } from 'typeorm';
-import { LaundrySchedulePriority } from '../../../common/enums/laundrySchedulePriority.enum';
+import { LaundrySchedulePriority } from '../../../common/mapper/constants';
 import { ErrorMsg } from '../../../common/mapper/error';
 import { CacheService } from '../../../common/modules/cache.module';
 import { safeFindOne } from '../../../common/utils/safeFindOne.util';
@@ -17,6 +17,7 @@ import {
   Stay,
   User,
 } from '../../../schemas';
+import { PushNotificationToSpecificDTO } from '../../push/dto/push.manage.dto';
 import { PushManageService } from '../../push/providers';
 import type {
   CreateLaundryApplyDTO,
@@ -29,6 +30,7 @@ import type {
   UpdateLaundryMachineDTO,
   UpdateLaundryTimelineDTO,
 } from '../dto/laundry.manage.dto';
+import type { LaundryTimelineScheduler } from '../schedulers/scheduler.interface';
 
 @Injectable()
 export class LaundryManageService {
@@ -44,9 +46,9 @@ export class LaundryManageService {
     private readonly laundryMachineRepository: Repository<LaundryMachine>,
     @InjectRepository(LaundryTimeline)
     private readonly laundryTimelineRepository: Repository<LaundryTimeline>,
-    readonly _pushManageService: PushManageService,
-    readonly _cacheService: CacheService,
-    readonly _moduleRef: ModuleRef,
+    readonly pushManageService: PushManageService,
+    readonly cacheService: CacheService,
+    readonly moduleRef: ModuleRef,
   ) {}
 
   async getLaundryTimelineList() {
