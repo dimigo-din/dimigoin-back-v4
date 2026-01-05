@@ -1,26 +1,25 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { Exclude } from "class-transformer";
-import { Column, Entity, Index, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { ApiProperty } from '@nestjs/swagger';
+import { Column, Entity, Index, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
-import { StudentUserPermission } from "../common/mapper/permissions";
-import { numberPermission } from "../common/utils/permission.util";
+import { StudentUserPermission } from '../common/mapper/permissions';
+import { numberPermission } from '../common/utils/permission.util';
 
-import { Login, Session } from "./auth.schema";
-import { FacilityReport, FacilityReportComment } from "./facility.schema";
-import { FrigoApply } from "./frigo.schema";
-import { LaundryApply } from "./laundry.schema";
-import { PushSubject, PushSubscription } from "./push.schema";
-import { StayApply } from "./stay.schema";
-import { WakeupSongApplication, WakeupSongVote } from "./wakeup.schema";
+import { Login, Session } from './auth.schema';
+import { FacilityReport, FacilityReportComment } from './facility.schema';
+import { FrigoApply } from './frigo.schema';
+import { LaundryApply } from './laundry.schema';
+import { PushSubject, PushSubscription } from './push.schema';
+import { StayApply } from './stay.schema';
+import { WakeupSongApplication, WakeupSongVote } from './wakeup.schema';
 
 @Entity()
 export class User {
   @ApiProperty()
-  @PrimaryGeneratedColumn("uuid")
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @ApiProperty()
-  @Column("varchar", { unique: true })
+  @Column('varchar', { unique: true })
   @Index()
   email: string;
 
@@ -33,7 +32,7 @@ export class User {
   picture: string;
 
   @ApiProperty()
-  @Column("varchar", { default: numberPermission(...StudentUserPermission) })
+  @Column('varchar', { default: numberPermission(...StudentUserPermission) })
   permission: string;
 
   @OneToMany(

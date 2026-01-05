@@ -5,7 +5,7 @@ export const deepObjectCompare = (...objects) => {
   function compare2Objects(x, y) {
     let p;
 
-    if (isNaN(x) && isNaN(y) && typeof x === "number" && typeof y === "number") {
+    if (Number.isNaN(x) && Number.isNaN(y) && typeof x === 'number' && typeof y === 'number') {
       return true;
     }
 
@@ -14,7 +14,7 @@ export const deepObjectCompare = (...objects) => {
     }
 
     if (
-      (typeof x === "function" && typeof y === "function") ||
+      (typeof x === 'function' && typeof y === 'function') ||
       (x instanceof Date && y instanceof Date) ||
       (x instanceof RegExp && y instanceof RegExp) ||
       (x instanceof String && y instanceof String) ||
@@ -47,7 +47,7 @@ export const deepObjectCompare = (...objects) => {
     // Quick checking of one object being a subset of another.
     // todo: cache the structure of objects[0] for performance
     for (p in y) {
-      if (y.hasOwnProperty(p) !== x.hasOwnProperty(p)) {
+      if (Object.hasOwn(y, p) !== Object.hasOwn(x, p)) {
         return false;
       } else if (typeof y[p] !== typeof x[p]) {
         return false;
@@ -55,15 +55,15 @@ export const deepObjectCompare = (...objects) => {
     }
 
     for (p in x) {
-      if (y.hasOwnProperty(p) !== x.hasOwnProperty(p)) {
+      if (Object.hasOwn(y, p) !== Object.hasOwn(x, p)) {
         return false;
       } else if (typeof y[p] !== typeof x[p]) {
         return false;
       }
 
       switch (typeof x[p]) {
-        case "object":
-        case "function":
+        case 'object':
+        case 'function':
           leftChain.push(x);
           rightChain.push(y);
 

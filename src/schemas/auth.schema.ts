@@ -1,23 +1,21 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty } from '@nestjs/swagger';
 import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinColumn,
   ManyToOne,
-  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
-} from "typeorm";
+} from 'typeorm';
 
-import { LoginType, LoginTypeValues } from "../common/mapper/types";
+import { type LoginType, LoginTypeValues } from '../common/mapper/types';
 
-import { User } from "./user.schema";
+import { User } from './user.schema';
 
 @Entity()
 export class Login {
   @ApiProperty()
-  @PrimaryGeneratedColumn("uuid")
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @ApiProperty({ type: () => User })
@@ -25,9 +23,9 @@ export class Login {
     () => User,
     (user) => user.login,
     {
-      cascade: ["insert", "update"],
-      onUpdate: "CASCADE",
-      onDelete: "CASCADE",
+      cascade: ['insert', 'update'],
+      onUpdate: 'CASCADE',
+      onDelete: 'CASCADE',
       eager: true,
     },
   )
@@ -38,18 +36,18 @@ export class Login {
   type: LoginType;
 
   @ApiProperty()
-  @Column("text")
+  @Column('text')
   identifier1: string;
 
   @ApiProperty()
-  @Column("text", { nullable: true })
+  @Column('text', { nullable: true })
   identifier2: string | null = null;
 }
 
 @Entity()
 export class Session {
   @ApiProperty()
-  @PrimaryGeneratedColumn("uuid")
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @ApiProperty()
@@ -61,14 +59,14 @@ export class Session {
   sessionIdentifier: string;
 
   @ApiProperty()
-  @CreateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP(6)" })
+  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP(6)' })
   created_at: Date;
 
   @ApiProperty()
   @UpdateDateColumn({
-    type: "timestamp",
-    default: () => "CURRENT_TIMESTAMP(6)",
-    onUpdate: "CURRENT_TIMESTAMP(6)",
+    type: 'timestamp',
+    default: () => 'CURRENT_TIMESTAMP(6)',
+    onUpdate: 'CURRENT_TIMESTAMP(6)',
   })
   updated_at: Date;
 
@@ -77,8 +75,8 @@ export class Session {
     () => User,
     (user) => user.session,
     {
-      onUpdate: "CASCADE",
-      onDelete: "CASCADE",
+      onUpdate: 'CASCADE',
+      onDelete: 'CASCADE',
       eager: true,
     },
   )

@@ -1,13 +1,18 @@
-import { PermissionEnum, PermissionType } from "../mapper/permissions";
+import { PermissionEnum, type PermissionType } from '../mapper/permissions';
 
 export const numberPermission = (...items: number[] | PermissionType[]): number => {
   let val = 0;
   const valList = [];
   for (const item of items) {
     let fixedItem: number;
-    if (typeof item !== "number") fixedItem = PermissionEnum[item] || 0;
-    else fixedItem = item;
-    if (valList.indexOf(fixedItem) != -1) continue;
+    if (typeof item !== 'number') {
+      fixedItem = PermissionEnum[item] || 0;
+    } else {
+      fixedItem = item;
+    }
+    if (valList.indexOf(fixedItem) !== -1) {
+      continue;
+    }
     val += fixedItem;
     valList.push(item);
   }
@@ -19,7 +24,9 @@ export const parsePermission = (
   numberedPermission: number | string,
   customPermissionEnum?: { [key: string]: number },
 ): PermissionType[] => {
-  if (typeof numberedPermission === "string") numberedPermission = parseInt(numberedPermission);
+  if (typeof numberedPermission === 'string') {
+    numberedPermission = parseInt(numberedPermission, 10);
+  }
 
   const permissionEnum = customPermissionEnum || PermissionEnum;
 
@@ -43,7 +50,9 @@ export const hasPermission = (
   requiredPermission: number[],
   or: boolean = false,
 ) => {
-  if (typeof currentPermission === "string") currentPermission = parseInt(currentPermission);
+  if (typeof currentPermission === 'string') {
+    currentPermission = parseInt(currentPermission, 10);
+  }
 
   const currentPermissionList = parsePermission(currentPermission);
   // TODO: Optimise

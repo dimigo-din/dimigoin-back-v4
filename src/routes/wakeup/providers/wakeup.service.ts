@@ -1,10 +1,10 @@
-import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import type { Repository } from 'typeorm';
 
-import { ErrorMsg } from "../../../common/mapper/error";
-import { WakeupSongHistory } from "../../../schemas";
-import { GetDateSongDTO } from "../dto/wakeup.dto";
+import { ErrorMsg } from '../../../common/mapper/error';
+import { WakeupSongHistory } from '../../../schemas';
+import type { GetDateSongDTO } from '../dto/wakeup.dto';
 
 @Injectable()
 export class WakeupService {
@@ -17,8 +17,9 @@ export class WakeupService {
     const song = await this.wakeupSongHistoryRepository.find({
       where: { date: data.date, gender: data.gender },
     });
-    if (!song || song.length === 0)
+    if (!song || song.length === 0) {
       throw new HttpException(ErrorMsg.NoWakeupInDate(), HttpStatus.NOT_FOUND);
+    }
 
     return song[song.length - 1];
   }

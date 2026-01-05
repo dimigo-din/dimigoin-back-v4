@@ -1,22 +1,22 @@
-import { youtube } from "@googleapis/youtube";
-import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
-import { InjectRepository } from "@nestjs/typeorm";
-import { format, startOfWeek } from "date-fns";
-import { Repository } from "typeorm";
+import { youtube } from '@googleapis/youtube';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import type { ConfigService } from '@nestjs/config';
+import { InjectRepository } from '@nestjs/typeorm';
+import { format, startOfWeek } from 'date-fns';
+import type { Repository } from 'typeorm';
 
-import { ErrorMsg } from "../../../common/mapper/error";
-import { UserJWT, YoutubeSearchResults, YoutubeVideoItem } from "../../../common/mapper/types";
-import { CacheService } from "../../../common/modules/cache.module";
-import { safeFindOne } from "../../../common/utils/safeFindOne.util";
-import { User, WakeupSongApplication, WakeupSongVote } from "../../../schemas";
-import { UserManageService } from "../../user/providers";
-import {
+import { ErrorMsg } from '../../../common/mapper/error';
+import type { UserJWT, YoutubeSearchResults, YoutubeVideoItem } from '../../../common/mapper/types';
+import type { CacheService } from '../../../common/modules/cache.module';
+import { safeFindOne } from '../../../common/utils/safeFindOne.util';
+import { User, WakeupSongApplication, WakeupSongVote } from '../../../schemas';
+import type { UserManageService } from '../../user/providers';
+import type {
   RegisterVideoDTO,
   SearchVideoDTO,
   VoteIdDTO,
   VoteVideoDTO,
-} from "../dto/wakeup.student.dto";
+} from '../dto/wakeup.student.dto';
 
 @Injectable()
 export class WakeupStudentService {
@@ -33,15 +33,16 @@ export class WakeupStudentService {
   ) {}
 
   async search(user: UserJWT, data: SearchVideoDTO) {
-    if (!(await this.cacheService.musicSearchRateLimit(user.id)))
+    if (!(await this.cacheService.musicSearchRateLimit(user.id))) {
       throw new HttpException(ErrorMsg.RateLimit_Exceeded(), HttpStatus.TOO_MANY_REQUESTS);
+    }
 
-    const yt = youtube("v3");
+    const yt = youtube('v3');
     const search = await yt.search.list({
-      key: this.configService.get<string>("GCP_YOUTUBE_DATA_API_KEY"),
-      part: ["snippet"],
-      type: ["video"],
-      videoCategoryId: "10",
+      key: this.configService.get<string>('GCP_YOUTUBE_DATA_API_KEY'),
+      part: ['snippet'],
+      type: ['video'],
+      videoCategoryId: '10',
       q: data.query,
       maxResults: 10,
     });
@@ -52,21 +53,21 @@ export class WakeupStudentService {
   }
 
   async getApplications(user: UserJWT) {
-    const week = format(startOfWeek(new Date()), "yyyy-MM-dd");
+    const week = format(startOfWeek(new Date()), 'yyyy-MM-dd');
 
     const applications = await this.wakeupSongApplicationRepository
-      .createQueryBuilder("application")
-      .leftJoin("application.wakeupSongVote", "vote")
-      .select("application")
-      .addSelect("SUM(CASE WHEN vote.upvote = true THEN 1 ELSE 0 END)", "up")
-      .addSelect("SUM(CASE WHEN vote.upvote = false THEN 1 ELSE 0 END)", "down")
-      .where("application.week = :week AND application.gender = :gender", {
+      .createQueryBuilder('application')
+      .leftJoin('application.wakeupSongVote', 'vote')
+      .select('application')
+      .addSelect('SUM(CASE WHEN vote.upvote = true THEN 1 ELSE 0 END)', 'up')
+      .addSelect('SUM(CASE WHEN vote.upvote = false THEN 1 ELSE 0 END)', 'down')
+      .where('application.week = :week AND application.gender = :gender', {
         week: week,
-        gender: (await this.userManageService.checkUserDetail(user.email, { gender: "male" }))
-          ? "male"
-          : "female",
+        gender: (await this.userManageService.checkUserDetail(user.email, { gender: 'male' }))
+          ? 'male'
+          : 'female',
       })
-      .groupBy("application.id")
+      .groupBy('application.id')
       .getRawAndEntities();
 
     const result = applications.entities.map((app, index) => ({
@@ -79,28 +80,30 @@ export class WakeupStudentService {
   }
 
   async registerVideo(user: UserJWT, data: RegisterVideoDTO) {
-    const week = format(startOfWeek(new Date()), "yyyy-MM-dd");
+    const week = format(startOfWeek(new Date()), 'yyyy-MM-dd');
 
     const exists = await this.wakeupSongApplicationRepository.findOne({
       where: {
         video_id: data.videoId,
         week: week,
-        gender: (await this.userManageService.checkUserDetail(user.email, { gender: "male" }))
-          ? "male"
-          : "female",
+        gender: (await this.userManageService.checkUserDetail(user.email, { gender: 'male' }))
+          ? 'male'
+          : 'female',
       },
     });
-    if (exists) throw new HttpException(ErrorMsg.ResourceAlreadyExists(), HttpStatus.BAD_REQUEST);
+    if (exists) {
+      throw new HttpException(ErrorMsg.ResourceAlreadyExists(), HttpStatus.BAD_REQUEST);
+    }
 
     let videoData: YoutubeVideoItem;
 
     const cache = await this.cacheService.getCachedVideo(data.videoId);
     if (!cache) {
-      const yt = youtube("v3");
+      const yt = youtube('v3');
       const search = await yt.search.list({
-        key: this.configService.get<string>("GCP_YOUTUBE_DATA_API_KEY"),
-        part: ["snippet"],
-        type: ["video"],
+        key: this.configService.get<string>('GCP_YOUTUBE_DATA_API_KEY'),
+        part: ['snippet'],
+        type: ['video'],
         q: data.videoId,
         maxResults: 1,
       });
@@ -108,7 +111,9 @@ export class WakeupStudentService {
     } else {
       videoData = cache;
     }
-    if (!videoData) throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
+    if (!videoData) {
+      throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
+    }
 
     const dbUser = await safeFindOne<User>(this.userRepository, user.id);
     const application = new WakeupSongApplication();
@@ -118,21 +123,19 @@ export class WakeupStudentService {
     application.video_channel = videoData.snippet.channelTitle;
     application.week = week;
     application.gender = (await this.userManageService.checkUserDetail(user.email, {
-      gender: "male",
+      gender: 'male',
     }))
-      ? "male"
-      : "female";
+      ? 'male'
+      : 'female';
     application.user = dbUser;
 
     try {
       return await this.wakeupSongApplicationRepository.save(application);
-    } catch (error) {
-      console.log(error);
-    }
+    } catch (_error) {}
   }
 
   async getMyVotes(user: UserJWT) {
-    const week = format(startOfWeek(new Date()), "yyyy-MM-dd");
+    const week = format(startOfWeek(new Date()), 'yyyy-MM-dd');
     const dbUser = await safeFindOne<User>(this.userRepository, user.id);
 
     return await this.wakeupSongVoteRepository.find({
@@ -148,9 +151,9 @@ export class WakeupStudentService {
       {
         where: {
           id: data.songId,
-          gender: (await this.userManageService.checkUserDetail(user.email, { gender: "male" }))
-            ? "male"
-            : "female",
+          gender: (await this.userManageService.checkUserDetail(user.email, { gender: 'male' }))
+            ? 'male'
+            : 'female',
         },
       },
     );
@@ -158,7 +161,9 @@ export class WakeupStudentService {
     const exists = await this.wakeupSongVoteRepository.findOne({
       where: { user: dbUser, wakeupSongApplication: application },
     });
-    if (exists) throw new HttpException(ErrorMsg.ResourceAlreadyExists(), HttpStatus.BAD_REQUEST);
+    if (exists) {
+      throw new HttpException(ErrorMsg.ResourceAlreadyExists(), HttpStatus.BAD_REQUEST);
+    }
 
     const wakeupSongVote = new WakeupSongVote();
     wakeupSongVote.upvote = data.upvote;

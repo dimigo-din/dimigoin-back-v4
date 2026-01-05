@@ -1,8 +1,8 @@
-import { numberPermission } from "../utils/permission.util";
+import { numberPermission } from '../utils/permission.util';
 
-export const UserPermissionValues = ["STUDENT", "TEACHER"] as const;
+export const UserPermissionValues = ['STUDENT', 'TEACHER'] as const;
 
-export const ManagementPermissionValues = ["MANAGE_PERMISSION"] as const;
+export const ManagementPermissionValues = ['MANAGE_PERMISSION'] as const;
 
 // Merge permission values without duplicates
 export const PermissionValues = [
@@ -12,7 +12,7 @@ export type PermissionType = (typeof PermissionValues)[number];
 
 // Create enum for easy permission management with binary
 export const PermissionEnum = Object.fromEntries(
-  PermissionValues.map((v: PermissionType, i) => [v, Math.pow(2, i++)]),
+  PermissionValues.map((v: PermissionType, i) => [v, 2 ** i++]),
 ) as { [key in PermissionType]: number };
 
 // group of well-used permissions

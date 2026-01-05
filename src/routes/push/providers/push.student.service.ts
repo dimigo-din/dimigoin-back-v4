@@ -1,20 +1,20 @@
-import { Injectable } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
-import { safeFindOne } from "src/common/utils/safeFindOne.util";
-import { Repository } from "typeorm";
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { safeFindOne } from 'src/common/utils/safeFindOne.util';
+import type { Repository } from 'typeorm';
 
 import {
   PushNotificationSubject,
   PushNotificationSubjectIdentifierValues,
-  UserJWT,
-} from "../../../common/mapper/types";
-import { PushSubject, PushSubscription, User } from "../../../schemas";
-import {
+  type UserJWT,
+} from '../../../common/mapper/types';
+import { PushSubject, PushSubscription, User } from '../../../schemas';
+import type {
   CreateFCMTokenDTO,
   DeleteFCMTokenDTO,
   GetSubscribedSubjectDTO,
   SetSubscribeSubjectDTO,
-} from "../dto/push.student.dto";
+} from '../dto/push.student.dto';
 
 @Injectable()
 export class PushStudentService {
@@ -85,7 +85,7 @@ export class PushStudentService {
           user: target,
           deviceId: data.deviceId,
         },
-        relations: ["subjects"],
+        relations: ['subjects'],
       })
     ).subjects;
   }
@@ -98,7 +98,7 @@ export class PushStudentService {
         user: target,
         deviceId: data.deviceId,
       },
-      relations: ["subjects"],
+      relations: ['subjects'],
     });
 
     await this.pushSubjectRepository.remove(subscription.subjects);

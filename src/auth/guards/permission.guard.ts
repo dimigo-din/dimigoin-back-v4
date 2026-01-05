@@ -1,7 +1,6 @@
-import { CanActivate, ExecutionContext, mixin } from "@nestjs/common";
+import { type CanActivate, type ExecutionContext, mixin } from '@nestjs/common';
 
-import { PermissionEnum } from "../../common/mapper/permissions";
-import { hasPermission, parsePermission } from "../../common/utils/permission.util";
+import { hasPermission } from '../../common/utils/permission.util';
 
 // TODO: scope based permission management
 export const PermissionGuard = (requiredPermission: number[], or: boolean = false) => {

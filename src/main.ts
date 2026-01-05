@@ -1,16 +1,16 @@
-import * as process from "node:process";
-import fastifyCookie from "@fastify/cookie";
-import fastifyMultipart from "@fastify/multipart";
-import { ValidationPipe } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
-import { NestFactory } from "@nestjs/core";
-import { FastifyAdapter, NestFastifyApplication } from "@nestjs/platform-fastify";
-import importToArray from "import-to-array";
+import * as process from 'node:process';
+import fastifyCookie from '@fastify/cookie';
+import fastifyMultipart from '@fastify/multipart';
+import { ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { NestFactory } from '@nestjs/core';
+import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify';
+import importToArray from 'import-to-array';
 
-import { AppModule } from "./app";
-import * as interceptors from "./common/interceptors";
-import { CustomSwaggerSetup } from "./common/modules/swagger.module";
-import { ValidationService } from "./common/modules/validation.module";
+import { AppModule } from './app';
+import * as interceptors from './common/interceptors';
+import { CustomSwaggerSetup } from './common/modules/swagger.module';
+import { ValidationService } from './common/modules/validation.module';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
@@ -24,14 +24,14 @@ async function bootstrap() {
 
   app.enableCors({
     origin:
-      process.env.NODE_ENV !== "dev"
+      process.env.NODE_ENV !== 'dev'
         ? configService
-            .get<string>("ALLOWED_DOMAIN")!
-            .split(",")
+            .get<string>('ALLOWED_DOMAIN')
+            ?.split(',')
             .map((d) => `https://${d}`)
         : configService
-            .get<string>("ALLOWED_DOMAIN")!
-            .split(",")
+            .get<string>('ALLOWED_DOMAIN')
+            ?.split(',')
             .map((d) => `http://${d}`),
     credentials: true,
   });
@@ -49,8 +49,8 @@ async function bootstrap() {
 
   await CustomSwaggerSetup(app);
 
-  const port = configService.get<number>("APPLICATION_PORT")!;
-  await app.listen(port, "0.0.0.0");
+  const port = configService.get<number>('APPLICATION_PORT')!;
+  await app.listen(port, '0.0.0.0');
 
   const validationService = app.get<ValidationService>(ValidationService);
   await validationService.validatePermissionEnum();

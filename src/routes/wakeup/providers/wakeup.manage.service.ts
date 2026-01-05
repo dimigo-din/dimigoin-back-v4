@@ -1,11 +1,11 @@
-import { Injectable } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
-import { format, startOfWeek } from "date-fns";
-import { Repository } from "typeorm";
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { format, startOfWeek } from 'date-fns';
+import type { Repository } from 'typeorm';
 
-import { safeFindOne } from "../../../common/utils/safeFindOne.util";
-import { WakeupSongApplication, WakeupSongHistory, WakeupSongVote } from "../../../schemas";
-import { WakeupSongDeleteDTO, WakeupSongSelectDTO } from "../dto/wakeup.manage.dto";
+import { safeFindOne } from '../../../common/utils/safeFindOne.util';
+import { WakeupSongApplication, WakeupSongHistory, WakeupSongVote } from '../../../schemas';
+import type { WakeupSongDeleteDTO, WakeupSongSelectDTO } from '../dto/wakeup.manage.dto';
 
 @Injectable()
 export class WakeupManageService {
@@ -13,13 +13,13 @@ export class WakeupManageService {
     @InjectRepository(WakeupSongApplication)
     private readonly wakeupSongApplicationRepository: Repository<WakeupSongApplication>,
     @InjectRepository(WakeupSongVote)
-    private readonly wakeupSongVoteRepository: Repository<WakeupSongVote>,
+    readonly _wakeupSongVoteRepository: Repository<WakeupSongVote>,
     @InjectRepository(WakeupSongHistory)
     private readonly wakeupSongHistoryRepository: Repository<WakeupSongHistory>,
   ) {}
 
   async getList() {
-    const week = format(startOfWeek(new Date()), "yyyy-MM-dd");
+    const week = format(startOfWeek(new Date()), 'yyyy-MM-dd');
 
     return await this.wakeupSongApplicationRepository.find({
       where: {
@@ -30,14 +30,14 @@ export class WakeupManageService {
   }
 
   async selectApply(data: WakeupSongSelectDTO) {
-    const week = format(startOfWeek(new Date()), "yyyy-MM-dd");
+    const _week = format(startOfWeek(new Date()), 'yyyy-MM-dd');
     const apply = await safeFindOne<WakeupSongApplication>(this.wakeupSongApplicationRepository, {
       where: { id: data.id },
       relations: { wakeupSongVote: true },
     });
 
     const history = new WakeupSongHistory();
-    history.date = format(new Date(), "yyyy-MM-dd");
+    history.date = format(new Date(), 'yyyy-MM-dd');
     history.video_id = apply.video_id;
     history.video_title = apply.video_title;
     history.up = apply.wakeupSongVote.filter((v) => v.upvote).length;

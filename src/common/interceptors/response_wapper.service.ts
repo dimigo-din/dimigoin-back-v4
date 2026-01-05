@@ -1,12 +1,12 @@
 import {
-  CallHandler,
-  ExecutionContext,
+  type CallHandler,
+  type ExecutionContext,
   HttpException,
   Injectable,
-  NestInterceptor,
-} from "@nestjs/common";
-import { Observable, of } from "rxjs";
-import { catchError, map } from "rxjs/operators";
+  type NestInterceptor,
+} from '@nestjs/common';
+import { type Observable, of } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 
 @Injectable()
 export class ResponseWrapperInterceptor implements NestInterceptor {
@@ -37,8 +37,7 @@ export class ResponseWrapperInterceptor implements NestInterceptor {
           }
         } else {
           status = 500;
-          error = "Internal Server Error";
-          console.log(err);
+          error = 'Internal Server Error';
         }
 
         res.status(status);

@@ -1,2 +1,2 @@
-export * from "./facility.manage.controller";
-export * from "./facility.student.controller";
+export * from './facility.manage.controller';
+export * from './facility.student.controller';

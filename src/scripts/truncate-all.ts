@@ -1,4 +1,4 @@
-import dataSource from "./data-source";
+import dataSource from './data-source';
 
 (async () => {
   await dataSource.initialize();

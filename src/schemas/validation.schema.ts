@@ -1,10 +1,10 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-import { PermissionValidationType } from "../common/mapper/types";
+import type { PermissionValidationType } from '../common/mapper/types';
 
 @Entity()
 export class PermissionValidator {
-  @PrimaryGeneratedColumn("uuid")
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column()
@@ -13,6 +13,6 @@ export class PermissionValidator {
   @Column()
   key: string;
 
-  @Column("int8")
+  @Column('int8')
   value: string;
 }

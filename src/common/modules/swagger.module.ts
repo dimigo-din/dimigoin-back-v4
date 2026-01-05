@@ -1,16 +1,16 @@
-import * as process from "node:process";
+import * as process from 'node:process';
 
-import { Logger } from "@nestjs/common";
-import { NestFastifyApplication } from "@nestjs/platform-fastify";
-import { DocumentBuilder, SwaggerCustomOptions, SwaggerModule } from "@nestjs/swagger";
-import { AppService } from "src/app/app.service";
-import { SwaggerTheme, SwaggerThemeNameEnum } from "swagger-themes";
+import { Logger } from '@nestjs/common';
+import type { NestFastifyApplication } from '@nestjs/platform-fastify';
+import { DocumentBuilder, type SwaggerCustomOptions, SwaggerModule } from '@nestjs/swagger';
+import { AppService } from 'src/app/app.service';
+import { SwaggerTheme, SwaggerThemeNameEnum } from 'swagger-themes';
 
 export const CustomSwaggerSetup = async (app: NestFastifyApplication) => {
   const logger = new Logger(CustomSwaggerSetup.name);
 
-  if (process.env.NODE_ENV === "prod") {
-    logger.log("Swagger not initializing in production");
+  if (process.env.NODE_ENV === 'prod') {
+    logger.log('Swagger not initializing in production');
     return;
   }
 
@@ -21,14 +21,14 @@ export const CustomSwaggerSetup = async (app: NestFastifyApplication) => {
     .setVersion(cluster.version)
     .addBearerAuth(
       {
-        description: "Please enter token in following format: Bearer [JWT]",
-        name: "Authorization",
-        bearerFormat: "Bearer",
-        scheme: "Bearer",
-        type: "http",
-        in: "Header",
+        description: 'Please enter token in following format: Bearer [JWT]',
+        name: 'Authorization',
+        bearerFormat: 'Bearer',
+        scheme: 'Bearer',
+        type: 'http',
+        in: 'Header',
       },
-      "access-token",
+      'access-token',
     )
     .build();
 
@@ -40,6 +40,6 @@ export const CustomSwaggerSetup = async (app: NestFastifyApplication) => {
     customCss: theme.getBuffer(SwaggerThemeNameEnum.DARK),
   };
 
-  SwaggerModule.setup("api-docs", app, document, options);
-  logger.log("Swagger Initialized");
+  SwaggerModule.setup('api-docs', app, document, options);
+  logger.log('Swagger Initialized');
 };

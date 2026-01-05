@@ -1,24 +1,12 @@
-import { TZDate } from "@date-fns/tz";
-import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
-import { ModuleRef } from "@nestjs/core";
-import { Cron, CronExpression } from "@nestjs/schedule";
-import { InjectRepository } from "@nestjs/typeorm";
-import { addMinutes, format } from "date-fns";
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import type { ModuleRef } from '@nestjs/core';
+import { InjectRepository } from '@nestjs/typeorm';
+import { format } from 'date-fns';
 
-import { PushNotificationToSpecificDTO } from "src/routes/push/dto/push.manage.dto";
-import {
-  FindOneOptions,
-  In,
-  IsNull,
-  LessThanOrEqual,
-  MoreThanOrEqual,
-  Not,
-  Repository,
-} from "typeorm";
-import { LaundrySchedulePriority } from "../../../common/mapper/constants";
-import { ErrorMsg } from "../../../common/mapper/error";
-import { CacheService } from "../../../common/modules/cache.module";
-import { safeFindOne } from "../../../common/utils/safeFindOne.util";
+import { In, type Repository } from 'typeorm';
+import { ErrorMsg } from '../../../common/mapper/error';
+import type { CacheService } from '../../../common/modules/cache.module';
+import { safeFindOne } from '../../../common/utils/safeFindOne.util';
 import {
   LaundryApply,
   LaundryMachine,
@@ -26,9 +14,9 @@ import {
   LaundryTimeline,
   Stay,
   User,
-} from "../../../schemas";
-import { PushManageService } from "../../push/providers";
-import {
+} from '../../../schemas';
+import type { PushManageService } from '../../push/providers';
+import type {
   CreateLaundryApplyDTO,
   CreateLaundryMachineDTO,
   CreateLaundryTimelineDTO,
@@ -38,16 +26,14 @@ import {
   UpdateLaundryApplyDTO,
   UpdateLaundryMachineDTO,
   UpdateLaundryTimelineDTO,
-} from "../dto/laundry.manage.dto";
-import { LaundryTimelineScheduler } from "../schedulers/scheduler.interface";
+} from '../dto/laundry.manage.dto';
 
 @Injectable()
 export class LaundryManageService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-    @InjectRepository(Stay)
-    private readonly stayRepository: Repository<Stay>,
+    @InjectRepository(Stay) readonly _stayRepository: Repository<Stay>,
     @InjectRepository(LaundryTime)
     private readonly laundryTimeRepository: Repository<LaundryTime>,
     @InjectRepository(LaundryApply)
@@ -56,9 +42,9 @@ export class LaundryManageService {
     private readonly laundryMachineRepository: Repository<LaundryMachine>,
     @InjectRepository(LaundryTimeline)
     private readonly laundryTimelineRepository: Repository<LaundryTimeline>,
-    private readonly pushManageService: PushManageService,
-    private readonly cacheService: CacheService,
-    private readonly moduleRef: ModuleRef,
+    readonly _pushManageService: PushManageService,
+    readonly _cacheService: CacheService,
+    readonly _moduleRef: ModuleRef,
   ) {}
 
   async getLaundryTimelineList() {
@@ -177,7 +163,7 @@ export class LaundryManageService {
 
   async getLaundryApplyList() {
     return await this.laundryApplyRepository.find({
-      where: { laundryTimeline: { enabled: true }, date: format(new Date(), "yyyy-MM-dd") },
+      where: { laundryTimeline: { enabled: true }, date: format(new Date(), 'yyyy-MM-dd') },
       relations: { user: true, laundryMachine: true, laundryTime: true, laundryTimeline: true },
     });
   }
@@ -197,19 +183,21 @@ export class LaundryManageService {
     const user = await safeFindOne<User>(this.userRepository, data.user);
 
     const applyExists = await this.laundryApplyRepository.findOne({ where: { user: user } });
-    if (applyExists)
+    if (applyExists) {
       throw new HttpException(
-        ErrorMsg.LaundryApply_AlreadyExists(laundryMachine.type === "washer" ? "세탁" : "건조"),
+        ErrorMsg.LaundryApply_AlreadyExists(laundryMachine.type === 'washer' ? '세탁' : '건조'),
         HttpStatus.BAD_REQUEST,
       );
+    }
 
     const machineTaken = await this.laundryApplyRepository.findOne({
       where: { laundryMachine: laundryMachine },
     });
-    if (machineTaken)
+    if (machineTaken) {
       throw new HttpException(ErrorMsg.LaundryMachine_AlreadyTaken(), HttpStatus.BAD_REQUEST);
+    }
 
-    const date = format(new Date(), "yyyy-MM-dd");
+    const date = format(new Date(), 'yyyy-MM-dd');
 
     const laundryApply = new LaundryApply();
     laundryApply.date = date;
@@ -236,83 +224,5 @@ export class LaundryManageService {
     const laundryApply = await safeFindOne<LaundryApply>(this.laundryApplyRepository, data.id);
 
     return await this.laundryApplyRepository.remove(laundryApply);
-  }
-
-  @Cron(CronExpression.EVERY_HOUR)
-  // @Cron(CronExpression.EVERY_SECOND)
-  private async laundryTimelineScheduler() {
-    const timelines = await this.laundryTimelineRepository.find();
-
-    const disable = async () => {
-      await this.laundryTimelineRepository.save(
-        timelines.map((x) => {
-          x.enabled = false;
-          return x;
-        }),
-      );
-    };
-
-    for (let schedulerItem of LaundrySchedulePriority) {
-      const scheduler: LaundryTimelineScheduler = this.moduleRef.get(schedulerItem.scheduler, {
-        strict: false,
-      });
-
-      const shouldEnable = await scheduler.evaluate(timelines);
-      if (shouldEnable) {
-        const target = timelines.filter((t) => t.scheduler === schedulerItem.schedule);
-        if (target.length === 1) {
-          // not a etc
-          if (target[0].enabled === true)
-            // already on
-            break; // keep it.
-          else {
-            await disable();
-            target[0].enabled = true;
-            await this.laundryTimelineRepository.save(target[0]); // enable it
-            break;
-          }
-        } else {
-          break; // etc and current enabled is etc
-        }
-      }
-      // continue to evaluate next
-    }
-  }
-
-  @Cron(CronExpression.EVERY_MINUTE)
-  private async laundryNotificationScheduler() {
-    const now = new Date();
-    const inFifteenMinutes = format(addMinutes(new TZDate(now, "Asia/Seoul"), 15), "HH:mm");
-    const applies = await this.laundryApplyRepository.find({
-      where: {
-        date: format(new TZDate(now, "Asia/Seoul"), "yyyy-MM-dd"),
-        laundryTime: { time: inFifteenMinutes },
-      },
-      relations: { user: true, laundryMachine: true, laundryTime: true },
-    });
-
-    for (const apply of applies) {
-      if (await this.cacheService.isNotificationAlreadySent(apply.id)) continue;
-
-      const user = apply.user;
-
-      const machineType = apply.laundryMachine.type === "washer" ? "세탁" : "건조";
-      const title = `${machineType} 알림`;
-      const body = `15분뒤 ${apply.laundryTime.time}에 ${machineType}이 예약되어 있습니다. (${apply.laundryMachine.name})`;
-
-      const dto: PushNotificationToSpecificDTO = {
-        to: [user.id],
-        title: title,
-        body: body,
-        category: "Laundry",
-        url: "/laundry",
-        data: undefined,
-        actions: [],
-        icon: "https://dimigoin.io/dimigoin.png",
-        badge: "https://dimigoin.io/dimigoin.png",
-      };
-
-      await this.pushManageService.sendToSpecificUsers(dto);
-    }
   }
 }

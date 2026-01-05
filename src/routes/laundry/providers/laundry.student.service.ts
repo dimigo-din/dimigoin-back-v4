@@ -1,15 +1,15 @@
-import { TZDate } from "@date-fns/tz";
-import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
-import { addHours, format, isAfter, startOfDay } from "date-fns";
-import { Repository } from "typeorm";
+import { TZDate } from '@date-fns/tz';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { addHours, format, isAfter, startOfDay } from 'date-fns';
+import type { Repository } from 'typeorm';
 
-import { ErrorMsg } from "../../../common/mapper/error";
-import { Grade, UserJWT } from "../../../common/mapper/types";
-import { safeFindOne } from "../../../common/utils/safeFindOne.util";
-import { LaundryApply, LaundryMachine, LaundryTime, LaundryTimeline, User } from "../../../schemas";
-import { UserManageService } from "../../user/providers";
-import { LaundryApplyDTO, LaundryApplyIdDTO } from "../dto/laundry.student.dto";
+import { ErrorMsg } from '../../../common/mapper/error';
+import type { Grade, UserJWT } from '../../../common/mapper/types';
+import { safeFindOne } from '../../../common/utils/safeFindOne.util';
+import { LaundryApply, LaundryMachine, LaundryTime, LaundryTimeline, User } from '../../../schemas';
+import type { UserManageService } from '../../user/providers';
+import type { LaundryApplyDTO, LaundryApplyIdDTO } from '../dto/laundry.student.dto';
 
 @Injectable()
 export class LaundryStudentService {
@@ -37,7 +37,7 @@ export class LaundryStudentService {
   async getApplies() {
     return (
       await this.laundryApplyRepository.find({
-        where: { laundryTimeline: { enabled: true }, date: format(new Date(), "yyyy-MM-dd") },
+        where: { laundryTimeline: { enabled: true }, date: format(new Date(), 'yyyy-MM-dd') },
         relations: { laundryTime: true, laundryMachine: true, user: true },
       })
     ).map((a) => {
@@ -47,10 +47,11 @@ export class LaundryStudentService {
 
   async createApply(user: UserJWT, data: LaundryApplyDTO) {
     const now = new Date();
-    const seoulNow = new TZDate(now, "Asia/Seoul");
+    const seoulNow = new TZDate(now, 'Asia/Seoul');
     const eightAM = addHours(startOfDay(seoulNow), 8);
-    if (!isAfter(seoulNow, eightAM))
+    if (!isAfter(seoulNow, eightAM)) {
       throw new HttpException(ErrorMsg.LaundryApplyIsAfterEightAM(), HttpStatus.BAD_REQUEST);
+    }
 
     const dbUser = await safeFindOne<User>(this.userRepository, user.id);
 
@@ -59,15 +60,16 @@ export class LaundryStudentService {
     const applyExists = await this.laundryApplyRepository.findOne({
       where: {
         user: dbUser,
-        date: format(new TZDate(now, "Asia/Seoul"), "yyyy-MM-dd"),
+        date: format(new TZDate(now, 'Asia/Seoul'), 'yyyy-MM-dd'),
         laundryMachine: { type: machine.type },
       },
     });
-    if (applyExists)
+    if (applyExists) {
       throw new HttpException(
-        ErrorMsg.LaundryApply_AlreadyExists(machine.type === "washer" ? "세탁" : "건조"),
+        ErrorMsg.LaundryApply_AlreadyExists(machine.type === 'washer' ? '세탁' : '건조'),
         HttpStatus.BAD_REQUEST,
       );
+    }
 
     const timeline = await safeFindOne<LaundryTimeline>(this.laundryTimelineRepository, {
       where: { times: { id: data.time } },
@@ -80,25 +82,27 @@ export class LaundryStudentService {
         grade: data.grade,
         gender: machine.gender,
       }))
-    )
+    ) {
       throw new HttpException(ErrorMsg.PermissionDenied_Resource_Grade(), HttpStatus.FORBIDDEN);
+    }
 
     const machineTaken = await this.laundryApplyRepository.findOne({
       where: {
         laundryMachine: machine,
-        date: format(new TZDate(now, "Asia/Seoul"), "yyyy-MM-dd"),
+        date: format(new TZDate(now, 'Asia/Seoul'), 'yyyy-MM-dd'),
         laundryTime: time,
       },
     });
-    if (machineTaken)
+    if (machineTaken) {
       throw new HttpException(ErrorMsg.LaundryMachine_AlreadyTaken(), HttpStatus.BAD_REQUEST);
+    }
 
     const apply = new LaundryApply();
     apply.laundryTimeline = timeline;
     apply.laundryTime = time;
     apply.laundryMachine = machine;
     apply.user = dbUser;
-    apply.date = format(new TZDate(now, "Asia/Seoul"), "yyyy-MM-dd");
+    apply.date = format(new TZDate(now, 'Asia/Seoul'), 'yyyy-MM-dd');
 
     return await this.laundryApplyRepository.save(apply);
   }

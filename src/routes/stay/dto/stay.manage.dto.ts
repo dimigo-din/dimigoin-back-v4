@@ -1,5 +1,5 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { Type } from "class-transformer";
+import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import {
   IsArray,
   IsBoolean,
@@ -11,15 +11,14 @@ import {
   IsString,
   Matches,
   ValidateNested,
-} from "class-validator";
+} from 'class-validator';
 
 import {
-  Grade,
+  type Grade,
   GradeValues,
   StaySeatMappingValues,
-  StaySeatTargets,
-} from "../../../common/mapper/types";
-import { Stay, User } from "../../../schemas";
+  type StaySeatTargets,
+} from '../../../common/mapper/types';
 
 export class StaySeatPresetIdDTO {
   @ApiProperty()
@@ -91,17 +90,17 @@ export class CreateStayScheduleDTO {
   @Type(() => StayApplyPeriodPerGrade)
   stayApplyPeriod: StayApplyPeriodPerGrade[];
 
-  @ApiProperty({ description: "weekday (sunday is 0)" })
+  @ApiProperty({ description: 'weekday (sunday is 0)' })
   @IsNumber()
   /** weekday (sunday is 0) */
   stay_from: number;
 
-  @ApiProperty({ description: "weekday (sunday is 0)" })
+  @ApiProperty({ description: 'weekday (sunday is 0)' })
   @IsNumber()
   /** weekday (sunday is 0) */
   stay_to: number;
 
-  @ApiProperty({ type: Number, description: "weekday (sunday is 0) 자기계발외출날", isArray: true })
+  @ApiProperty({ type: Number, description: 'weekday (sunday is 0) 자기계발외출날', isArray: true })
   @IsNumber({}, { each: true })
   outing_day: number[];
 

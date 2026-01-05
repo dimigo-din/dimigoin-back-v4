@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty } from '@nestjs/swagger';
 import {
   Column,
   CreateDateColumn,
@@ -6,20 +6,20 @@ import {
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
-} from "typeorm";
+} from 'typeorm';
 
-import { FacilityReportStatus, FacilityReportType } from "../common/mapper/types";
+import type { FacilityReportStatus, FacilityReportType } from '../common/mapper/types';
 
-import { User } from "./user.schema";
+import { User } from './user.schema';
 
 @Entity()
 export class FacilityReport {
   @ApiProperty()
-  @PrimaryGeneratedColumn("uuid")
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @ApiProperty()
-  @Column("text", { default: "Waiting" })
+  @Column('text', { default: 'Waiting' })
   status: FacilityReportStatus;
 
   @ApiProperty()
@@ -35,7 +35,7 @@ export class FacilityReport {
   body: string;
 
   @ApiProperty()
-  @CreateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP(6)" })
+  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP(6)' })
   created_at: Date;
 
   @ApiProperty({ type: () => [FacilityReportComment] })
@@ -50,7 +50,7 @@ export class FacilityReport {
     () => FacilityImg,
     (facilityImg) => facilityImg.parent,
     {
-      cascade: ["insert", "update"],
+      cascade: ['insert', 'update'],
     },
   )
   file: FacilityImg[];
@@ -59,8 +59,8 @@ export class FacilityReport {
     () => User,
     (user) => user.facilityReport,
     {
-      onUpdate: "CASCADE",
-      onDelete: "CASCADE",
+      onUpdate: 'CASCADE',
+      onDelete: 'CASCADE',
     },
   )
   user: User;
@@ -69,7 +69,7 @@ export class FacilityReport {
 @Entity()
 export class FacilityImg {
   @ApiProperty()
-  @PrimaryGeneratedColumn("uuid")
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @ApiProperty()
@@ -81,7 +81,7 @@ export class FacilityImg {
   location: string;
 
   @ApiProperty()
-  @CreateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP(6)" })
+  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP(6)' })
   created_at: Date;
 
   @ApiProperty({ type: () => FacilityReport })
@@ -89,8 +89,8 @@ export class FacilityImg {
     () => FacilityReport,
     (facilityReport) => facilityReport.file,
     {
-      onUpdate: "CASCADE",
-      onDelete: "CASCADE",
+      onUpdate: 'CASCADE',
+      onDelete: 'CASCADE',
     },
   )
   parent: FacilityReport;
@@ -99,14 +99,14 @@ export class FacilityImg {
 @Entity()
 export class FacilityReportComment {
   @ApiProperty()
-  @PrimaryGeneratedColumn("uuid")
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @ApiProperty({ type: () => FacilityReportComment })
   @ManyToOne(() => FacilityReportComment, {
     nullable: true,
-    onUpdate: "CASCADE",
-    onDelete: "CASCADE",
+    onUpdate: 'CASCADE',
+    onDelete: 'CASCADE',
   })
   comment_parent: FacilityReportComment | null;
 
@@ -122,7 +122,7 @@ export class FacilityReportComment {
   text: string;
 
   @ApiProperty()
-  @CreateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP(6)" })
+  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP(6)' })
   created_at: Date;
 
   @ApiProperty({ type: () => User })

@@ -1,7 +1,5 @@
-import * as process from "node:process";
-
-import { Module } from "@nestjs/common";
-import { ConfigModule, type ConfigModuleOptions } from "@nestjs/config";
+import { Module } from '@nestjs/common';
+import { ConfigModule, type ConfigModuleOptions } from '@nestjs/config';
 
 export const options: ConfigModuleOptions = {
   isGlobal: true,

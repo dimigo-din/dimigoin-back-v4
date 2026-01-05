@@ -1,5 +1,5 @@
-import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 import {
   addWeeks,
   format,
@@ -8,16 +8,16 @@ import {
   setDay,
   setHours,
   startOfWeek,
-} from "date-fns";
-import { Repository } from "typeorm";
+} from 'date-fns';
+import type { Repository } from 'typeorm';
 
-import { ErrorMsg } from "../../../common/mapper/error";
-import { UserJWT } from "../../../common/mapper/types";
-import { DayNumber2String } from "../../../common/utils/date.util";
-import { safeFindOne } from "../../../common/utils/safeFindOne.util";
-import { FrigoApply, FrigoApplyPeriod, User } from "../../../schemas";
-import { UserManageService } from "../../user/providers";
-import { ClientFrigoApplyDTO } from "../dto/frigo.dto";
+import { ErrorMsg } from '../../../common/mapper/error';
+import type { UserJWT } from '../../../common/mapper/types';
+import { DayNumber2String } from '../../../common/utils/date.util';
+import { safeFindOne } from '../../../common/utils/safeFindOne.util';
+import { FrigoApply, FrigoApplyPeriod, User } from '../../../schemas';
+import type { UserManageService } from '../../user/providers';
+import type { ClientFrigoApplyDTO } from '../dto/frigo.dto';
 
 @Injectable()
 export class FrigoStudentService {
@@ -32,7 +32,7 @@ export class FrigoStudentService {
   ) {}
 
   async getApply(user: UserJWT) {
-    const week = format(startOfWeek(new Date()), "yyyy-MM-dd");
+    const week = format(startOfWeek(new Date()), 'yyyy-MM-dd');
 
     return await this.frigoApplyRepository.findOne({
       where: { user: { id: user.id }, week: week },
@@ -57,8 +57,10 @@ export class FrigoStudentService {
     const now = new Date();
     let start = setHours(setDay(now, period.apply_start_day), period.apply_start_hour);
     const end = setHours(setDay(now, period.apply_end_day), period.apply_end_hour);
-    if (isAfter(start, end)) start = addWeeks(start, 1);
-    if (!isWithinInterval(now, { start, end }))
+    if (isAfter(start, end)) {
+      start = addWeeks(start, 1);
+    }
+    if (!isWithinInterval(now, { start, end })) {
       throw new HttpException(
         ErrorMsg.FrigoPeriod_NotInApplyPeriod(
           DayNumber2String(period.apply_start_day),
@@ -68,25 +70,28 @@ export class FrigoStudentService {
         ),
         HttpStatus.BAD_REQUEST,
       );
+    }
 
     // apply
     const dbUser = await safeFindOne<User>(this.userRepository, user.id);
     const exists = await this.frigoApplyRepository.findOne({
-      where: { week: format(startOfWeek(new Date()), "yyyy-MM-dd"), user: dbUser },
+      where: { week: format(startOfWeek(new Date()), 'yyyy-MM-dd'), user: dbUser },
     });
-    if (exists) throw new HttpException(ErrorMsg.Frigo_AlreadyApplied(), HttpStatus.BAD_REQUEST);
+    if (exists) {
+      throw new HttpException(ErrorMsg.Frigo_AlreadyApplied(), HttpStatus.BAD_REQUEST);
+    }
 
     const apply = new FrigoApply();
     apply.timing = data.timing;
     apply.reason = data.reason;
-    apply.week = format(startOfWeek(new Date()), "yyyy-MM-dd");
+    apply.week = format(startOfWeek(new Date()), 'yyyy-MM-dd');
     apply.user = dbUser;
 
     return await this.frigoApplyRepository.save(apply);
   }
 
   async cancelApply(user: UserJWT) {
-    const week = format(startOfWeek(new Date()), "yyyy-MM-dd");
+    const week = format(startOfWeek(new Date()), 'yyyy-MM-dd');
     const apply = await safeFindOne<FrigoApply>(this.frigoApplyRepository, {
       where: { user: { id: user.id }, week: week },
     });

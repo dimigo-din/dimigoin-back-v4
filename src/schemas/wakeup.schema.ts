@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty } from '@nestjs/swagger';
 import {
   Column,
   DeleteDateColumn,
@@ -7,18 +7,18 @@ import {
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
-} from "typeorm";
+} from 'typeorm';
 
-import { Gender } from "../common/mapper/types";
+import type { Gender } from '../common/mapper/types';
 
-import { User } from "./user.schema";
+import { User } from './user.schema';
 
 @Entity()
-@Index(["video_id", "week"], { unique: true })
-@Index(["week", "gender"])
+@Index(['video_id', 'week'], { unique: true })
+@Index(['week', 'gender'])
 export class WakeupSongApplication {
   @ApiProperty()
-  @PrimaryGeneratedColumn("uuid")
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @ApiProperty()
@@ -51,7 +51,7 @@ export class WakeupSongApplication {
     () => WakeupSongVote,
     (wakeupSongVote) => wakeupSongVote.wakeupSongApplication,
     {
-      cascade: ["soft-remove", "recover"],
+      cascade: ['soft-remove', 'recover'],
     },
   )
   wakeupSongVote: WakeupSongVote[];
@@ -60,8 +60,8 @@ export class WakeupSongApplication {
     () => User,
     (user) => user.wakeupSongApplication,
     {
-      onUpdate: "CASCADE",
-      onDelete: "CASCADE",
+      onUpdate: 'CASCADE',
+      onDelete: 'CASCADE',
     },
   )
   user: User;
@@ -71,22 +71,22 @@ export class WakeupSongApplication {
 }
 
 @Entity()
-@Index(["user", "wakeupSongApplication"], { unique: true })
-@Index(["wakeupSongApplication", "upvote"])
+@Index(['user', 'wakeupSongApplication'], { unique: true })
+@Index(['wakeupSongApplication', 'upvote'])
 export class WakeupSongVote {
   @ApiProperty()
-  @PrimaryGeneratedColumn("uuid")
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @ApiProperty()
-  @Column("boolean")
+  @Column('boolean')
   upvote: boolean;
 
   @ApiProperty()
   @ManyToOne(
     () => WakeupSongApplication,
     (wakeupSongApplication) => wakeupSongApplication.wakeupSongVote,
-    { onUpdate: "CASCADE", onDelete: "CASCADE" },
+    { onUpdate: 'CASCADE', onDelete: 'CASCADE' },
   )
   wakeupSongApplication: WakeupSongApplication;
 
@@ -94,8 +94,8 @@ export class WakeupSongVote {
     () => User,
     (user) => user.wakeupSongVote,
     {
-      onUpdate: "CASCADE",
-      onDelete: "CASCADE",
+      onUpdate: 'CASCADE',
+      onDelete: 'CASCADE',
     },
   )
   user: User;
@@ -107,7 +107,7 @@ export class WakeupSongVote {
 @Entity()
 export class WakeupSongHistory {
   @ApiProperty()
-  @PrimaryGeneratedColumn("uuid")
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @ApiProperty()
@@ -120,7 +120,7 @@ export class WakeupSongHistory {
 
   /** yyyy-mm-dd */
   @ApiProperty()
-  @Column("date")
+  @Column('date')
   date: string;
 
   @ApiProperty()
@@ -128,10 +128,10 @@ export class WakeupSongHistory {
   gender: Gender;
 
   @ApiProperty()
-  @Column("int")
+  @Column('int')
   up: number;
 
   @ApiProperty()
-  @Column("int")
+  @Column('int')
   down: number;
 }

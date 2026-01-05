@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty } from '@nestjs/swagger';
 import {
   Column,
   CreateDateColumn,
@@ -7,19 +7,19 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
-} from "typeorm";
+} from 'typeorm';
 
 import {
-  PushNotificationSubjectIdentifier,
+  type PushNotificationSubjectIdentifier,
   PushNotificationSubjectIdentifierValues,
-} from "../common/mapper/types";
+} from '../common/mapper/types';
 
-import { User } from "./user.schema";
+import { User } from './user.schema';
 
 @Entity()
 export class PushSubscription {
   @ApiProperty()
-  @PrimaryGeneratedColumn("uuid")
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
   /** fcm token */
@@ -43,7 +43,7 @@ export class PushSubscription {
     () => PushSubject,
     (pushSubject) => pushSubject.subscription,
     {
-      cascade: ["insert", "update", "remove"],
+      cascade: ['insert', 'update', 'remove'],
     },
   )
   subjects: PushSubject[];
@@ -52,7 +52,7 @@ export class PushSubscription {
     () => User,
     (user) => user.pushSubscriptions,
     {
-      onDelete: "CASCADE",
+      onDelete: 'CASCADE',
     },
   )
   user: User;
@@ -61,7 +61,7 @@ export class PushSubscription {
 @Entity()
 export class PushSubject {
   @ApiProperty()
-  @PrimaryGeneratedColumn("uuid")
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
   /** eng identifier for code. */
@@ -78,8 +78,8 @@ export class PushSubject {
     () => PushSubscription,
     (subscription) => subscription.subjects,
     {
-      onUpdate: "CASCADE",
-      onDelete: "CASCADE",
+      onUpdate: 'CASCADE',
+      onDelete: 'CASCADE',
     },
   )
   subscription: PushSubscription;
@@ -88,7 +88,7 @@ export class PushSubject {
     () => User,
     (user) => user.pushSubject,
     {
-      onDelete: "CASCADE",
+      onDelete: 'CASCADE',
     },
   )
   user: User;

@@ -1,17 +1,17 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { Type } from "class-transformer";
-import { IsBoolean, IsIn, IsString, Matches, ValidateNested } from "class-validator";
+import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
+import { IsBoolean, IsIn, IsString, Matches, ValidateNested } from 'class-validator';
 
 import {
-  Gender,
+  type Gender,
   GenderValues,
-  Grade,
+  type Grade,
   GradeValues,
-  LaundryMachineType,
+  type LaundryMachineType,
   LaundryMachineTypeValues,
-  LaundryTimelineSchedule,
+  type LaundryTimelineSchedule,
   LaundryTimelineSchedulerValues,
-} from "../../../common/mapper/types";
+} from '../../../common/mapper/types';
 
 export class LaundryTimelineIdDTO {
   @ApiProperty()

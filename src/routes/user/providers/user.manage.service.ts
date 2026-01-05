@@ -1,25 +1,25 @@
-import * as process from "node:process";
+import * as process from 'node:process';
 
-import { Injectable } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
-import { InjectRepository } from "@nestjs/typeorm";
-import axios, { AxiosInstance } from "axios";
-import * as bcrypt from "bcrypt";
-import puppeteer from "puppeteer";
-import { Like, Repository } from "typeorm";
+import { Injectable } from '@nestjs/common';
+import type { ConfigService } from '@nestjs/config';
+import { InjectRepository } from '@nestjs/typeorm';
+import axios, { type AxiosInstance } from 'axios';
+import * as bcrypt from 'bcrypt';
+import puppeteer from 'puppeteer';
+import { Like, type Repository } from 'typeorm';
 
-import { PermissionType } from "../../../common/mapper/permissions";
-import { Grade } from "../../../common/mapper/types";
-import { numberPermission, parsePermission } from "../../../common/utils/permission.util";
-import { Login, User } from "../../../schemas";
-import {
+import type { PermissionType } from '../../../common/mapper/permissions';
+import type { Grade } from '../../../common/mapper/types';
+import { numberPermission, parsePermission } from '../../../common/utils/permission.util';
+import { Login, User } from '../../../schemas';
+import type {
   AddPermissionDTO,
   CreateUserDTO,
   RemovePermissionDTO,
   RenderHTMLDTO,
   SearchUserDTO,
   SetPermissionDTO,
-} from "../dto";
+} from '../dto';
 
 // this chuck of code need to be refactored
 @Injectable()
@@ -34,18 +34,20 @@ export class UserManageService {
     private readonly configService: ConfigService,
   ) {
     this.client = axios.create({
-      baseURL: this.configService.get<string>("PERSONAL_INFORMATION_SERVER"),
+      baseURL: this.configService.get<string>('PERSONAL_INFORMATION_SERVER'),
     });
     this.client.interceptors.request.use((config) => {
       config.headers.setAuthorization(
-        `Bearer ${this.configService.get<string>("PERSONAL_INFORMATION_TOKEN")}`,
+        `Bearer ${this.configService.get<string>('PERSONAL_INFORMATION_TOKEN')}`,
       );
       return config;
     });
     this.client.interceptors.response.use(
       (res) => res,
       (error) => {
-        if (!error.response) return Promise.reject(error);
+        if (!error.response) {
+          return Promise.reject(error);
+        }
         if (error.response.status - 400 >= 0 && error.response.status - 400 < 100) {
           return Promise.resolve(error.response);
         }
@@ -93,16 +95,21 @@ export class UserManageService {
 
   async checkUserDetail(
     email: string,
-    config: { gender?: "male" | "female"; grade?: Grade | string },
+    config: { gender?: 'male' | 'female'; grade?: Grade | string },
   ): Promise<boolean | null> {
-    if (config.grade) config.grade = config.grade.toString();
-    const res = await this.client.post("/personalInformation/check", {
+    if (config.grade) {
+      config.grade = config.grade.toString();
+    }
+    const res = await this.client.post('/personalInformation/check', {
       mail: email,
       ...config,
     });
 
-    if (res.status !== 200) return null;
-    else return res.data as boolean;
+    if (res.status !== 200) {
+      return null;
+    } else {
+      return res.data as boolean;
+    }
   }
 
   async createUser(data: CreateUserDTO): Promise<User> {
@@ -134,7 +141,7 @@ export class UserManageService {
 
     const dbUser = (await this.userRepository.findOne({ where: { id: user } }))!;
     const login = new Login();
-    login.type = "password";
+    login.type = 'password';
     login.identifier1 = dbUser.email;
     login.identifier2 = hashedPassword;
     login.user = dbUser;
@@ -181,11 +188,11 @@ export class UserManageService {
 
   async renderHtml(data: RenderHTMLDTO) {
     const browser =
-      process.env.NODE_ENV === "dev"
+      process.env.NODE_ENV === 'dev'
         ? await puppeteer.launch()
         : await puppeteer.launch({
-            executablePath: "/usr/bin/chromium-browser",
-            args: ["--disable-gpu", "--no-sandbox", "--js-flags=--noexpose_wasm,--jitless"],
+            executablePath: '/usr/bin/chromium-browser',
+            args: ['--disable-gpu', '--no-sandbox', '--js-flags=--noexpose_wasm,--jitless'],
           });
     const page = await browser.newPage();
 
@@ -223,11 +230,11 @@ export class UserManageService {
       </body>
     </html>
   `,
-      { waitUntil: "networkidle0", timeout: 2000 },
+      { waitUntil: 'networkidle0', timeout: 2000 },
     );
 
     const buffer = await page.pdf({
-      format: "A4",
+      format: 'A4',
       printBackground: true,
     });
 

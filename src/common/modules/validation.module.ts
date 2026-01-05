@@ -1,25 +1,24 @@
-import { Injectable, Logger, Module } from "@nestjs/common";
-import { InjectRepository, TypeOrmModule } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { Injectable, Logger, Module } from '@nestjs/common';
+import { InjectRepository, TypeOrmModule } from '@nestjs/typeorm';
+import type { Repository } from 'typeorm';
 
-import { PermissionValidator, Session, User } from "../../schemas";
-import { LaundrySchedulePriority } from "../mapper/constants";
+import { PermissionValidator, Session, User } from '../../schemas';
+import { LaundrySchedulePriority } from '../mapper/constants';
 import {
   NumberedPermissionGroupsEnum,
   PermissionEnum,
-  PermissionType,
-} from "../mapper/permissions";
-import { LaundryTimelineSchedulerValues } from "../mapper/types";
-import { deepObjectCompare } from "../utils/compare.util";
-import { numberPermission, parsePermission } from "../utils/permission.util";
+  type PermissionType,
+} from '../mapper/permissions';
+import { LaundryTimelineSchedulerValues } from '../mapper/types';
+import { deepObjectCompare } from '../utils/compare.util';
+import { numberPermission, parsePermission } from '../utils/permission.util';
 
 @Injectable()
 export class ValidationService {
   private logger = new Logger(ValidationModule.name);
 
   constructor(
-    @InjectRepository(Session)
-    private readonly sessionRepository: Repository<Session>,
+    @InjectRepository(Session) readonly _sessionRepository: Repository<Session>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     @InjectRepository(PermissionValidator)
@@ -31,17 +30,17 @@ export class ValidationService {
 
     const fixedPermissionMappings = Object.fromEntries(
       savedPermissionMappings
-        .filter((v) => v.type === "permission")
+        .filter((v) => v.type === 'permission')
         .sort()
-        .map((v) => [v.key, parseInt(v.value as unknown as string)]),
+        .map((v) => [v.key, parseInt(v.value as unknown as string, 10)]),
     ) as {
       [K in PermissionType]: number;
     };
     const fixedPermissionGroupMappings = Object.fromEntries(
       savedPermissionMappings
-        .filter((v) => v.type === "permission_group")
+        .filter((v) => v.type === 'permission_group')
         .sort()
-        .map((v) => [v.key, parseInt(v.value as unknown as string)]),
+        .map((v) => [v.key, parseInt(v.value as unknown as string, 10)]),
     ) as {
       [key: string]: number;
     };
@@ -50,16 +49,16 @@ export class ValidationService {
       deepObjectCompare(PermissionEnum, fixedPermissionMappings) &&
       deepObjectCompare(NumberedPermissionGroupsEnum, fixedPermissionGroupMappings)
     ) {
-      this.logger.log("Permission validation successful - no changes");
+      this.logger.log('Permission validation successful - no changes');
       return;
     }
 
-    this.logger.warn("Permission validation failed - changes detected.");
-    this.logger.warn("Trying auto migration...");
+    this.logger.warn('Permission validation failed - changes detected.');
+    this.logger.warn('Trying auto migration...');
 
     let users = await this.userRepository.find();
 
-    this.logger.log("Permission Group migration:");
+    this.logger.log('Permission Group migration:');
 
     const deprecatedPermissionGroups = Object.fromEntries(
       Object.keys(NumberedPermissionGroupsEnum).map((v) => [v, fixedPermissionGroupMappings[v]]),
@@ -72,22 +71,24 @@ export class ValidationService {
         users.splice(users.indexOf(u), 1);
         const groupName = Object.entries(deprecatedPermissionGroups).find(
           (v) => v[1].toString() === u.permission,
-        )![0];
+        )?.[0];
         u.permission = NumberedPermissionGroupsEnum[groupName].toString();
         return u;
       });
 
     this.logger.log(`OK. ${groupUsers.length} users affected`);
 
-    this.logger.log("Individual Permission migration: ");
+    this.logger.log('Individual Permission migration: ');
 
     const exceptions: User[] = [];
     users = users.map((user) => {
-      const permissions = parsePermission(parseInt(user.permission), fixedPermissionMappings);
+      const permissions = parsePermission(parseInt(user.permission, 10), fixedPermissionMappings);
 
       const newPermissions: number[] = [];
       permissions.forEach((permission) => {
-        if (exceptions.includes(user)) return;
+        if (exceptions.includes(user)) {
+          return;
+        }
         if (!PermissionEnum[permission]) {
           exceptions.push(user);
           return;
@@ -103,15 +104,15 @@ export class ValidationService {
       this.logger.error(
         `Failed. ${users.length} affected but ${exceptions.length} users cannot be auto-migrated`,
       );
-      this.logger.error(`Details: ${exceptions.map((e) => e.id).join(", ")}`);
-      this.logger.error("Changes are not commited.");
-      throw new Error("Migration failed");
+      this.logger.error(`Details: ${exceptions.map((e) => e.id).join(', ')}`);
+      this.logger.error('Changes are not commited.');
+      throw new Error('Migration failed');
     }
 
     this.logger.log(`OK. ${users.length} users affected.`);
 
     // Commit changes
-    this.logger.log("Commiting changes:");
+    this.logger.log('Commiting changes:');
 
     users = groupUsers.concat(users);
     await this.userRepository.save(users);
@@ -121,14 +122,14 @@ export class ValidationService {
     const permissions: PermissionValidator[] = [];
     Object.keys(PermissionEnum).forEach((K) => {
       const permission = new PermissionValidator();
-      permission.type = "permission";
+      permission.type = 'permission';
       permission.key = K;
       permission.value = PermissionEnum[K as PermissionType].toString();
       permissions.push(permission);
     });
     Object.keys(NumberedPermissionGroupsEnum).forEach((pg) => {
       const permissionGroup = new PermissionValidator();
-      permissionGroup.type = "permission_group";
+      permissionGroup.type = 'permission_group';
       permissionGroup.key = pg;
       permissionGroup.value = NumberedPermissionGroupsEnum[pg].toString();
       permissions.push(permissionGroup);
@@ -136,18 +137,18 @@ export class ValidationService {
 
     await this.permissionValidatorRepository.save(permissions);
 
-    this.logger.log("OK. All changes have been commited");
+    this.logger.log('OK. All changes have been commited');
   }
 
   async validateSession() {
-    this.logger.log("Clearing expired sessions:");
+    this.logger.log('Clearing expired sessions:');
     // await this.sessionRepository.clear();
     // this.logger.log("OK. Sessions cleared");
-    this.logger.log("NOP");
+    this.logger.log('NOP');
   }
 
   async validateLaundrySchedulePriority() {
-    for (let schedule of LaundryTimelineSchedulerValues) {
+    for (const schedule of LaundryTimelineSchedulerValues) {
       if (!LaundrySchedulePriority.some((s) => s.schedule === schedule)) {
         throw new Error(
           `There is an unlisted LaundryTimelineScheduler value on LaundrySchedule Priority. ${schedule}`,
@@ -155,7 +156,7 @@ export class ValidationService {
       }
     }
 
-    this.logger.log("LaundrySchedule priority validation successful");
+    this.logger.log('LaundrySchedule priority validation successful');
   }
 }
 
