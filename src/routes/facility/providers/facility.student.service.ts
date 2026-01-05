@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import type { Repository } from 'typeorm';
 
@@ -9,6 +9,7 @@ import { ErrorMsg } from '../../../common/mapper/error';
 import type { UserJWT } from '../../../common/mapper/types';
 import { safeFindOne } from '../../../common/utils/safeFindOne.util';
 import { FacilityImg, FacilityReport, FacilityReportComment, User } from '../../../schemas';
+import type { FileDTO } from '../dto/facility.dto';
 import type {
   FacilityImgIdDTO,
   FacilityReportIdDTO,
@@ -53,7 +54,7 @@ export class FacilityStudentService {
   }
 
   async getReport(data: FacilityReportIdDTO) {
-    const report = (await this.facilityReportRepository
+    const report = await this.facilityReportRepository
       .createQueryBuilder('report')
       .leftJoinAndSelect('report.comment', 'comment')
       .leftJoinAndSelect('report.file', 'file')
@@ -61,7 +62,11 @@ export class FacilityStudentService {
       .loadRelationIdAndMap('comment.parentId', 'comment.parent')
       .loadRelationIdAndMap('comment.commentParentId', 'comment.comment_parent')
       .where('report.id = :id', { id: data.id })
-      .getOne())!;
+      .getOne();
+
+    if (!report) {
+      throw new NotFoundException('Report not found');
+    }
 
     return report;
   }
@@ -79,7 +84,7 @@ export class FacilityStudentService {
     for (const file of files) {
       const img = new FacilityImg();
       img.name = file.originalname;
-      img.location = file.filename!;
+      img.location = file.filename ?? '';
       img.parent = facilityReport;
 
       imgs.push(img);

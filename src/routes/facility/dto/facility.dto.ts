@@ -1,4 +1,4 @@
-interface FileDTO {
+export class FileDTO {
   fieldname: string;
   originalname: string;
   encoding: string;

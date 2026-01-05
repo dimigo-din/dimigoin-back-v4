@@ -4,12 +4,11 @@ import { Body, Controller, Get, HttpStatus, Post, Query, Req, Res } from '@nestj
 import type { ConfigService } from '@nestjs/config';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { FastifyReply, FastifyRequest } from 'fastify';
-
-import { ApiResponseFormat } from 'src/common/dto/response_format.dto';
-
+import { CurrentUser } from '../common/decorators/user.decorator';
+import { ApiResponseFormat } from '../common/dto/response_format.dto';
 import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE } from '../common/mapper/constants';
 import { PermissionEnum } from '../common/mapper/permissions';
-
+import type { User } from '../schemas';
 import {
   type GoogleAppLoginDTO,
   type GoogleWebLoginDTO,
@@ -126,7 +125,7 @@ export class AuthController {
   ) {
     let token: { accessToken: string; refreshToken: string };
     if (!data || !data.refreshToken) {
-      token = await this.authService.refresh(req.cookies[REFRESH_TOKEN_COOKIE]!);
+      token = await this.authService.refresh(req.cookies[REFRESH_TOKEN_COOKIE] ?? '');
       this.generateCookie(res, token);
     } else {
       token = await this.authService.refresh(data.refreshToken);
@@ -143,16 +142,13 @@ export class AuthController {
   })
   @UseGuardsWithSwagger(CustomJwtAuthGuard)
   @Get('/logout')
-  async logout(
-    @Req() req: FastifyRequest & { user: any },
-    @Res({ passthrough: true }) res: FastifyReply,
-  ) {
-    await this.authService.logout(req.user);
+  async logout(@CurrentUser() user: User, @Res({ passthrough: true }) res: FastifyReply) {
+    await this.authService.logout(user);
 
     const sameSite = process.env.NODE_ENV !== 'dev' ? 'none' : 'lax';
     const domains =
       process.env.NODE_ENV !== 'dev'
-        ? this.configService.get<string>('ALLOWED_DOMAIN')?.split(',')
+        ? (this.configService.get<string>('ALLOWED_DOMAIN')?.split(',') ?? [undefined])
         : [undefined];
     const secure = process.env.NODE_ENV !== 'dev';
 
@@ -189,8 +185,8 @@ export class AuthController {
   })
   @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.STUDENT]))
   @Get('/personalInformationVerifyToken')
-  async getPersonalInformationVerifyToken(@Req() req: FastifyRequest & { user: any }) {
-    return await this.authService.generatePersonalInformationVerifyToken(req.user);
+  async getPersonalInformationVerifyToken(@CurrentUser() user: User) {
+    return await this.authService.generatePersonalInformationVerifyToken(user);
   }
 
   @ApiOperation({
@@ -203,10 +199,10 @@ export class AuthController {
   @UseGuardsWithSwagger(PersonalInformationVerifyTokenAuthGuard)
   @Post('/personalInformationVerifyToken')
   async runPersonalInformationVerifyToken(
-    @Req() req: FastifyRequest & { user: any },
+    @CurrentUser() user: User,
     @Body() _data: RunPersonalInformationVerifyTokenDTO,
   ) {
-    return req.user.email;
+    return user.email;
   }
 
   generateCookie(res: FastifyReply, token: { accessToken: string; refreshToken: string }) {
@@ -216,7 +212,7 @@ export class AuthController {
     const sameSite = process.env.NODE_ENV !== 'dev' ? 'none' : 'lax';
     const domains =
       process.env.NODE_ENV !== 'dev'
-        ? this.configService.get<string>('ALLOWED_DOMAIN')?.split(',')
+        ? (this.configService.get<string>('ALLOWED_DOMAIN')?.split(',') ?? [undefined])
         : [undefined];
 
     for (const domain of domains) {

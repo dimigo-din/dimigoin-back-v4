@@ -5,7 +5,7 @@ import { AuthGuard } from '@nestjs/passport';
 export class PersonalInformationVerifyTokenAuthGuard extends AuthGuard(
   'personalInformationVerifyToken',
 ) {
-  canActivate(context: ExecutionContext): any {
-    return super.canActivate(context);
+  canActivate(context: ExecutionContext): boolean {
+    return !!super.canActivate(context);
   }
 }

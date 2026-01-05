@@ -10,6 +10,7 @@ import type { UserJWT } from '../../../common/mapper/types';
 import { safeFindOne } from '../../../common/utils/safeFindOne.util';
 import { FacilityImg, FacilityReport, FacilityReportComment, User } from '../../../schemas';
 import type { UserManageService } from '../../user/providers';
+import type { FileDTO } from '../dto/facility.dto';
 import type {
   ChangeFacilityReportStatusDTO,
   ChangeFacilityReportTypeDTO,
@@ -86,7 +87,7 @@ export class FacilityManageService {
     for (const file of files) {
       const img = new FacilityImg();
       img.name = file.originalname;
-      img.location = file.filename!;
+      img.location = file.filename ?? '';
       img.parent = facilityReport;
 
       imgs.push(img);

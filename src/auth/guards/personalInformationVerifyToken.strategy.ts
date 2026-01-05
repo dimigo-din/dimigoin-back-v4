@@ -16,7 +16,7 @@ export class PersonalInformationVerifyTokenStrategy extends PassportStrategy(
       secretOrKeyProvider: async (
         _req,
         _rawJwtToken,
-        done: (err: any, secret?: string) => void,
+        done: (err: unknown, secret?: string) => void,
       ) => {
         try {
           const secret = await this.cacheService.getPersonalInformationVerifyTokenSecret();
@@ -29,7 +29,7 @@ export class PersonalInformationVerifyTokenStrategy extends PassportStrategy(
     });
   }
 
-  async validate(payload: any) {
+  async validate(payload: unknown) {
     return payload;
   }
 }

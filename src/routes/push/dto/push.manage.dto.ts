@@ -27,7 +27,7 @@ export class PushNotificationPayloadDTO {
   @ApiProperty()
   @IsObject()
   @IsOptional()
-  data: any = {};
+  data: unknown = {};
 
   @ApiProperty({ type: () => [PushNotificationActionsDTO] })
   @ValidateNested({ each: true })

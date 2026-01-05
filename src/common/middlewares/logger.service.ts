@@ -7,26 +7,25 @@ export class CustomLoggerMiddleware implements NestMiddleware {
 
   use(req: FastifyRequest['raw'], res: FastifyReply['raw'], next: () => void) {
     const startTimestamp = Date.now();
-    const request = req as any;
-    const requestMethod = request.method;
-    const originURL = request.url;
-    const httpVersion = `HTTP/${request.httpVersion}`;
-    const userAgent = request.headers['user-agent'];
-    const ipAddress = request.socket?.remoteAddress;
-    const forwardedFor = Array.isArray(request.headers['x-forwarded-for'])
-      ? request.headers['x-forwarded-for'].join(' > ')
-      : (request.headers['x-forwarded-for'] || '').replace(/,/g, ' > ');
+    const reqMethod = req.method;
+    const originURL = req.url;
+    const httpVersion = `HTTP/${req.httpVersion}`;
+    const userAgent = req.headers['user-agent'];
+    const ipAddress = req.socket?.remoteAddress;
+    const forwardedFor = Array.isArray(req.headers['x-forwarded-for'])
+      ? req.headers['x-forwarded-for'].join(' > ')
+      : (req.headers['x-forwarded-for'] || '').replace(/,/g, ' > ');
 
     let authorization = '';
-    const cookies = this.parseCookies(request.headers.cookie || '');
+    const cookies = this.parseCookies(req.headers.cookie || '');
 
     if (
-      (typeof request.headers.authorization === 'string' &&
-        request.headers.authorization.startsWith('Bearer')) ||
+      (typeof req.headers.authorization === 'string' &&
+        req.headers.authorization.startsWith('Bearer')) ||
       cookies?.['access-token']
     ) {
       const authorizationTmp =
-        cookies['access-token'] || request.headers.authorization?.replace('Bearer ', '');
+        cookies['access-token'] || req.headers.authorization?.replace('Bearer ', '');
       if (authorizationTmp && authorizationTmp.split('.').length === 3) {
         try {
           authorization = `${this.parseJwt(authorizationTmp).id}(${this.parseJwt(authorizationTmp).name})`;
@@ -43,7 +42,7 @@ export class CustomLoggerMiddleware implements NestMiddleware {
       const endTimestamp = Date.now() - startTimestamp;
 
       this.logger.log(
-        `From ${forwardedFor ? `${forwardedFor} through ${ipAddress}` : ipAddress} (${userAgent}) - Requested "${requestMethod} ${originURL} ${httpVersion}" | Responded with HTTP ${statusCode} by uid{${authorization}} +${endTimestamp}ms `,
+        `From ${forwardedFor ? `${forwardedFor} through ${ipAddress}` : ipAddress} (${userAgent}) - reqed "${reqMethod} ${originURL} ${httpVersion}" | Responded with HTTP ${statusCode} by uid{${authorization}} +${endTimestamp}ms `,
       );
     });
 

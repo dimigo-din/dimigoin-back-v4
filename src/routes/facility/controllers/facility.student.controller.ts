@@ -23,6 +23,7 @@ import { CurrentUser } from '../../../common/decorators/user.decorator';
 import { ApiResponseFormat } from '../../../common/dto/response_format.dto';
 import { PermissionEnum } from '../../../common/mapper/permissions';
 import { FacilityReport, FacilityReportComment, type User } from '../../../schemas';
+import type { FileDTO } from '../dto/facility.dto';
 import {
   type FacilityImgIdDTO,
   type FacilityReportIdDTO,
@@ -95,7 +96,7 @@ export class FacilityStudentController {
   @Post('/')
   @UseInterceptors(ImageUploadInterceptor)
   async report(
-    @Req() req: FastifyRequest & { files: any },
+    @Req() req: FastifyRequest & { files: { file: FileDTO[] } },
     @CurrentUser() user: User,
     @Body() data: ReportFacilityDTO,
   ) {
@@ -103,9 +104,12 @@ export class FacilityStudentController {
     try {
       return await this.facilityService.createReport(user, data, files);
     } catch (e) {
-      files.forEach((f: any) =>
-        fs.rmSync(path.join(__dirname, './upload', f.filename), { force: true, recursive: true }),
-      );
+      files.forEach((f: FileDTO) => {
+        fs.rmSync(path.join(__dirname, './upload', f.filename ?? ''), {
+          force: true,
+          recursive: true,
+        });
+      });
       throw e;
     }
   }

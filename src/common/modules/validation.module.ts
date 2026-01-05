@@ -72,6 +72,10 @@ export class ValidationService {
         const groupName = Object.entries(deprecatedPermissionGroups).find(
           (v) => v[1].toString() === u.permission,
         )?.[0];
+        if (!groupName) {
+          exceptions.push(u);
+          return u;
+        }
         u.permission = NumberedPermissionGroupsEnum[groupName].toString();
         return u;
       });

@@ -34,7 +34,7 @@ export class UserStudentService {
     };
   }
 
-  async getTimeTable(grade: number, klass: number, _opts: any = {}) {
+  async getTimeTable(grade: number, klass: number, _opts: unknown = {}) {
     const rawData = (await axios.get('http://comci.net:4082/36179?NzM2MjlfMjkxNzVfMF8x')).data;
     const data = JSON.parse(rawData.substring(0, rawData.lastIndexOf('}') + 1));
 
@@ -77,7 +77,7 @@ export class UserStudentService {
     };
 
     // Q자료 function: undefined check
-    const safeData = (m: any) => {
+    const safeData = (m: unknown) => {
       if (m === undefined) {
         return 0;
       } else {
@@ -86,7 +86,11 @@ export class UserStudentService {
     };
 
     const getGroupCode = (
-      dataObj: any,
+      dataObj: {
+        분리: number;
+        동시그룹: Array<Array<number>>;
+        자료147: Array<Array<Array<Array<number>>>>;
+      },
       gradeNum: number,
       classNum: number,
       subjectCode: number,
@@ -162,7 +166,9 @@ export class UserStudentService {
     for (let day = 1; day <= MAX_D; day++) {
       for (let per = 1; per <= MAX_P; per++) {
         const originalData = safeData((((data.자료481[grade] || [])[klass] || [])[day] || [])[per]);
-        const dailyData = safeData((((data.자료147[grade] || [])[klass] || [])[day] || [])[per]);
+        const dailyData = safeData(
+          (((data.자료147[grade] || [])[klass] || [])[day] || [])[per],
+        ) as number;
 
         let classroom = '';
         if (data.강의실 === 1) {

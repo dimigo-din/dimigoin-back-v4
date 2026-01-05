@@ -18,12 +18,13 @@ import {
   Allowed_Image_Signatures,
 } from '../../../common/mapper/constants';
 import { ErrorMsg } from '../../../common/mapper/error';
+import type { FileDTO } from '../dto/facility.dto';
 
 @Injectable()
 export class ImageUploadInterceptor implements NestInterceptor {
-  async intercept(context: ExecutionContext, next: CallHandler): Promise<Observable<any>> {
+  async intercept(context: ExecutionContext, next: CallHandler): Promise<Observable<unknown>> {
     const ctx = context.switchToHttp();
-    const req = ctx.getRequest<FastifyRequest>();
+    const req = ctx.getRequest<FastifyRequest & { files: { file: FileDTO[] } }>();
 
     const files: FileDTO[] = [];
 
@@ -47,7 +48,7 @@ export class ImageUploadInterceptor implements NestInterceptor {
             size: buffer.length,
           });
         } else if (part.type === 'field') {
-          (req.body as any)[part.fieldname] = part.value;
+          (req.body as Record<string, string>)[part.fieldname ?? ''] = part.value;
         }
       }
     }
@@ -79,7 +80,7 @@ export class ImageUploadInterceptor implements NestInterceptor {
       fs.writeFileSync(path.join(uploadDir, filename), file.buffer);
     }
 
-    (req as any).files = { file: files };
+    req.files = { file: files };
     return next.handle();
   }
 }

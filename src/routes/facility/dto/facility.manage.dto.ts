@@ -29,7 +29,7 @@ export class ReportFacilityDTO {
       format: 'binary',
     },
   })
-  file: any;
+  file: unknown;
 }
 
 export class PostCommentDTO {

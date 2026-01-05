@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { isEqual } from 'date-fns';
 import { LessThanOrEqual, MoreThanOrEqual, type Repository } from 'typeorm';
@@ -332,12 +332,15 @@ export class StayStudentService {
   }
 
   async editStayOuting(user: UserJWT, data: EditStayOutingDTO) {
-    const target = (await safeFindOne<User>(this.userRepository, user.id))!;
-    const outing = (await safeFindOne<StayOuting>(this.stayOutingRepository, {
+    const target = await safeFindOne<User>(this.userRepository, user.id);
+    const outing = await safeFindOne<StayOuting>(this.stayOutingRepository, {
       where: { id: data.outing_id },
       relations: { stay_apply: { user: true, stay: { stay_apply_period: true } } },
       loadEagerRelations: false,
-    }))!;
+    });
+    if (!outing) {
+      throw new NotFoundException('Stay outing not found');
+    }
     if (outing.stay_apply.user.id !== target.id) {
       throw new HttpException(ErrorMsg.PermissionDenied_Resource(), HttpStatus.FORBIDDEN);
     }

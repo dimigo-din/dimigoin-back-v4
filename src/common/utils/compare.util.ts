@@ -1,9 +1,12 @@
 //@ts-nocheck
-export const deepObjectCompare = (...objects) => {
-  let i, l, leftChain, rightChain;
+export const deepObjectCompare = (...objects: unknown[]) => {
+  let i: number,
+    l = objects.length,
+    leftChain: unknown[] = [],
+    rightChain: unknown[] = [];
 
-  function compare2Objects(x, y) {
-    let p;
+  function compare2Objects(x: unknown, y: unknown) {
+    let p: unknown;
 
     if (Number.isNaN(x) && Number.isNaN(y) && typeof x === 'number' && typeof y === 'number') {
       return true;
@@ -27,6 +30,7 @@ export const deepObjectCompare = (...objects) => {
       return false;
     }
 
+    // biome-ignore lint/suspicious/noPrototypeBuiltins: special case
     if (x.isPrototypeOf(y) || y.isPrototypeOf(x)) {
       return false;
     }
@@ -91,7 +95,7 @@ export const deepObjectCompare = (...objects) => {
     // throw "Need two or more arguments to compare";
   }
 
-  for (i = 1, l = objects.length; i < l; i++) {
+  for (i = 1; i < l; i++) {
     leftChain = []; //Todo: this can be cached
     rightChain = [];
 

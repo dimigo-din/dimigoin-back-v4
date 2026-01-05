@@ -1,9 +1,10 @@
 import { type ExecutionContext, Injectable } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import type { Observable } from 'rxjs';
 
 @Injectable()
 export class CustomJwtAuthGuard extends AuthGuard('jwt') {
-  canActivate(context: ExecutionContext): any {
+  canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
     return super.canActivate(context);
   }
 }

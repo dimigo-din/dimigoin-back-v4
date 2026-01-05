@@ -49,7 +49,7 @@ async function bootstrap() {
 
   await CustomSwaggerSetup(app);
 
-  const port = configService.get<number>('APPLICATION_PORT')!;
+  const port = configService.get<number>('APPLICATION_PORT') ?? 3000;
   await app.listen(port, '0.0.0.0');
 
   const validationService = app.get<ValidationService>(ValidationService);

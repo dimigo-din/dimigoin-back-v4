@@ -10,7 +10,7 @@ import { catchError, map } from 'rxjs/operators';
 
 @Injectable()
 export class ResponseWrapperInterceptor implements NestInterceptor {
-  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+  intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     const res = context.switchToHttp().getResponse();
 
     return next.handle().pipe(
@@ -23,8 +23,8 @@ export class ResponseWrapperInterceptor implements NestInterceptor {
       }),
       catchError((err) => {
         let status: number;
-        let error: any;
-        let code: any;
+        let error: unknown;
+        let code: unknown;
 
         if (err instanceof HttpException) {
           status = err.getStatus();
@@ -33,7 +33,7 @@ export class ResponseWrapperInterceptor implements NestInterceptor {
             code = error[0];
             error = error[1];
           } else {
-            error = error.message || error;
+            error = (error as Error).message || error;
           }
         } else {
           status = 500;

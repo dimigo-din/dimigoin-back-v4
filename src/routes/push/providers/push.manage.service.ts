@@ -28,7 +28,7 @@ export class PushManageService {
     private readonly pushRepository: Repository<PushSubscription>,
     private readonly configService: ConfigService,
   ) {
-    this.projectId = this.configService.get<string>('FIREBASE_PROJECT_ID')!;
+    this.projectId = this.configService.get<string>('FIREBASE_PROJECT_ID') ?? '';
     const googleAuth = new GoogleAuth({
       credentials: {
         client_email: configService.get<string>('FIREBASE_CLIENT_EMAIL'),
@@ -129,21 +129,26 @@ export class PushManageService {
         },
       });
       return { sent_message: response.data };
-    } catch (error: any) {
-      const statusCode = error.code || error.response?.status || 500;
-      const message = error.message || 'Unknown error';
+    } catch (error: unknown) {
+      const statusCode =
+        (error as { code?: number }).code ||
+        (error as { response?: { status?: number } }).response?.status ||
+        500;
+      const message = (error as Error)?.message || 'Unknown error';
       throw { statusCode, message };
     }
   }
 
-  private async doPushFailCleanup(subscription: PushSubscription, reason: any) {
-    const code = reason?.statusCode || reason?.body?.statusCode;
+  private async doPushFailCleanup(subscription: PushSubscription, reason: unknown) {
+    const code =
+      (reason as { statusCode?: number })?.statusCode ||
+      (reason as { body?: { statusCode?: number } })?.body?.statusCode;
     if (code === 404 || code === 410) {
       await this.pushRepository.delete({ token: subscription.token });
       this.logger.warn(`Removed dead FCM token: ${subscription.token}`);
     } else {
       this.logger.warn(
-        `Push send failed: ${(subscription.user ?? subscription).id} code=${code ?? 'N/A'} msg=${reason?.message ?? reason}`,
+        `Push send failed: ${(subscription.user ?? subscription).id} code=${code ?? 'N/A'} msg=${(reason as Error)?.message ?? reason}`,
       );
     }
   }

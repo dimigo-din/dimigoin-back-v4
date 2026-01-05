@@ -1,13 +1,11 @@
 import * as process from 'node:process';
-
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import type { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import axios, { type AxiosInstance } from 'axios';
 import * as bcrypt from 'bcrypt';
 import puppeteer from 'puppeteer';
 import { Like, type Repository } from 'typeorm';
-
 import type { PermissionType } from '../../../common/mapper/permissions';
 import type { Grade } from '../../../common/mapper/types';
 import { numberPermission, parsePermission } from '../../../common/utils/permission.util';
@@ -54,10 +52,6 @@ export class UserManageService {
         return Promise.reject(error);
       },
     );
-  }
-
-  async getUserById(id: string): Promise<User> {
-    return (await this.userRepository.findOne({ where: { id } }))!;
   }
 
   // TODO: get from array like fetchUserDetail(...email)
@@ -130,16 +124,15 @@ export class UserManageService {
     return user;
   }
 
-  async deleteUser(id: string): Promise<User> {
-    const user = await this.getUserById(id);
-    return await this.userRepository.remove(user);
-  }
-
   async addPasswordLogin(user: string, password: string) {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    const dbUser = (await this.userRepository.findOne({ where: { id: user } }))!;
+    const dbUser = await this.userRepository.findOne({ where: { id: user } });
+    if (!dbUser) {
+      throw new NotFoundException('User not found');
+    }
+
     const login = new Login();
     login.type = 'password';
     login.identifier1 = dbUser.email;
@@ -152,14 +145,20 @@ export class UserManageService {
   // this bunch of code can be shortened.
   // but I left it like this for optimization.
   async setPermission(data: SetPermissionDTO) {
-    const user = (await this.userRepository.findOne({ where: { id: data.id } }))!;
+    const user = await this.userRepository.findOne({ where: { id: data.id } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
     user.permission = numberPermission(...data.permissions).toString();
 
     return await this.userRepository.save(user);
   }
 
   async addPermission(data: AddPermissionDTO) {
-    const user = (await this.userRepository.findOne({ where: { id: data.id } }))!;
+    const user = await this.userRepository.findOne({ where: { id: data.id } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
 
     const permissions = parsePermission(user.permission);
 
@@ -175,7 +174,10 @@ export class UserManageService {
   }
 
   async removePermission(data: RemovePermissionDTO) {
-    const user = (await this.userRepository.findOne({ where: { id: data.id } }))!;
+    const user = await this.userRepository.findOne({ where: { id: data.id } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
 
     const resultPermissions = parsePermission(user.permission).filter(
       (p: PermissionType) => !data.permissions.find((p2) => p2 === p),
