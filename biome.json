@@ -29,7 +29,8 @@
         "noGlobalObjectCalls": "error",
         "noInvalidConstructorSuper": "error",
         "noUndeclaredVariables": "error",
-        "noUnreachable": "error"
+        "noUnreachable": "error",
+        "noUnusedPrivateClassMembers": "off"
       },
       "style": {
         "noCommonJs": "error",

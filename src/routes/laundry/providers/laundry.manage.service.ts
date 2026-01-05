@@ -1,9 +1,11 @@
+import { TZDate } from '@date-fns/tz';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
-import { format } from 'date-fns';
-
+import { addMinutes, format } from 'date-fns';
 import { In, type Repository } from 'typeorm';
+import { LaundrySchedulePriority } from '../../../common/enums/laundrySchedulePriority.enum';
 import { ErrorMsg } from '../../../common/mapper/error';
 import { CacheService } from '../../../common/modules/cache.module';
 import { safeFindOne } from '../../../common/utils/safeFindOne.util';
@@ -224,5 +226,85 @@ export class LaundryManageService {
     const laundryApply = await safeFindOne<LaundryApply>(this.laundryApplyRepository, data.id);
 
     return await this.laundryApplyRepository.remove(laundryApply);
+  }
+
+  @Cron(CronExpression.EVERY_HOUR)
+  // @Cron(CronExpression.EVERY_SECOND)
+  private async laundryTimelineScheduler() {
+    const timelines = await this.laundryTimelineRepository.find();
+
+    const disable = async () => {
+      await this.laundryTimelineRepository.save(
+        timelines.map((x) => {
+          x.enabled = false;
+          return x;
+        }),
+      );
+    };
+
+    for (const schedulerItem of LaundrySchedulePriority) {
+      const scheduler: LaundryTimelineScheduler = this.moduleRef.get(schedulerItem.scheduler, {
+        strict: false,
+      });
+
+      const shouldEnable = await scheduler.evaluate(timelines);
+      if (shouldEnable) {
+        const target = timelines.filter((t) => t.scheduler === schedulerItem.schedule);
+        if (target.length === 1) {
+          // not a etc
+          if (target[0].enabled === true) {
+            // already on
+            break; // keep it.
+          } else {
+            await disable();
+            target[0].enabled = true;
+            await this.laundryTimelineRepository.save(target[0]); // enable it
+            break;
+          }
+        } else {
+          break; // etc and current enabled is etc
+        }
+      }
+      // continue to evaluate next
+    }
+  }
+
+  @Cron(CronExpression.EVERY_MINUTE)
+  private async laundryNotificationScheduler() {
+    const now = new Date();
+    const inFifteenMinutes = format(addMinutes(new TZDate(now, 'Asia/Seoul'), 15), 'HH:mm');
+    const applies = await this.laundryApplyRepository.find({
+      where: {
+        date: format(new TZDate(now, 'Asia/Seoul'), 'yyyy-MM-dd'),
+        laundryTime: { time: inFifteenMinutes },
+      },
+      relations: { user: true, laundryMachine: true, laundryTime: true },
+    });
+
+    for (const apply of applies) {
+      if (await this.cacheService.isNotificationAlreadySent(apply.id)) {
+        continue;
+      }
+
+      const user = apply.user;
+
+      const machineType = apply.laundryMachine.type === 'washer' ? '세탁' : '건조';
+      const title = `${machineType} 알림`;
+      const body = `15분뒤 ${apply.laundryTime.time}에 ${machineType}이 예약되어 있습니다. (${apply.laundryMachine.name})`;
+
+      const dto: PushNotificationToSpecificDTO = {
+        to: [user.id],
+        title: title,
+        body: body,
+        category: 'Laundry',
+        url: '/laundry',
+        data: undefined,
+        actions: [],
+        icon: 'https://dimigoin.io/dimigoin.png',
+        badge: 'https://dimigoin.io/dimigoin.png',
+      };
+
+      await this.pushManageService.sendToSpecificUsers(dto);
+    }
   }
 }

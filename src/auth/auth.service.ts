@@ -9,12 +9,13 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
+import { subMonths } from 'date-fns';
 import { OAuth2Client, type TokenPayload } from 'google-auth-library';
 import type { StringValue } from 'ms';
-import type { Repository } from 'typeorm';
-
+import { LessThan, type Repository } from 'typeorm';
 import { ErrorMsg } from '../common/mapper/error';
 import { PermissionEnum } from '../common/mapper/permissions';
 import type { UserJWT } from '../common/mapper/types';
@@ -22,7 +23,6 @@ import { CacheService } from '../common/modules/cache.module';
 import { hasPermission } from '../common/utils/permission.util';
 import { UserManageService } from '../routes/user/providers';
 import { Login, Session, User } from '../schemas';
-
 import type { JWTResponse, RedirectUriDTO } from './auth.dto';
 
 @Injectable()
@@ -217,5 +217,13 @@ export class AuthService {
     await this.sessionRepository.save(session);
 
     return keyPair;
+  }
+
+  @Cron(CronExpression.EVERY_HOUR)
+  // @Cron(CronExpression.EVERY_SECOND)
+  private async expiredSessionClear() {
+    await this.sessionRepository.delete({
+      updated_at: LessThan(subMonths(new Date(), 1)),
+    });
   }
 }
