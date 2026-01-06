@@ -7,8 +7,8 @@ import { UseGuardsWithSwagger } from "../../../auth/guards/useGuards";
 import { CurrentUser } from "../../../common/decorators/user.decorator";
 import { ApiResponseFormat } from "../../../common/dto/response_format.dto";
 import { PermissionEnum } from "../../../common/mapper/permissions";
-import type { User } from "../../../schemas";
-import { ApplyResponseDTO, type GetTimelineDTO } from "../dto/user.student.dto";
+import { User } from "../../../schemas";
+import { ApplyResponseDTO, GetTimelineDTO } from "../dto/user.student.dto";
 import { UserStudentService } from "../providers";
 
 @ApiTags("User Student")

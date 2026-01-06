@@ -7,8 +7,8 @@ import { UseGuardsWithSwagger } from "../../../auth/guards/useGuards";
 import { CurrentUser } from "../../../common/decorators/user.decorator";
 import { ApiResponseFormat } from "../../../common/dto/response_format.dto";
 import { PermissionEnum } from "../../../common/mapper/permissions";
-import { FrigoApply, type User } from "../../../schemas";
-import type { ClientFrigoApplyDTO } from "../dto/frigo.dto";
+import { FrigoApply, User } from "../../../schemas";
+import { ClientFrigoApplyDTO } from "../dto/frigo.dto";
 import { FrigoStudentService } from "../providers";
 
 @ApiTags("Frigo Student")

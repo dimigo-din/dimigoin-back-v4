@@ -1,8 +1,8 @@
 import * as process from "node:process";
 
 import { Logger } from "@nestjs/common";
-import type { NestFastifyApplication } from "@nestjs/platform-fastify";
-import { DocumentBuilder, type SwaggerCustomOptions, SwaggerModule } from "@nestjs/swagger";
+import { NestFastifyApplication } from "@nestjs/platform-fastify";
+import { DocumentBuilder, SwaggerCustomOptions, SwaggerModule } from "@nestjs/swagger";
 import { AppService } from "src/app/app.service";
 import { SwaggerTheme, SwaggerThemeNameEnum } from "swagger-themes";
 

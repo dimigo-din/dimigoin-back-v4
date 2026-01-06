@@ -2,9 +2,9 @@ import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import axios from "axios";
 import { format } from "date-fns";
-import type { Repository } from "typeorm";
+import { Repository } from "typeorm";
 
-import type { UserJWT } from "../../../common/mapper/types";
+import { UserJWT } from "../../../common/mapper/types";
 import { safeFindOne } from "../../../common/utils/safeFindOne.util";
 import { LaundryApply, StayApply, User } from "../../../schemas";
 

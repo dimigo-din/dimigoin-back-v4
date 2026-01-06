@@ -4,7 +4,7 @@ import { ModuleRef } from "@nestjs/core";
 import { Cron, CronExpression } from "@nestjs/schedule";
 import { InjectRepository } from "@nestjs/typeorm";
 import { addMinutes, format } from "date-fns";
-import { In, type Repository } from "typeorm";
+import { In, Repository } from "typeorm";
 import { LaundrySchedulePriority } from "../../../common/mapper/constants";
 import { ErrorMsg } from "../../../common/mapper/error";
 import { CacheService } from "../../../common/modules/cache.module";
@@ -12,7 +12,7 @@ import { safeFindOne } from "../../../common/utils/safeFindOne.util";
 import { LaundryApply, LaundryMachine, LaundryTime, LaundryTimeline, User } from "../../../schemas";
 import { PushNotificationToSpecificDTO } from "../../push/dto/push.manage.dto";
 import { PushManageService } from "../../push/providers";
-import type {
+import {
   CreateLaundryApplyDTO,
   CreateLaundryMachineDTO,
   CreateLaundryTimelineDTO,
@@ -23,7 +23,7 @@ import type {
   UpdateLaundryMachineDTO,
   UpdateLaundryTimelineDTO,
 } from "../dto/laundry.manage.dto";
-import type { LaundryTimelineScheduler } from "../schedulers/scheduler.interface";
+import { LaundryTimelineScheduler } from "../schedulers/scheduler.interface";
 
 @Injectable()
 export class LaundryManageService {

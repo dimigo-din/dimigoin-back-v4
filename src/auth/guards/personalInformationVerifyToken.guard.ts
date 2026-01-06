@@ -1,6 +1,6 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
-import type { FastifyRequest } from "fastify";
+import { FastifyRequest } from "fastify";
 
 import { CacheService } from "../../common/modules/cache.module";
 

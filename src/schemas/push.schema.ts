@@ -10,7 +10,7 @@ import {
 } from "typeorm";
 
 import {
-  type PushNotificationSubjectIdentifier,
+  PushNotificationSubjectIdentifier,
   PushNotificationSubjectIdentifierValues,
 } from "../common/mapper/types";
 

@@ -1,5 +1,5 @@
 import { HttpException, HttpStatus } from "@nestjs/common";
-import type { FindOneOptions, Repository } from "typeorm";
+import { FindOneOptions, Repository } from "typeorm";
 
 import { ErrorMsg } from "../mapper/error";
 

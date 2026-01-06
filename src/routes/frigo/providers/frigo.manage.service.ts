@@ -1,11 +1,11 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { format, startOfWeek } from "date-fns";
-import type { Repository } from "typeorm";
+import { Repository } from "typeorm";
 
 import { safeFindOne } from "../../../common/utils/safeFindOne.util";
 import { FrigoApply, FrigoApplyPeriod, User } from "../../../schemas";
-import type {
+import {
   AuditFrigoApply,
   FrigoApplyDTO,
   FrigoApplyIdDTO,

@@ -1,4 +1,4 @@
-import { applyDecorators, type Type } from "@nestjs/common";
+import { applyDecorators, Type } from "@nestjs/common";
 import { ApiExtraModels, ApiProperty, ApiResponse } from "@nestjs/swagger";
 
 export function ApiResponseFormat<

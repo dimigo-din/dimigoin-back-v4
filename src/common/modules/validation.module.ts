@@ -1,13 +1,13 @@
 import { Injectable, Logger, Module } from "@nestjs/common";
 import { InjectRepository, TypeOrmModule } from "@nestjs/typeorm";
-import type { Repository } from "typeorm";
+import { Repository } from "typeorm";
 
 import { PermissionValidator, Session, User } from "../../schemas";
 import { LaundrySchedulePriority } from "../mapper/constants";
 import {
   NumberedPermissionGroupsEnum,
   PermissionEnum,
-  type PermissionType,
+  PermissionType,
 } from "../mapper/permissions";
 import { LaundryTimelineSchedulerValues } from "../mapper/types";
 import { deepObjectCompare } from "../utils/compare.util";

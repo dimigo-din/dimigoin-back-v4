@@ -6,9 +6,9 @@ import { PermissionGuard } from "../../../auth/guards/permission.guard";
 import { UseGuardsWithSwagger } from "../../../auth/guards/useGuards";
 import { ApiResponseFormat } from "../../../common/dto/response_format.dto";
 import { PermissionEnum } from "../../../common/mapper/permissions";
-import { LaundryApply, LaundryTimeline, type User } from "../../../schemas";
-import type { LaundryApplyIdDTO } from "../dto/laundry.manage.dto";
-import type { LaundryApplyDTO } from "../dto/laundry.student.dto";
+import { LaundryApply, LaundryTimeline, User } from "../../../schemas";
+import { LaundryApplyIdDTO } from "../dto/laundry.manage.dto";
+import { LaundryApplyDTO } from "../dto/laundry.student.dto";
 import { LaundryStudentService } from "../providers/laundry.student.service";
 
 @ApiTags("Laundry Student")

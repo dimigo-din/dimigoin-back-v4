@@ -1,13 +1,13 @@
-import { fcm, type fcm_v1 } from "@googleapis/fcm";
+import { fcm, fcm_v1 } from "@googleapis/fcm";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { InjectRepository } from "@nestjs/typeorm";
 import { GoogleAuth } from "google-auth-library";
-import type { Repository } from "typeorm";
+import { Repository } from "typeorm";
 
 import { safeFindOne } from "../../../common/utils/safeFindOne.util";
 import { PushSubscription, User } from "../../../schemas";
-import type {
+import {
   GetSubscriptionsByCategoryDTO,
   GetSubscriptionsByUserAndCategoryDTO,
   GetSubscriptionsByUserDTO,

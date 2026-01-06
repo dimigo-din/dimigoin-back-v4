@@ -2,14 +2,14 @@ import { TZDate } from "@date-fns/tz";
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { addHours, format, isAfter, startOfDay } from "date-fns";
-import type { Repository } from "typeorm";
+import { Repository } from "typeorm";
 
 import { ErrorMsg } from "../../../common/mapper/error";
-import type { Grade, UserJWT } from "../../../common/mapper/types";
+import { Grade, UserJWT } from "../../../common/mapper/types";
 import { safeFindOne } from "../../../common/utils/safeFindOne.util";
 import { LaundryApply, LaundryMachine, LaundryTime, LaundryTimeline, User } from "../../../schemas";
 import { UserManageService } from "../../user/providers";
-import type { LaundryApplyDTO, LaundryApplyIdDTO } from "../dto/laundry.student.dto";
+import { LaundryApplyDTO, LaundryApplyIdDTO } from "../dto/laundry.student.dto";
 
 @Injectable()
 export class LaundryStudentService {

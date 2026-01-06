@@ -3,15 +3,15 @@ import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { InjectRepository } from "@nestjs/typeorm";
 import { format, startOfWeek } from "date-fns";
-import type { Repository } from "typeorm";
+import { Repository } from "typeorm";
 
 import { ErrorMsg } from "../../../common/mapper/error";
-import type { UserJWT, YoutubeSearchResults, YoutubeVideoItem } from "../../../common/mapper/types";
+import { UserJWT, YoutubeSearchResults, YoutubeVideoItem } from "../../../common/mapper/types";
 import { CacheService } from "../../../common/modules/cache.module";
 import { safeFindOne } from "../../../common/utils/safeFindOne.util";
 import { User, WakeupSongApplication, WakeupSongVote } from "../../../schemas";
 import { UserManageService } from "../../user/providers";
-import type {
+import {
   RegisterVideoDTO,
   SearchVideoDTO,
   VoteIdDTO,

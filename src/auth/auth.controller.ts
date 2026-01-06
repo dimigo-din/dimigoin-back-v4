@@ -3,19 +3,19 @@ import * as process from "node:process";
 import { Body, Controller, Get, HttpStatus, Post, Query, Req, Res } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
-import type { FastifyReply, FastifyRequest } from "fastify";
+import { FastifyReply, FastifyRequest } from "fastify";
 import { CurrentUser } from "../common/decorators/user.decorator";
 import { ApiResponseFormat } from "../common/dto/response_format.dto";
 import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE } from "../common/mapper/constants";
 import { PermissionEnum } from "../common/mapper/permissions";
-import type { User } from "../schemas";
+import { User } from "../schemas";
 import {
-  type GoogleAppLoginDTO,
-  type GoogleWebLoginDTO,
+  GoogleAppLoginDTO,
+  GoogleWebLoginDTO,
   JWTResponse,
-  type PasswordLoginDTO,
-  type RedirectUriDTO,
-  type RefreshTokenDTO,
+  PasswordLoginDTO,
+  RedirectUriDTO,
+  RefreshTokenDTO,
 } from "./auth.dto";
 import { AuthService } from "./auth.service";
 import { CustomJwtAuthGuard } from "./guards";

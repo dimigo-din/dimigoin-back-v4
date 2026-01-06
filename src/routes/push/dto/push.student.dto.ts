@@ -2,7 +2,7 @@ import { ApiProperty } from "@nestjs/swagger";
 import { IsIn, IsString } from "class-validator";
 
 import {
-  type PushNotificationSubjectIdentifier,
+  PushNotificationSubjectIdentifier,
   PushNotificationSubjectIdentifierValues,
 } from "../../../common/mapper/types";
 

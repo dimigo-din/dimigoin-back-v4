@@ -7,13 +7,13 @@ import { UseGuardsWithSwagger } from "src/auth/guards/useGuards";
 import { CurrentUser } from "src/common/decorators/user.decorator";
 import { ApiResponseFormat } from "src/common/dto/response_format.dto";
 import { PermissionEnum } from "src/common/mapper/permissions";
-import { PushSubject, PushSubscription, type User } from "../../../schemas";
+import { PushSubject, PushSubscription, User } from "../../../schemas";
 import {
-  type CreateFCMTokenDTO,
-  type DeleteFCMTokenDTO,
-  type GetSubscribedSubjectDTO,
+  CreateFCMTokenDTO,
+  DeleteFCMTokenDTO,
+  GetSubscribedSubjectDTO,
   PushNotificationSubjectsResponseDTO,
-  type SetSubscribeSubjectDTO,
+  SetSubscribeSubjectDTO,
 } from "../dto/push.student.dto";
 import { PushStudentService } from "../providers";
 

@@ -13,17 +13,17 @@ import { Cron, CronExpression } from "@nestjs/schedule";
 import { InjectRepository } from "@nestjs/typeorm";
 import * as bcrypt from "bcrypt";
 import { subMonths } from "date-fns";
-import { OAuth2Client, type TokenPayload } from "google-auth-library";
-import type { StringValue } from "ms";
-import { LessThan, type Repository } from "typeorm";
+import { OAuth2Client, TokenPayload } from "google-auth-library";
+import { StringValue } from "ms";
+import { LessThan, Repository } from "typeorm";
 import { ErrorMsg } from "../common/mapper/error";
 import { PermissionEnum } from "../common/mapper/permissions";
-import type { UserJWT } from "../common/mapper/types";
+import { UserJWT } from "../common/mapper/types";
 import { CacheService } from "../common/modules/cache.module";
 import { hasPermission } from "../common/utils/permission.util";
 import { UserManageService } from "../routes/user/providers";
 import { Login, Session, User } from "../schemas";
-import type { JWTResponse, RedirectUriDTO } from "./auth.dto";
+import { JWTResponse, RedirectUriDTO } from "./auth.dto";
 
 @Injectable()
 export class AuthService {

@@ -7,18 +7,18 @@ import { UseGuardsWithSwagger } from "../../../auth/guards/useGuards";
 import { ApiResponseFormat } from "../../../common/dto/response_format.dto";
 import { PermissionEnum } from "../../../common/mapper/permissions";
 import { LaundryApply, LaundryMachine, LaundryTimeline } from "../../../schemas";
-import type {
+import {
   CreateLaundryApplyDTO,
   CreateLaundryMachineDTO,
   CreateLaundryTimelineDTO,
   LaundryApplyIdDTO,
   LaundryMachineIdDTO,
   LaundryTimelineIdDTO,
+  LaundryTimelineListResponseDTO,
   UpdateLaundryApplyDTO,
   UpdateLaundryMachineDTO,
   UpdateLaundryTimelineDTO,
 } from "../dto/laundry.manage.dto";
-import { LaundryTimelineListResponseDTO } from "../dto/laundry.manage.dto";
 import { LaundryManageService } from "../providers";
 
 @ApiTags("Laundry Manage")

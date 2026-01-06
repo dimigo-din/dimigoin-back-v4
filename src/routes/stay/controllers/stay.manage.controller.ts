@@ -7,7 +7,7 @@ import { UseGuardsWithSwagger } from "../../../auth/guards/useGuards";
 import { ApiResponseFormat } from "../../../common/dto/response_format.dto";
 import { PermissionEnum } from "../../../common/mapper/permissions";
 import { Stay, StayApply, StayOuting, StaySchedule, StaySeatPreset } from "../../../schemas";
-import type {
+import {
   AuditOutingDTO,
   CreateStayApplyDTO,
   CreateStayDTO,

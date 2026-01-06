@@ -2,7 +2,7 @@ import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsIn, IsString } from "class-validator";
 
-import { type Grade, GradeValues } from "../../../common/mapper/types";
+import { Grade, GradeValues } from "../../../common/mapper/types";
 
 export class LaundryApplyIdDTO {
   @ApiProperty()

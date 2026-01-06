@@ -1,11 +1,11 @@
 import {
-  type CallHandler,
-  type ExecutionContext,
+  CallHandler,
+  ExecutionContext,
   HttpException,
   Injectable,
-  type NestInterceptor,
+  NestInterceptor,
 } from "@nestjs/common";
-import { type Observable, of } from "rxjs";
+import { Observable, of } from "rxjs";
 import { catchError, map } from "rxjs/operators";
 
 @Injectable()

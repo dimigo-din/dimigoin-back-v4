@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsIn, Matches } from "class-validator";
 
-import { type Gender, GenderValues } from "../../../common/mapper/types";
+import { Gender, GenderValues } from "../../../common/mapper/types";
 
 export class GetDateSongDTO {
   @ApiProperty({ description: "YYYY-MM-DD" })

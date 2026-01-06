@@ -3,22 +3,22 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 
 import {
-  type CallHandler,
-  type ExecutionContext,
+  CallHandler,
+  ExecutionContext,
   HttpException,
   HttpStatus,
   Injectable,
-  type NestInterceptor,
+  NestInterceptor,
 } from "@nestjs/common";
-import type { FastifyRequest } from "fastify";
-import type { Observable } from "rxjs";
+import { FastifyRequest } from "fastify";
+import { Observable } from "rxjs";
 
 import {
   Allowed_Image_Extensions,
   Allowed_Image_Signatures,
 } from "../../../common/mapper/constants";
 import { ErrorMsg } from "../../../common/mapper/error";
-import type { FileDTO } from "../dto/facility.dto";
+import { FileDTO } from "../dto/facility.dto";
 
 @Injectable()
 export class ImageUploadInterceptor implements NestInterceptor {

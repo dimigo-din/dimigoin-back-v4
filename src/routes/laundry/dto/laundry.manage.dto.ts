@@ -3,13 +3,13 @@ import { Type } from "class-transformer";
 import { IsBoolean, IsIn, IsString, Matches, ValidateNested } from "class-validator";
 
 import {
-  type Gender,
+  Gender,
   GenderValues,
-  type Grade,
+  Grade,
   GradeValues,
-  type LaundryMachineType,
+  LaundryMachineType,
   LaundryMachineTypeValues,
-  type LaundryTimelineSchedule,
+  LaundryTimelineSchedule,
   LaundryTimelineSchedulerValues,
 } from "../../../common/mapper/types";
 

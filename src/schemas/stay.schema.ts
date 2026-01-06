@@ -10,7 +10,7 @@ import {
   Unique,
 } from "typeorm";
 
-import type { Grade, StaySeatTargets } from "../common/mapper/types";
+import { Grade, StaySeatTargets } from "../common/mapper/types";
 
 import { User } from "./user.schema";
 

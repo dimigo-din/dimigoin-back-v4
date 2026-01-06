@@ -3,14 +3,14 @@ import path from "node:path";
 
 import { HttpException, HttpStatus, Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import type { Repository } from "typeorm";
+import { Repository } from "typeorm";
 
 import { ErrorMsg } from "../../../common/mapper/error";
-import type { UserJWT } from "../../../common/mapper/types";
+import { UserJWT } from "../../../common/mapper/types";
 import { safeFindOne } from "../../../common/utils/safeFindOne.util";
 import { FacilityImg, FacilityReport, FacilityReportComment, User } from "../../../schemas";
-import type { FileDTO } from "../dto/facility.dto";
-import type {
+import { FileDTO } from "../dto/facility.dto";
+import {
   FacilityImgIdDTO,
   FacilityReportIdDTO,
   GetReportListDTO,

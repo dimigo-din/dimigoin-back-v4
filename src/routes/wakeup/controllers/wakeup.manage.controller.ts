@@ -8,9 +8,9 @@ import { ApiResponseFormat } from "../../../common/dto/response_format.dto";
 import { PermissionEnum } from "../../../common/mapper/permissions";
 import { WakeupSongApplication } from "../../../schemas";
 import {
-  type WakeupSongDeleteDTO,
+  WakeupSongDeleteDTO,
   WakeupSongListResponseDTO,
-  type WakeupSongSelectDTO,
+  WakeupSongSelectDTO,
 } from "../dto/wakeup.manage.dto";
 import { WakeupManageService } from "../providers/";
 

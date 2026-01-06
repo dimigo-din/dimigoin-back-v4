@@ -9,7 +9,7 @@ import {
   PrimaryGeneratedColumn,
 } from "typeorm";
 
-import type { Gender } from "../common/mapper/types";
+import { Gender } from "../common/mapper/types";
 
 import { User } from "./user.schema";
 

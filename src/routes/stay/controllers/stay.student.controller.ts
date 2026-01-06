@@ -7,8 +7,8 @@ import { UseGuardsWithSwagger } from "../../../auth/guards/useGuards";
 import { CurrentUser } from "../../../common/decorators/user.decorator";
 import { ApiResponseFormat } from "../../../common/dto/response_format.dto";
 import { PermissionEnum } from "../../../common/mapper/permissions";
-import { Stay, StayApply, StayOuting, type User } from "../../../schemas";
-import type {
+import { Stay, StayApply, StayOuting, User } from "../../../schemas";
+import {
   AddStayOutingDTO,
   CreateUserStayApplyDTO,
   EditStayOutingDTO,

@@ -12,12 +12,7 @@ import {
   Unique,
 } from "typeorm";
 
-import type {
-  Gender,
-  Grade,
-  LaundryMachineType,
-  LaundryTimelineSchedule,
-} from "../common/mapper/types";
+import { Gender, Grade, LaundryMachineType, LaundryTimelineSchedule } from "../common/mapper/types";
 
 import { User } from "./user.schema";
 

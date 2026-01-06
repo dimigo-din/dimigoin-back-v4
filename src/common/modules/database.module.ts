@@ -2,7 +2,7 @@ import * as process from "node:process";
 
 import { Module } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { TypeOrmModule, type TypeOrmModuleAsyncOptions } from "@nestjs/typeorm";
+import { TypeOrmModule, TypeOrmModuleAsyncOptions } from "@nestjs/typeorm";
 import importToArray from "import-to-array";
 
 import * as entities from "src/schemas";

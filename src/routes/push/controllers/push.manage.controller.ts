@@ -9,10 +9,10 @@ import { PermissionEnum } from "src/common/mapper/permissions";
 
 import { PushSubscription } from "../../../schemas";
 import {
-  type GetSubscriptionsByUserDTO,
-  type PushNotificationPayloadDTO,
+  GetSubscriptionsByUserDTO,
+  PushNotificationPayloadDTO,
   PushNotificationResultResponseDTO,
-  type PushNotificationToSpecificDTO,
+  PushNotificationToSpecificDTO,
 } from "../dto/push.manage.dto";
 import { PushManageService } from "../providers";
 

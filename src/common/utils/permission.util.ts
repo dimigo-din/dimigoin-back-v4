@@ -1,4 +1,4 @@
-import { PermissionEnum, type PermissionType } from "../mapper/permissions";
+import { PermissionEnum, PermissionType } from "../mapper/permissions";
 
 export const numberPermission = (...items: number[] | PermissionType[]): number => {
   let val = 0;

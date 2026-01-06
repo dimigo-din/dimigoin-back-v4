@@ -7,14 +7,13 @@ import { UseGuardsWithSwagger } from "../../../auth/guards/useGuards";
 import { CurrentUser } from "../../../common/decorators/user.decorator";
 import { ApiResponseFormat } from "../../../common/dto/response_format.dto";
 import { PermissionEnum } from "../../../common/mapper/permissions";
-import type { User } from "../../../schemas";
-import { WakeupSongApplication, WakeupSongVote } from "../../../schemas";
+import { User, WakeupSongApplication, WakeupSongVote } from "../../../schemas";
 import {
   ApplicationsResponseDTO,
-  type RegisterVideoDTO,
-  type SearchVideoDTO,
-  type VoteIdDTO,
-  type VoteVideoDTO,
+  RegisterVideoDTO,
+  SearchVideoDTO,
+  VoteIdDTO,
+  VoteVideoDTO,
 } from "../dto/wakeup.student.dto";
 import { WakeupStudentService } from "../providers";
 

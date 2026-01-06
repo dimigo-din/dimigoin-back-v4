@@ -13,7 +13,7 @@ import {
   UseInterceptors,
 } from "@nestjs/common";
 import { ApiBody, ApiConsumes, ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
-import type { FastifyReply } from "fastify";
+import { FastifyReply } from "fastify";
 
 import { CustomJwtAuthGuard } from "../../../auth/guards";
 import { PermissionGuard } from "../../../auth/guards/permission.guard";
@@ -21,13 +21,13 @@ import { UseGuardsWithSwagger } from "../../../auth/guards/useGuards";
 import { CurrentUser } from "../../../common/decorators/user.decorator";
 import { ApiResponseFormat } from "../../../common/dto/response_format.dto";
 import { PermissionEnum } from "../../../common/mapper/permissions";
-import { FacilityReport, FacilityReportComment, type User } from "../../../schemas";
+import { FacilityReport, FacilityReportComment, User } from "../../../schemas";
 import {
-  type FacilityImgIdDTO,
-  type FacilityReportIdDTO,
+  FacilityImgIdDTO,
+  FacilityReportIdDTO,
   FacilityReportListResDTO,
-  type GetReportListDTO,
-  type PostCommentDTO,
+  GetReportListDTO,
+  PostCommentDTO,
   ReportFacilityDTO,
 } from "../dto/facility.student.dto";
 import { ImageUploadInterceptor } from "../interceptor/image-upload.interceptor";

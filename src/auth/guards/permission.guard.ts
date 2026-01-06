@@ -1,4 +1,4 @@
-import { type CanActivate, type ExecutionContext, mixin } from "@nestjs/common";
+import { CanActivate, ExecutionContext, mixin } from "@nestjs/common";
 
 import { hasPermission } from "../../common/utils/permission.util";
 

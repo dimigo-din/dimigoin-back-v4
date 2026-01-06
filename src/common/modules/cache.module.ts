@@ -1,11 +1,11 @@
 import * as crypto from "node:crypto";
 import KeyvRedis from "@keyv/redis";
-import { CACHE_MANAGER, type Cache, CacheModule } from "@nestjs/cache-manager";
+import { CACHE_MANAGER, Cache, CacheModule } from "@nestjs/cache-manager";
 import { Inject, Logger, Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import Redis from "ioredis";
 
-import type { YoutubeSearchResults, YoutubeVideoItem } from "../mapper/types";
+import { YoutubeSearchResults, YoutubeVideoItem } from "../mapper/types";
 
 const cacheModule = CacheModule.registerAsync({
   isGlobal: true,

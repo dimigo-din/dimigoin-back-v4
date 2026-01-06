@@ -1,14 +1,14 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { InjectRepository } from "@nestjs/typeorm";
-import axios, { type AxiosInstance } from "axios";
+import axios, { AxiosInstance } from "axios";
 import * as bcrypt from "bcrypt";
-import { Like, type Repository } from "typeorm";
-import type { PermissionType } from "../../../common/mapper/permissions";
-import type { Grade } from "../../../common/mapper/types";
+import { Like, Repository } from "typeorm";
+import { PermissionType } from "../../../common/mapper/permissions";
+import { Grade } from "../../../common/mapper/types";
 import { numberPermission, parsePermission } from "../../../common/utils/permission.util";
 import { Login, User } from "../../../schemas";
-import type {
+import {
   AddPermissionDTO,
   CreateUserDTO,
   RemovePermissionDTO,

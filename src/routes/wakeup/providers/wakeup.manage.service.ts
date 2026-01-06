@@ -1,11 +1,11 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { format, startOfWeek } from "date-fns";
-import type { Repository } from "typeorm";
+import { Repository } from "typeorm";
 
 import { safeFindOne } from "../../../common/utils/safeFindOne.util";
 import { WakeupSongApplication, WakeupSongHistory } from "../../../schemas";
-import type { WakeupSongDeleteDTO, WakeupSongSelectDTO } from "../dto/wakeup.manage.dto";
+import { WakeupSongDeleteDTO, WakeupSongSelectDTO } from "../dto/wakeup.manage.dto";
 
 @Injectable()
 export class WakeupManageService {

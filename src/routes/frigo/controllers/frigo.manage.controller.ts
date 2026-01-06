@@ -8,7 +8,7 @@ import { PermissionGuard } from "../../../auth/guards/permission.guard";
 import { UseGuardsWithSwagger } from "../../../auth/guards/useGuards";
 import { ApiResponseFormat } from "../../../common/dto/response_format.dto";
 import { PermissionEnum } from "../../../common/mapper/permissions";
-import type {
+import {
   AuditFrigoApply,
   FrigoApplyDTO,
   FrigoApplyIdDTO,

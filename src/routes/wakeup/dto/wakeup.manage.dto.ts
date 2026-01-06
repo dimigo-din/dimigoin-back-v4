@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsString } from "class-validator";
 
-import type { Gender } from "../../../common/mapper/types";
+import { Gender } from "../../../common/mapper/types";
 import { WakeupSongVote } from "../../../schemas";
 
 export class WakeupSongSelectDTO {

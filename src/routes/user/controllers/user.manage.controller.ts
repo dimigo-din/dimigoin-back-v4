@@ -8,7 +8,7 @@ import { CurrentUser } from "../../../common/decorators/user.decorator";
 import { ApiResponseFormat } from "../../../common/dto/response_format.dto";
 import { PermissionEnum } from "../../../common/mapper/permissions";
 import { User } from "../../../schemas";
-import type {
+import {
   AddPasswordLoginDTO,
   AddPermissionDTO,
   RemovePermissionDTO,

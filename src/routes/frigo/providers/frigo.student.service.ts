@@ -9,15 +9,15 @@ import {
   setHours,
   startOfWeek,
 } from "date-fns";
-import type { Repository } from "typeorm";
+import { Repository } from "typeorm";
 
 import { ErrorMsg } from "../../../common/mapper/error";
-import type { UserJWT } from "../../../common/mapper/types";
+import { UserJWT } from "../../../common/mapper/types";
 import { DayNumber2String } from "../../../common/utils/date.util";
 import { safeFindOne } from "../../../common/utils/safeFindOne.util";
 import { FrigoApply, FrigoApplyPeriod, User } from "../../../schemas";
 import { UserManageService } from "../../user/providers";
-import type { ClientFrigoApplyDTO } from "../dto/frigo.dto";
+import { ClientFrigoApplyDTO } from "../dto/frigo.dto";
 
 @Injectable()
 export class FrigoStudentService {

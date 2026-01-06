@@ -4,7 +4,7 @@ import fastifyMultipart from "@fastify/multipart";
 import { ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { NestFactory } from "@nestjs/core";
-import { FastifyAdapter, type NestFastifyApplication } from "@nestjs/platform-fastify";
+import { FastifyAdapter, NestFastifyApplication } from "@nestjs/platform-fastify";
 import importToArray from "import-to-array";
 
 import { AppModule } from "./app";

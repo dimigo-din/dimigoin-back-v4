@@ -1,15 +1,15 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { safeFindOne } from "src/common/utils/safeFindOne.util";
-import type { Repository } from "typeorm";
+import { Repository } from "typeorm";
 
 import {
   PushNotificationSubject,
   PushNotificationSubjectIdentifierValues,
-  type UserJWT,
+  UserJWT,
 } from "../../../common/mapper/types";
 import { PushSubject, PushSubscription, User } from "../../../schemas";
-import type {
+import {
   CreateFCMTokenDTO,
   DeleteFCMTokenDTO,
   GetSubscribedSubjectDTO,

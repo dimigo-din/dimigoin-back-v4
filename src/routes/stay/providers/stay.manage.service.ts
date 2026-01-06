@@ -17,7 +17,7 @@ import {
   startOfDay,
   subSeconds,
 } from "date-fns";
-import { In, IsNull, LessThan, MoreThan, MoreThanOrEqual, Not, type Repository } from "typeorm";
+import { In, IsNull, LessThan, MoreThan, MoreThanOrEqual, Not, Repository } from "typeorm";
 
 import { ErrorMsg } from "../../../common/mapper/error";
 import { safeFindOne } from "../../../common/utils/safeFindOne.util";
@@ -33,7 +33,7 @@ import {
   StaySeatPresetRange,
   User,
 } from "../../../schemas";
-import type {
+import {
   AuditOutingDTO,
   CreateStayApplyDTO,
   CreateStayDTO,

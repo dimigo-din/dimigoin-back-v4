@@ -8,7 +8,7 @@ import {
   UpdateDateColumn,
 } from "typeorm";
 
-import { type LoginType, LoginTypeValues } from "../common/mapper/types";
+import { LoginType, LoginTypeValues } from "../common/mapper/types";
 
 import { User } from "./user.schema";
 

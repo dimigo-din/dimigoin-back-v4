@@ -14,10 +14,10 @@ import {
 } from "class-validator";
 
 import {
-  type Grade,
+  Grade,
   GradeValues,
   StaySeatMappingValues,
-  type StaySeatTargets,
+  StaySeatTargets,
 } from "../../../common/mapper/types";
 
 export class StaySeatPresetIdDTO {

@@ -1,4 +1,4 @@
-import type { User } from "../../schemas";
+import { User } from "../../schemas";
 
 export const LoginTypeValues = ["password", "google"] as const;
 export type LoginType = (typeof LoginTypeValues)[number];

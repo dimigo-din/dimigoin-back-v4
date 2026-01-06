@@ -8,7 +8,7 @@ import {
   PrimaryGeneratedColumn,
 } from "typeorm";
 
-import type { FacilityReportStatus, FacilityReportType } from "../common/mapper/types";
+import { FacilityReportStatus, FacilityReportType } from "../common/mapper/types";
 
 import { User } from "./user.schema";
 
