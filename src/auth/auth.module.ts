@@ -9,8 +9,6 @@ import { Login, Session, User } from "../schemas";
 
 import { AuthController } from "./auth.controller";
 import { AuthService } from "./auth.service";
-import { CustomJwtStrategy } from "./guards/jwt.strategy";
-import { PersonalInformationVerifyTokenStrategy } from "./guards/personalInformationVerifyToken.strategy";
 
 @Module({
   imports: [
@@ -21,7 +19,7 @@ import { PersonalInformationVerifyTokenStrategy } from "./guards/personalInforma
     forwardRef(() => UserModule),
   ],
   controllers: [AuthController],
-  providers: [AuthService, CustomJwtStrategy, PersonalInformationVerifyTokenStrategy],
+  providers: [AuthService],
   exports: [AuthService],
 })
 export class AuthModule {}

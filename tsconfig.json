@@ -7,7 +7,7 @@
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
     "target": "ES6",
-    "sourceMap": true,
+    "sourceMap": false,
     "outDir": "./dist",
     "baseUrl": "./",
     "incremental": true,
@@ -16,7 +16,7 @@
     "strictPropertyInitialization": false,
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
-    "types": ["jest", "node"],
+    "types": ["node"],
     "typeRoots": ["./node_modules/@types"],
     "lib": ["ES2021.String"]
   }
