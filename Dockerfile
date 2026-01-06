@@ -2,7 +2,7 @@ FROM node:22-alpine AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-RUN corepack enable
+RUN corepack enable && corepack prepare pnpm@10.27.0 --activate
 
 FROM base AS system-deps
 RUN --mount=type=cache,target=/var/cache/apk \
