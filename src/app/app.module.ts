@@ -1,21 +1,21 @@
-import type { MiddlewareConsumer, NestModule } from "@nestjs/common";
-
 import { Module } from "@nestjs/common";
+import { APP_INTERCEPTOR } from "@nestjs/core";
 import importToArray from "import-to-array";
 import { AuthModule } from "src/auth";
-import { CustomLoggerMiddleware } from "src/common/middlewares";
+import { CustomLoggerInterceptor } from "src/common/interceptors";
 import { CustomEssentialModules } from "src/common/modules";
-
 import * as routes from "src/routes";
 
 import { AppService } from "./app.service";
 
 @Module({
   imports: [...CustomEssentialModules, AuthModule, ...importToArray(routes)],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: CustomLoggerInterceptor,
+    },
+  ],
 })
-export class AppModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer.apply(CustomLoggerMiddleware).forRoutes("*");
-  }
-}
+export class AppModule {}
