@@ -5,6 +5,7 @@
   "author": "Yeonjun Lee <yeonfish6040@gmail.com>",
   "private": true,
   "license": "UNLICENSED",
+  "packageManager": "pnpm@10.27.0",
   "scripts": {
     "biome": "pnpm format && pnpm lint",
     "build": "nest build",
