@@ -1,12 +1,11 @@
 FROM node:22-alpine AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
 FROM base AS system-deps
 RUN --mount=type=cache,target=/var/cache/apk \
-    apk add --no-cache curl ca-certificates chromium \
+    apk add --no-cache curl ca-certificates \
     && update-ca-certificates \
     && pnpm install -g pm2 \
     && wget -q -t3 'https://packages.doppler.com/public/cli/rsa.8004D9FF50437357.key' -O /etc/apk/keys/cli@doppler-8004D9FF50437357.rsa.pub \
