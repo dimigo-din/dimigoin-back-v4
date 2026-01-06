@@ -74,13 +74,3 @@ export class SearchUserDTO {
   @IsString()
   name: string;
 }
-
-export class RenderHTMLDTO {
-  @ApiProperty()
-  @IsString()
-  filename: string;
-
-  @ApiProperty()
-  @IsString()
-  html: string;
-}

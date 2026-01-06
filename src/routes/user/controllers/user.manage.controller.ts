@@ -22,7 +22,6 @@ import type {
   AddPasswordLoginDTO,
   AddPermissionDTO,
   RemovePermissionDTO,
-  RenderHTMLDTO,
   SearchUserDTO,
   SetPermissionDTO,
 } from "../dto";
@@ -103,28 +102,5 @@ export class UserManageController {
   @Get("/search")
   async searchUser(@Query() data: SearchUserDTO) {
     return await this.userManageService.searchUser(data);
-  }
-
-  @ApiOperation({
-    summary: "HTML 렌더",
-    description: "HTML을 렌더하여 pdf 파일로 출력합니다.",
-  })
-  @ApiResponseFormat({
-    status: HttpStatus.OK,
-    type: StreamableFile,
-  })
-  @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.TEACHER]))
-  @Post("/renderHtml")
-  async renderHtml(@Res() res: FastifyReply, @Body() data: RenderHTMLDTO) {
-    const buffer = await this.userManageService.renderHtml(data);
-
-    res.header("Content-Type", "application/pdf");
-    res.header(
-      "Content-Disposition",
-      `attachment; filename="${encodeURIComponent(data.filename)}"`,
-    );
-    res.header("Content-Length", buffer.length.toString());
-
-    return res.send(buffer);
   }
 }
