@@ -39,7 +39,7 @@ WORKDIR /usr/src/app
 
 COPY --chown=node:node --from=build /usr/src/app/dist ./dist
 COPY --chown=node:node --from=prod-deps /usr/src/app/node_modules ./node_modules
-COPY --chown=node:node entrypoint.sh package.json ./
+COPY --chown=node:node entrypoint.sh package.json tsconfig.json ./
 
 RUN chmod 700 ./entrypoint.sh
 
