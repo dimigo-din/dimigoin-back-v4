@@ -11,11 +11,11 @@ import {
 } from "date-fns";
 import { Repository } from "typeorm";
 
-import { ErrorMsg } from "../../../common/mapper/error";
-import { UserJWT } from "../../../common/mapper/types";
-import { DayNumber2String } from "../../../common/utils/date.util";
-import { safeFindOne } from "../../../common/utils/safeFindOne.util";
-import { FrigoApply, FrigoApplyPeriod, User } from "../../../schemas";
+import { ErrorMsg } from "@/common/mapper/error";
+import { UserJWT } from "@/common/mapper/types";
+import { DayNumber2String } from "@/common/utils/date.util";
+import { safeFindOne } from "@/common/utils/safeFindOne.util";
+import { FrigoApply, FrigoApplyPeriod, User } from "@/schemas";
 import { UserManageService } from "../../user/providers";
 import { ClientFrigoApplyDTO } from "../dto/frigo.dto";
 

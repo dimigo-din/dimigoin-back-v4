@@ -1,5 +1,3 @@
-import * as process from "node:process";
-
 import { Logger } from "@nestjs/common";
 import { NestFastifyApplication } from "@nestjs/platform-fastify";
 import { DocumentBuilder, SwaggerCustomOptions, SwaggerModule } from "@nestjs/swagger";
@@ -9,7 +7,7 @@ import { SwaggerTheme, SwaggerThemeNameEnum } from "swagger-themes";
 export const CustomSwaggerSetup = async (app: NestFastifyApplication) => {
   const logger = new Logger(CustomSwaggerSetup.name);
 
-  if (process.env.NODE_ENV === "prod") {
+  if (Bun.env.NODE_ENV === "prod") {
     logger.log("Swagger not initializing in production");
     return;
   }

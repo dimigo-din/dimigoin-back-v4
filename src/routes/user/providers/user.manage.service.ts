@@ -1,13 +1,11 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { InjectRepository } from "@nestjs/typeorm";
-import axios, { AxiosInstance } from "axios";
-import * as bcrypt from "bcrypt";
 import { Like, Repository } from "typeorm";
-import { PermissionType } from "../../../common/mapper/permissions";
-import { Grade } from "../../../common/mapper/types";
-import { numberPermission, parsePermission } from "../../../common/utils/permission.util";
-import { Login, User } from "../../../schemas";
+import { PermissionType } from "@/common/mapper/permissions";
+import type { Grade } from "@/common/mapper/types";
+import { numberPermission, parsePermission } from "@/common/utils/permission.util";
+import { Login, User } from "@/schemas";
 import {
   AddPermissionDTO,
   CreateUserDTO,
@@ -19,37 +17,13 @@ import {
 // this chuck of code need to be refactored
 @Injectable()
 export class UserManageService {
-  private client: AxiosInstance;
-
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     @InjectRepository(Login)
     private readonly loginRepository: Repository<Login>,
     private readonly configService: ConfigService,
-  ) {
-    this.client = axios.create({
-      baseURL: this.configService.get<string>("PERSONAL_INFORMATION_SERVER"),
-    });
-    this.client.interceptors.request.use((config) => {
-      config.headers.setAuthorization(
-        `Bearer ${this.configService.get<string>("PERSONAL_INFORMATION_TOKEN")}`,
-      );
-      return config;
-    });
-    this.client.interceptors.response.use(
-      (res) => res,
-      (error) => {
-        if (!error.response) {
-          return Promise.reject(error);
-        }
-        if (error.response.status - 400 >= 0 && error.response.status - 400 < 100) {
-          return Promise.resolve(error.response);
-        }
-        return Promise.reject(error);
-      },
-    );
-  }
+  ) {}
 
   // TODO: get from array like fetchUserDetail(...email)
   // async fetchUserDetail(...emails: string[]): Promise<PersonalData[]> {
@@ -91,16 +65,29 @@ export class UserManageService {
     if (config.grade) {
       config.grade = config.grade.toString();
     }
-    const res = await this.client.post("/personalInformation/check", {
-      mail: email,
-      ...config,
+    const baseURL = this.configService.get<string>("PERSONAL_INFORMATION_SERVER");
+    const token = this.configService.get<string>("PERSONAL_INFORMATION_TOKEN");
+    const res = await Bun.fetch(`${baseURL}/personalInformation/check`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        mail: email,
+        ...config,
+      }),
     });
 
-    if (res.status !== 200) {
-      return null;
-    } else {
-      return res.data as boolean;
+    if (res.status === 200) {
+      return (await res.json()) as boolean;
     }
+
+    if (res.status >= 400 && res.status < 500) {
+      return null;
+    }
+
+    throw new Error(`Request failed with status ${res.status}`);
   }
 
   async createUser(data: CreateUserDTO): Promise<User> {
@@ -122,8 +109,7 @@ export class UserManageService {
   }
 
   async addPasswordLogin(user: string, password: string) {
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    const hashedPassword = await Bun.password.hash(password);
 
     const dbUser = await this.userRepository.findOne({ where: { id: user } });
     if (!dbUser) {

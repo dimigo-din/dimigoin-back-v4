@@ -1,4 +1,3 @@
-import * as crypto from "node:crypto";
 import {
   forwardRef,
   HttpException,
@@ -11,7 +10,6 @@ import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import { Cron, CronExpression } from "@nestjs/schedule";
 import { InjectRepository } from "@nestjs/typeorm";
-import * as bcrypt from "bcrypt";
 import { subMonths } from "date-fns";
 import { OAuth2Client, TokenPayload } from "google-auth-library";
 import { StringValue } from "ms";
@@ -59,7 +57,7 @@ export class AuthService {
     if (!login) {
       throw new HttpException(ErrorMsg.UserIdentifier_NotFound(), HttpStatus.UNAUTHORIZED);
     }
-    if (!bcrypt.compareSync(password, login.identifier2 ?? "")) {
+    if (!Bun.password.verify(password, login.identifier2 ?? "")) {
       throw new HttpException(ErrorMsg.UserIdentifier_NotMatched(), HttpStatus.UNAUTHORIZED);
     }
 
@@ -199,7 +197,7 @@ export class AuthService {
     accessExpire: StringValue,
     old?: Session,
   ): Promise<{ accessToken: string; refreshToken: string }> {
-    const sessionIdentifier = crypto.randomBytes(30).toString("hex");
+    const sessionIdentifier = Bun.randomUUIDv7();
 
     // refresh expire: 1 month
     const keyPair = {
@@ -207,7 +205,7 @@ export class AuthService {
         { sessionIdentifier, ...user },
         { expiresIn: accessExpire || "10m" },
       ),
-      refreshToken: crypto.randomBytes(128).toString("hex"),
+      refreshToken: Bun.randomUUIDv7(),
     };
 
     const session = old || new Session();

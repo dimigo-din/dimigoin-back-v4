@@ -1,4 +1,3 @@
-import * as process from "node:process";
 import fastifyCookie from "@fastify/cookie";
 import fastifyMultipart from "@fastify/multipart";
 import { ValidationPipe } from "@nestjs/common";
@@ -11,20 +10,23 @@ import { AppModule } from "./app";
 import * as interceptors from "./common/interceptors";
 import { CustomSwaggerSetup } from "./common/modules/swagger.module";
 import { ValidationService } from "./common/modules/validation.module";
+import { ClusterLogger } from "./common/utils/logger.util";
 
-async function bootstrap() {
+export async function bootstrap(isInit: boolean = true) {
+  const logger = new ClusterLogger(isInit);
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
     new FastifyAdapter({
       bodyLimit: 50 * 1024 * 1024,
     }),
+    { logger },
   );
 
   const configService = app.get(ConfigService);
 
   app.enableCors({
     origin:
-      process.env.NODE_ENV !== "dev"
+      Bun.env.NODE_ENV !== "dev"
         ? configService
             .get<string>("ALLOWED_DOMAIN")
             ?.split(",")
@@ -52,10 +54,14 @@ async function bootstrap() {
   const port = configService.get<number>("APPLICATION_PORT") ?? 3000;
   await app.listen(port, "0.0.0.0");
 
-  const validationService = app.get<ValidationService>(ValidationService);
-  await validationService.validatePermissionEnum();
-  await validationService.validateSession();
-  await validationService.validateLaundrySchedulePriority();
+  if (isInit) {
+    const validationService = app.get<ValidationService>(ValidationService);
+    await validationService.validatePermissionEnum();
+    await validationService.validateSession();
+    await validationService.validateLaundrySchedulePriority();
+  }
 }
 
-bootstrap();
+if (import.meta.main) {
+  bootstrap();
+}

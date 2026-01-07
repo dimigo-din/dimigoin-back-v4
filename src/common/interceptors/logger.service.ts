@@ -1,5 +1,5 @@
 import { CallHandler, ExecutionContext, Injectable, Logger, NestInterceptor } from "@nestjs/common";
-import { FastifyReply, FastifyRequest } from "fastify";
+import type { FastifyReply, FastifyRequest } from "fastify";
 import { Observable } from "rxjs";
 
 @Injectable()
@@ -89,8 +89,8 @@ export class CustomLoggerInterceptor implements NestInterceptor {
 
   private parseJwt(token: string) {
     const base64Url = token.split(".")[1];
-    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-    const jsonPayload = Buffer.from(base64, "base64").toString("utf-8");
+    const base64 = base64Url?.replace(/-/g, "+").replace(/_/g, "/");
+    const jsonPayload = Buffer.from(base64 ?? "", "base64").toString("utf-8");
 
     return JSON.parse(jsonPayload);
   }

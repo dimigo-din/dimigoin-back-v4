@@ -10,7 +10,6 @@ import {
   PermissionType,
 } from "../mapper/permissions";
 import { LaundryTimelineSchedulerValues } from "../mapper/types";
-import { deepObjectCompare } from "../utils/compare.util";
 import { numberPermission, parsePermission } from "../utils/permission.util";
 
 @Injectable()
@@ -45,8 +44,8 @@ export class ValidationService {
     };
 
     if (
-      deepObjectCompare(PermissionEnum, fixedPermissionMappings) &&
-      deepObjectCompare(NumberedPermissionGroupsEnum, fixedPermissionGroupMappings)
+      Bun.deepEquals(PermissionEnum, fixedPermissionMappings) &&
+      Bun.deepEquals(NumberedPermissionGroupsEnum, fixedPermissionGroupMappings)
     ) {
       this.logger.log("Permission validation successful - no changes");
       return;
@@ -64,18 +63,18 @@ export class ValidationService {
     );
     const groupUsers = users
       .filter((u) =>
-        Object.values(deprecatedPermissionGroups).some((dpg) => dpg.toString() === u.permission),
+        Object.values(deprecatedPermissionGroups).some((dpg) => dpg?.toString() === u.permission),
       )
       .map((u) => {
         users.splice(users.indexOf(u), 1);
         const groupName = Object.entries(deprecatedPermissionGroups).find(
-          (v) => v[1].toString() === u.permission,
+          (v) => v[1]?.toString() === u.permission,
         )?.[0];
         if (!groupName) {
           exceptions.push(u);
           return u;
         }
-        u.permission = NumberedPermissionGroupsEnum[groupName].toString();
+        u.permission = NumberedPermissionGroupsEnum[groupName]?.toString() ?? u.permission;
         return u;
       });
 
@@ -134,7 +133,7 @@ export class ValidationService {
       const permissionGroup = new PermissionValidator();
       permissionGroup.type = "permission_group";
       permissionGroup.key = pg;
-      permissionGroup.value = NumberedPermissionGroupsEnum[pg].toString();
+      permissionGroup.value = NumberedPermissionGroupsEnum[pg]?.toString() ?? pg;
       permissions.push(permissionGroup);
     });
 

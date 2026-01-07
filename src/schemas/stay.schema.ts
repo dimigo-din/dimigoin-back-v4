@@ -10,9 +10,9 @@ import {
   Unique,
 } from "typeorm";
 
-import { Grade, StaySeatTargets } from "../common/mapper/types";
-
-import { User } from "./user.schema";
+import { type Grade, StaySeatMappingValues, type StaySeatTargets } from "../common/mapper/types";
+import type { User } from "./user.schema";
+import { User as UserEntity } from "./user.schema";
 
 // I think my schema naming is like shit.
 // someone who have better idea, plz improve these shits
@@ -53,7 +53,7 @@ export class StaySeatPresetRange {
   id: string;
 
   @ApiProperty()
-  @Column()
+  @Column({ type: "enum", enum: StaySeatMappingValues })
   target: StaySeatTargets;
 
   @ApiProperty()
@@ -312,9 +312,9 @@ export class StayApply {
   )
   outing: StayOuting[];
 
-  @ApiProperty({ type: () => User })
+  @ApiProperty({ type: () => UserEntity })
   @ManyToOne(
-    () => User,
+    () => UserEntity,
     (user) => user.stay_apply,
     {
       onUpdate: "CASCADE",

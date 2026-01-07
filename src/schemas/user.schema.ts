@@ -3,14 +3,29 @@ import { Column, Entity, Index, OneToMany, PrimaryGeneratedColumn } from "typeor
 
 import { StudentUserPermission } from "../common/mapper/permissions";
 import { numberPermission } from "../common/utils/permission.util";
-
-import { Login, Session } from "./auth.schema";
-import { FacilityReport, FacilityReportComment } from "./facility.schema";
-import { FrigoApply } from "./frigo.schema";
-import { LaundryApply } from "./laundry.schema";
-import { PushSubject, PushSubscription } from "./push.schema";
-import { StayApply } from "./stay.schema";
-import { WakeupSongApplication, WakeupSongVote } from "./wakeup.schema";
+import type { Login, Session } from "./auth.schema";
+import { Login as LoginEntity, Session as SessionEntity } from "./auth.schema";
+import type { FacilityReport, FacilityReportComment } from "./facility.schema";
+import {
+  FacilityReportComment as FacilityReportCommentEntity,
+  FacilityReport as FacilityReportEntity,
+} from "./facility.schema";
+import type { FrigoApply } from "./frigo.schema";
+import { FrigoApply as FrigoApplyEntity } from "./frigo.schema";
+import type { LaundryApply } from "./laundry.schema";
+import { LaundryApply as LaundryApplyEntity } from "./laundry.schema";
+import type { PushSubject, PushSubscription } from "./push.schema";
+import {
+  PushSubject as PushSubjectEntity,
+  PushSubscription as PushSubscriptionEntity,
+} from "./push.schema";
+import type { StayApply } from "./stay.schema";
+import { StayApply as StayApplyEntity } from "./stay.schema";
+import type { WakeupSongApplication, WakeupSongVote } from "./wakeup.schema";
+import {
+  WakeupSongApplication as WakeupSongApplicationEntity,
+  WakeupSongVote as WakeupSongVoteEntity,
+} from "./wakeup.schema";
 
 @Entity()
 export class User {
@@ -36,67 +51,67 @@ export class User {
   permission: string;
 
   @OneToMany(
-    () => Login,
+    () => LoginEntity,
     (login) => login.user,
   )
   login: Login[];
 
   @OneToMany(
-    () => Session,
+    () => SessionEntity,
     (session) => session.user,
   )
   session: Session[];
 
   @OneToMany(
-    () => StayApply,
+    () => StayApplyEntity,
     (stayApply) => stayApply.user,
   )
   stay_apply: StayApply[];
 
   @OneToMany(
-    () => LaundryApply,
+    () => LaundryApplyEntity,
     (laundryApply) => laundryApply.user,
   )
   laundryApplies: LaundryApply[];
 
   @OneToMany(
-    () => FrigoApply,
+    () => FrigoApplyEntity,
     (frigo) => frigo.user,
   )
   frigo: FrigoApply[];
 
   @OneToMany(
-    () => FacilityReport,
+    () => FacilityReportEntity,
     (facilityReport) => facilityReport.user,
   )
   facilityReport: FacilityReport[];
 
   @OneToMany(
-    () => FacilityReportComment,
+    () => FacilityReportCommentEntity,
     (facilityReportComment) => facilityReportComment.user,
   )
   facilityReportComment: FacilityReportComment[];
 
   @OneToMany(
-    () => WakeupSongApplication,
+    () => WakeupSongApplicationEntity,
     (wakeupSongApplication) => wakeupSongApplication.user,
   )
   wakeupSongApplication: WakeupSongApplication;
 
   @OneToMany(
-    () => WakeupSongVote,
+    () => WakeupSongVoteEntity,
     (wakeupSongVote) => wakeupSongVote.user,
   )
   wakeupSongVote: WakeupSongVote;
 
   @OneToMany(
-    () => PushSubscription,
+    () => PushSubscriptionEntity,
     (pushSubscription) => pushSubscription.user,
   )
   pushSubscriptions: PushSubscription[];
 
   @OneToMany(
-    () => PushSubject,
+    () => PushSubjectEntity,
     (pushSubject) => pushSubject.user,
   )
   pushSubject: PushSubject[];

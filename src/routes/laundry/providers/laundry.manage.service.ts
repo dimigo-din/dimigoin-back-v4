@@ -5,11 +5,11 @@ import { Cron, CronExpression } from "@nestjs/schedule";
 import { InjectRepository } from "@nestjs/typeorm";
 import { addMinutes, format } from "date-fns";
 import { In, Repository } from "typeorm";
-import { LaundrySchedulePriority } from "../../../common/mapper/constants";
-import { ErrorMsg } from "../../../common/mapper/error";
-import { CacheService } from "../../../common/modules/cache.module";
-import { safeFindOne } from "../../../common/utils/safeFindOne.util";
-import { LaundryApply, LaundryMachine, LaundryTime, LaundryTimeline, User } from "../../../schemas";
+import { LaundrySchedulePriority } from "@/common/mapper/constants";
+import { ErrorMsg } from "@/common/mapper/error";
+import { CacheService } from "@/common/modules/cache.module";
+import { safeFindOne } from "@/common/utils/safeFindOne.util";
+import { LaundryApply, LaundryMachine, LaundryTime, LaundryTimeline, User } from "@/schemas";
 import { PushNotificationToSpecificDTO } from "../../push/dto/push.manage.dto";
 import { PushManageService } from "../../push/providers";
 import {
@@ -244,7 +244,7 @@ export class LaundryManageService {
       const shouldEnable = await scheduler.evaluate(timelines);
       if (shouldEnable) {
         const target = timelines.filter((t) => t.scheduler === schedulerItem.schedule);
-        if (target.length === 1) {
+        if (target.length === 1 && target[0]) {
           // not a etc
           if (target[0].enabled === true) {
             // already on

@@ -1,8 +1,8 @@
 import { Controller, Get, HttpStatus, Query } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
 
-import { ApiResponseFormat } from "../../../common/dto/response_format.dto";
-import { WakeupSongHistory } from "../../../schemas";
+import { ApiResponseFormat } from "@/common/dto/response_format.dto";
+import { WakeupSongHistory } from "@/schemas";
 import { GetDateSongDTO } from "../dto/wakeup.dto";
 import { WakeupService } from "../providers/wakeup.service";
 
