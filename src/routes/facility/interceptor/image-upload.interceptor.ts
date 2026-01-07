@@ -65,7 +65,7 @@ export class ImageUploadInterceptor implements NestInterceptor {
     for (const file of files) {
       const filename = Bun.randomUUIDv7();
       file.filename = filename;
-      await Bun.write(path.join(this.uploadDir, filename), file.buffer, {createPath: true});
+      await Bun.write(path.join(this.uploadDir, filename), file.buffer, { createPath: true });
     }
 
     req.body.file = files;

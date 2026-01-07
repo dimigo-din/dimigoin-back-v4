@@ -1,4 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
+import { IsOptional } from "class-validator";
 import { IsString } from "nestjs-swagger-dto";
 
 export class PasswordLoginDTO {
@@ -35,6 +36,8 @@ export class GoogleAppLoginDTO {
 
 export class RefreshTokenDTO {
   @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
   refreshToken?: string;
 }
 
