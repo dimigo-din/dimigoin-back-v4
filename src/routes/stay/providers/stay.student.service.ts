@@ -3,22 +3,12 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { isEqual } from "date-fns";
 import { LessThanOrEqual, MoreThanOrEqual, Repository } from "typeorm";
 
-import {
-  SelfDevelopment_Outing_From,
-  SelfDevelopment_Outing_To,
-} from "../../../common/mapper/constants";
-import { ErrorMsg } from "../../../common/mapper/error";
-import { Gender, Grade, UserJWT } from "../../../common/mapper/types";
-import { safeFindOne } from "../../../common/utils/safeFindOne.util";
-import { isInRange } from "../../../common/utils/staySeat.util";
-import {
-  Stay,
-  StayApply,
-  StayApplyPeriod_Stay,
-  StayOuting,
-  StaySeatPreset,
-  User,
-} from "../../../schemas";
+import { SelfDevelopment_Outing_From, SelfDevelopment_Outing_To } from "@/common/mapper/constants";
+import { ErrorMsg } from "@/common/mapper/error";
+import type { Gender, Grade, UserJWT } from "@/common/mapper/types";
+import { safeFindOne } from "@/common/utils/safeFindOne.util";
+import { isInRange } from "@/common/utils/staySeat.util";
+import { Stay, StayApply, StayApplyPeriod_Stay, StayOuting, StaySeatPreset, User } from "@/schemas";
 import { UserManageService } from "../../user/providers";
 import {
   AddStayOutingDTO,

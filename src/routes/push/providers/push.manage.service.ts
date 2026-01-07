@@ -103,7 +103,9 @@ export class PushManageService {
           sent++;
         } else {
           failed++;
-          await this.doPushFailCleanup(subscriptions[i], r.reason);
+          if (subscriptions[i]) {
+            await this.doPushFailCleanup(subscriptions[i], r.reason);
+          }
         }
       }),
     );

@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { LaundryTimeline } from "../../../schemas";
+import { LaundryTimeline } from "@/schemas";
 import { LaundryTimelineScheduler } from "./scheduler.interface";
 
 @Injectable()

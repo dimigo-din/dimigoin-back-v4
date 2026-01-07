@@ -1,6 +1,4 @@
-import fs from "node:fs";
 import path from "node:path";
-
 import {
   Body,
   Controller,
@@ -15,15 +13,15 @@ import {
   UseInterceptors,
 } from "@nestjs/common";
 import { ApiBody, ApiConsumes, ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
-import { FastifyReply } from "fastify";
+import type { FastifyReply } from "fastify";
 
-import { CustomJwtAuthGuard } from "../../../auth/guards";
-import { PermissionGuard } from "../../../auth/guards/permission.guard";
-import { UseGuardsWithSwagger } from "../../../auth/guards/useGuards";
-import { CurrentUser } from "../../../common/decorators/user.decorator";
-import { ApiResponseFormat } from "../../../common/dto/response_format.dto";
-import { PermissionEnum } from "../../../common/mapper/permissions";
-import { FacilityImg, FacilityReport, FacilityReportComment, User } from "../../../schemas";
+import { CustomJwtAuthGuard } from "@/auth/guards";
+import { PermissionGuard } from "@/auth/guards/permission.guard";
+import { UseGuardsWithSwagger } from "@/auth/guards/useGuards";
+import { CurrentUser } from "@/common/decorators/user.decorator";
+import { ApiResponseFormat } from "@/common/dto/response_format.dto";
+import { PermissionEnum } from "@/common/mapper/permissions";
+import { FacilityImg, FacilityReport, FacilityReportComment, User } from "@/schemas";
 import {
   ChangeFacilityReportStatusDTO,
   ChangeFacilityReportTypeDTO,
@@ -116,11 +114,13 @@ export class FacilityManageController {
     try {
       return await this.facilityManageService.createReport(user, data, files);
     } catch (e) {
-      for (const f of files) {
-        fs.rmSync(path.join(process.cwd(), "uploads/facility", f.filename ?? ""), {
-          force: true,
-          recursive: true,
-        });
+      for (const fileInfo of files) {
+        const targetFile = Bun.file(
+          path.join(process.cwd(), "uploads/facility", fileInfo.filename ?? ""),
+        );
+        if (await targetFile.exists()) {
+          await targetFile.delete();
+        }
       }
       throw e;
     }

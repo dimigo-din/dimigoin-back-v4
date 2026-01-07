@@ -1,11 +1,33 @@
-import * as crypto from "node:crypto";
-import KeyvRedis from "@keyv/redis";
 import { CACHE_MANAGER, Cache, CacheModule } from "@nestjs/cache-manager";
 import { Inject, Logger, Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
-import Redis from "ioredis";
+import { RedisClient } from "bun";
 
 import { YoutubeSearchResults, YoutubeVideoItem } from "../mapper/types";
+
+class BunRedisStore {
+  constructor(private readonly client: RedisClient) {}
+
+  async get(key: string) {
+    return this.client.get(key);
+  }
+
+  async set(key: RedisClient.KeyLike, value: RedisClient.KeyLike, ttl?: number) {
+    if (ttl) {
+      await this.client.set(key, value, "PX", ttl);
+    } else {
+      await this.client.set(key, value);
+    }
+  }
+
+  async delete(key: RedisClient.KeyLike) {
+    return (await this.client.del(key)) > 0;
+  }
+
+  async clear() {
+    return undefined;
+  }
+}
 
 const cacheModule = CacheModule.registerAsync({
   isGlobal: true,
@@ -15,9 +37,9 @@ const cacheModule = CacheModule.registerAsync({
     skipMemory: true,
     stores: [
       await (async () => {
-        const store = new KeyvRedis(configService.get<string>("REDIS_HOST"));
-        await store.set("ok", "true");
-        return store;
+        const client = new RedisClient(configService.get<string>("REDIS_HOST"));
+        await client.set("ok", "true");
+        return new BunRedisStore(client);
       })(),
     ],
   }),
@@ -28,14 +50,14 @@ export class CacheService {
   private YOUTUBESEARCH_PREFIX = "youtubeSearch_";
   private NOTIFICATION_PREFIX = "notification_";
   private PERSONALINFORMATIONVERIFY_SECRET = "PersonalInformationVerifyTokenSecret";
-  private redis: Redis;
+  private redis: RedisClient;
   private logger = new Logger(CacheService.name);
 
   constructor(
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly configService: ConfigService,
   ) {
-    this.redis = new Redis(this.configService.get<string>("REDIS_HOST") ?? "localhost");
+    this.redis = new RedisClient(this.configService.get<string>("REDIS_HOST") ?? "localhost");
   }
 
   async musicSearchRateLimit(userid: string) {
@@ -72,7 +94,7 @@ export class CacheService {
 
     await this.cacheManager.set(
       this.PERSONALINFORMATIONVERIFY_SECRET,
-      crypto.randomBytes(128).toString("hex"),
+      Bun.randomUUIDv7(),
     );
 
     return await this.getPersonalInformationVerifyTokenSecret();
@@ -81,8 +103,8 @@ export class CacheService {
   async isNotificationAlreadySent(id: string): Promise<boolean> {
     const key = this.NOTIFICATION_PREFIX + id;
 
-    const isThisCluster = crypto.randomBytes(32).toString("hex");
-    await this.redis.set(key, isThisCluster, "EX", 60 * 60 * 1, "NX");
+    const isThisCluster = Bun.randomUUIDv7();
+    await this.redis.set(key, isThisCluster, "EX", "3600", "NX");
     return (await this.redis.get(key)) !== isThisCluster;
   }
 }

@@ -1,9 +1,7 @@
-import * as process from "node:process";
-
 import { Body, Controller, Get, HttpStatus, Post, Query, Req, Res } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
-import { FastifyReply, FastifyRequest } from "fastify";
+import type { FastifyReply, FastifyRequest } from "fastify";
 import { CurrentUser } from "../common/decorators/user.decorator";
 import { ApiResponseFormat } from "../common/dto/response_format.dto";
 import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE } from "../common/mapper/constants";
@@ -144,12 +142,12 @@ export class AuthController {
   async logout(@CurrentUser() user: User, @Res({ passthrough: true }) res: FastifyReply) {
     await this.authService.logout(user);
 
-    const sameSite = process.env.NODE_ENV !== "dev" ? "none" : "lax";
+    const sameSite = Bun.env.NODE_ENV !== "dev" ? "none" : "lax";
     const domains =
-      process.env.NODE_ENV !== "dev"
+      Bun.env.NODE_ENV !== "dev"
         ? (this.configService.get<string>("ALLOWED_DOMAIN")?.split(",") ?? [undefined])
         : [undefined];
-    const secure = process.env.NODE_ENV !== "dev";
+    const secure = Bun.env.NODE_ENV !== "dev";
 
     res.header("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
     res.header("Pragma", "no-cache");
@@ -205,9 +203,9 @@ export class AuthController {
     res.clearCookie(ACCESS_TOKEN_COOKIE);
     res.clearCookie(REFRESH_TOKEN_COOKIE);
 
-    const sameSite = process.env.NODE_ENV !== "dev" ? "none" : "lax";
+    const sameSite = Bun.env.NODE_ENV !== "dev" ? "none" : "lax";
     const domains =
-      process.env.NODE_ENV !== "dev"
+      Bun.env.NODE_ENV !== "dev"
         ? (this.configService.get<string>("ALLOWED_DOMAIN")?.split(",") ?? [undefined])
         : [undefined];
 
@@ -216,7 +214,7 @@ export class AuthController {
         path: "/",
         maxAge: 60 * 30,
         httpOnly: true,
-        secure: process.env.NODE_ENV !== "dev",
+        secure: Bun.env.NODE_ENV !== "dev",
         sameSite,
         domain,
       });
@@ -224,7 +222,7 @@ export class AuthController {
         path: "/",
         maxAge: 60 * 60 * 24 * 30,
         httpOnly: true,
-        secure: process.env.NODE_ENV !== "dev",
+        secure: Bun.env.NODE_ENV !== "dev",
         sameSite,
         domain,
       });

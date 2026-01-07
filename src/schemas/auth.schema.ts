@@ -7,10 +7,10 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from "typeorm";
-
-import { LoginType, LoginTypeValues } from "../common/mapper/types";
-
-import { User } from "./user.schema";
+import type { LoginType } from "../common/mapper/types";
+import { LoginTypeValues } from "../common/mapper/types";
+import type { User } from "./user.schema";
+import { User as UserEntity } from "./user.schema";
 
 @Entity()
 export class Login {
@@ -18,9 +18,9 @@ export class Login {
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @ApiProperty({ type: () => User })
+  @ApiProperty({ type: () => UserEntity })
   @ManyToOne(
-    () => User,
+    () => UserEntity,
     (user) => user.login,
     {
       cascade: ["insert", "update"],
@@ -32,7 +32,7 @@ export class Login {
   user: User;
 
   @ApiProperty()
-  @Column({ enum: LoginTypeValues })
+  @Column({ type: "enum", enum: LoginTypeValues })
   type: LoginType;
 
   @ApiProperty()
@@ -70,9 +70,9 @@ export class Session {
   })
   updated_at: Date;
 
-  @ApiProperty({ type: () => User })
+  @ApiProperty({ type: () => UserEntity })
   @ManyToOne(
-    () => User,
+    () => UserEntity,
     (user) => user.session,
     {
       onUpdate: "CASCADE",

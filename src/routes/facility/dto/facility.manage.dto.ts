@@ -2,12 +2,12 @@ import { ApiProperty } from "@nestjs/swagger";
 import { IsIn, IsOptional, IsString, Matches } from "class-validator";
 
 import {
-  FacilityReportStatus,
+  type FacilityReportStatus,
   FacilityReportStatusValues,
-  FacilityReportType,
+  type FacilityReportType,
   FacilityReportTypeValues,
-} from "../../../common/mapper/types";
-import { User } from "../../../schemas";
+} from "@/common/mapper/types";
+import { User } from "@/schemas";
 import { FileDTO } from "./facility.dto";
 
 export class ReportFacilityDTO {

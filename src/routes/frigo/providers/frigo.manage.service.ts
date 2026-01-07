@@ -3,8 +3,8 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { format, startOfWeek } from "date-fns";
 import { Repository } from "typeorm";
 
-import { safeFindOne } from "../../../common/utils/safeFindOne.util";
-import { FrigoApply, FrigoApplyPeriod, User } from "../../../schemas";
+import { safeFindOne } from "@/common/utils/safeFindOne.util";
+import { FrigoApply, FrigoApplyPeriod, User } from "@/schemas";
 import {
   AuditFrigoApply,
   FrigoApplyDTO,

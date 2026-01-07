@@ -7,7 +7,7 @@ import { UseGuardsWithSwagger } from "src/auth/guards/useGuards";
 import { CurrentUser } from "src/common/decorators/user.decorator";
 import { ApiResponseFormat } from "src/common/dto/response_format.dto";
 import { PermissionEnum } from "src/common/mapper/permissions";
-import { PushSubject, PushSubscription, User } from "../../../schemas";
+import { PushSubject, PushSubscription, User } from "@/schemas";
 import {
   CreateFCMTokenDTO,
   DeleteFCMTokenDTO,

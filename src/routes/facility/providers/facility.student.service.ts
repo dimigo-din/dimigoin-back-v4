@@ -1,14 +1,12 @@
-import fs from "node:fs";
 import path from "node:path";
-
 import { HttpException, HttpStatus, Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 
-import { ErrorMsg } from "../../../common/mapper/error";
-import { UserJWT } from "../../../common/mapper/types";
-import { safeFindOne } from "../../../common/utils/safeFindOne.util";
-import { FacilityImg, FacilityReport, FacilityReportComment, User } from "../../../schemas";
+import { ErrorMsg } from "@/common/mapper/error";
+import { UserJWT } from "@/common/mapper/types";
+import { safeFindOne } from "@/common/utils/safeFindOne.util";
+import { FacilityImg, FacilityReport, FacilityReportComment, User } from "@/schemas";
 import { FileDTO } from "../dto/facility.dto";
 import {
   FacilityImgIdDTO,
@@ -35,7 +33,7 @@ export class FacilityStudentService {
     const img = await safeFindOne<FacilityImg>(this.facilityImgRepository, data.id);
 
     return {
-      stream: fs.createReadStream(path.join(process.cwd(), "uploads/facility", img.location)),
+      stream: Bun.file(path.join(process.cwd(), "uploads/facility", img.location)).stream(),
       filename: img.name,
     };
   }

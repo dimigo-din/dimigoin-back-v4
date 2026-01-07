@@ -68,7 +68,8 @@
     },
     "parser": {
       "unsafeParameterDecoratorsEnabled": true
-    }
+    },
+    "globals": ["Bun"]
   },
   "overrides": [
     {

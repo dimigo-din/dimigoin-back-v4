@@ -1,5 +1,3 @@
-import * as crypto from "node:crypto";
-import * as fs from "node:fs";
 import * as path from "node:path";
 
 import {
@@ -13,11 +11,8 @@ import {
 import { FastifyRequest } from "fastify";
 import { Observable } from "rxjs";
 
-import {
-  Allowed_Image_Extensions,
-  Allowed_Image_Signatures,
-} from "../../../common/mapper/constants";
-import { ErrorMsg } from "../../../common/mapper/error";
+import { Allowed_Image_Extensions, Allowed_Image_Signatures } from "@/common/mapper/constants";
+import { ErrorMsg } from "@/common/mapper/error";
 import { FileDTO } from "../dto/facility.dto";
 
 @Injectable()
@@ -67,14 +62,10 @@ export class ImageUploadInterceptor implements NestInterceptor {
       }
     }
 
-    if (!fs.existsSync(this.uploadDir)) {
-      fs.mkdirSync(this.uploadDir, { recursive: true });
-    }
-
     for (const file of files) {
-      const filename = crypto.randomBytes(32).toString("hex");
+      const filename = Bun.randomUUIDv7();
       file.filename = filename;
-      fs.writeFileSync(path.join(this.uploadDir, filename), file.buffer);
+      await Bun.write(path.join(this.uploadDir, filename), file.buffer, {createPath: true});
     }
 
     req.body.file = files;

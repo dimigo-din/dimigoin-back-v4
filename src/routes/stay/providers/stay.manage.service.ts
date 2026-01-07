@@ -19,9 +19,9 @@ import {
 } from "date-fns";
 import { In, IsNull, LessThan, MoreThan, MoreThanOrEqual, Not, Repository } from "typeorm";
 
-import { ErrorMsg } from "../../../common/mapper/error";
-import { safeFindOne } from "../../../common/utils/safeFindOne.util";
-import { isInRange } from "../../../common/utils/staySeat.util";
+import { ErrorMsg } from "@/common/mapper/error";
+import { safeFindOne } from "@/common/utils/safeFindOne.util";
+import { isInRange } from "@/common/utils/staySeat.util";
 import {
   Stay,
   StayApply,
@@ -32,7 +32,7 @@ import {
   StaySeatPreset,
   StaySeatPresetRange,
   User,
-} from "../../../schemas";
+} from "@/schemas";
 import {
   AuditOutingDTO,
   CreateStayApplyDTO,
