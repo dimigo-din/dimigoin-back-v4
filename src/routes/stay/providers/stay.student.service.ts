@@ -389,13 +389,16 @@ export class StayStudentService {
   }
 
   // pass if only_readingRoom false, pass if it's true and seat is in available range
-  private async isAvailableSeat(
+  async isAvailableSeat(
     user: UserJWT,
     preset: StaySeatPreset,
     target: string,
     grade: Grade,
     gender: Gender,
   ) {
+    if (!preset || !preset.stay_seat || preset.stay_seat.length === 0) {
+      return await this.userManageService.checkUserDetail(user.email, { gender, grade });
+    }
     return (
       preset.stay_seat
         .filter((stay_seat) => stay_seat.target === `${grade}_${gender}`)

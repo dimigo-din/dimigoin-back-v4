@@ -96,13 +96,13 @@ export class User {
     () => WakeupSongApplicationEntity,
     (wakeupSongApplication) => wakeupSongApplication.user,
   )
-  wakeupSongApplication: WakeupSongApplication;
+  wakeupSongApplication: WakeupSongApplication[];
 
   @OneToMany(
     () => WakeupSongVoteEntity,
     (wakeupSongVote) => wakeupSongVote.user,
   )
-  wakeupSongVote: WakeupSongVote;
+  wakeupSongVote: WakeupSongVote[];
 
   @OneToMany(
     () => PushSubscriptionEntity,

@@ -190,6 +190,11 @@ export class UserStudentService {
 
         const isTemp = originalData !== dailyData;
 
+        const row = table[day - 1];
+        if (!row) {
+          continue;
+        }
+
         if (dailyData > 100) {
           let teacherName = "";
           let groupPrefix = "";
@@ -221,9 +226,9 @@ export class UserStudentService {
             result += classroom;
           }
 
-          table[day - 1]![per - 1] = { content: result, temp: isTemp };
+          row[per - 1] = { content: result, temp: isTemp };
         } else {
-          table[day - 1]![per - 1] = { content: "", temp: isTemp };
+          row[per - 1] = { content: "", temp: isTemp };
         }
       }
     }

@@ -92,10 +92,7 @@ export class CacheService {
       return secret;
     }
 
-    await this.cacheManager.set(
-      this.PERSONALINFORMATIONVERIFY_SECRET,
-      Bun.randomUUIDv7(),
-    );
+    await this.cacheManager.set(this.PERSONALINFORMATIONVERIFY_SECRET, Bun.randomUUIDv7());
 
     return await this.getPersonalInformationVerifyTokenSecret();
   }
