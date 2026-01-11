@@ -35,9 +35,9 @@ export class UserStudentService {
   }
 
   async getTimeTable(grade: number, klass: number) {
-    const res = await fetch("http://comci.net:4082/36179?NzM2MjlfMjkxNzVfMF8x")
-    const text = await res.text()
-    const data: ComciData = JSON.parse(text.replace(/\0/g, '')) as ComciData
+    const res = await fetch("http://comci.net:4082/36179?NzM2MjlfMjkxNzVfMF8x");
+    const text = await res.text();
+    const data: ComciData = JSON.parse(text.replace(/\0/g, "")) as ComciData;
 
     const DIV = data.분리 ?? 100;
     const MAX_P = 8;

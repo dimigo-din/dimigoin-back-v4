@@ -36,6 +36,7 @@ export async function bootstrap(isInit: boolean = true) {
             ?.split(",")
             .map((d) => `http://${d}`),
     credentials: true,
+    methods: ["GET", "HEAD", "POST", "PUT", "DELETE", "PATCH"],
   });
 
   await app.register(fastifyCookie);
