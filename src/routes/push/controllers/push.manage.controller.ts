@@ -7,7 +7,7 @@ import { UseGuardsWithSwagger } from "src/auth/guards/useGuards";
 import { ApiResponseFormat } from "src/common/dto/response_format.dto";
 import { PermissionEnum } from "src/common/mapper/permissions";
 
-import { PushSubscription } from "../../../schemas";
+import { PushSubscription } from "@/schemas";
 import {
   GetSubscriptionsByUserDTO,
   PushNotificationPayloadDTO,

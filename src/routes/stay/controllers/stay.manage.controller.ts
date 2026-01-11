@@ -1,28 +1,28 @@
 import { Body, Controller, Delete, Get, HttpStatus, Patch, Post, Query } from "@nestjs/common";
-import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
+import { ApiOperation, ApiTags } from "@nestjs/swagger";
 
-import { CustomJwtAuthGuard } from "../../../auth/guards";
-import { PermissionGuard } from "../../../auth/guards/permission.guard";
-import { UseGuardsWithSwagger } from "../../../auth/guards/useGuards";
-import { ApiResponseFormat } from "../../../common/dto/response_format.dto";
-import { PermissionEnum } from "../../../common/mapper/permissions";
-import { Stay, StayApply, StayOuting, StaySchedule, StaySeatPreset } from "../../../schemas";
+import { CustomJwtAuthGuard } from "@/auth/guards";
+import { PermissionGuard } from "@/auth/guards/permission.guard";
+import { UseGuardsWithSwagger } from "@/auth/guards/useGuards";
+import { ApiResponseFormat } from "@/common/dto/response_format.dto";
+import { PermissionEnum } from "@/common/mapper/permissions";
+import { Stay, StayApply, StayOuting, StaySchedule, StaySeatPreset } from "@/schemas";
 import {
   AuditOutingDTO,
-  UpdateOutingMealCancelDTO,
   CreateStayApplyDTO,
   CreateStayDTO,
   CreateStayScheduleDTO,
   CreateStaySeatPresetDTO,
+  MoveToSomewhereDTO,
   StayApplyIdDTO,
   StayIdDTO,
   StayScheduleIdDTO,
   StaySeatPresetIdDTO,
+  UpdateOutingMealCancelDTO,
   UpdateStayApplyDTO,
   UpdateStayDTO,
   UpdateStayScheduleDTO,
   UpdateStaySeatPresetDTO,
-  MoveToSomewhereDTO,
 } from "../dto/stay.manage.dto";
 import { StayManageService } from "../providers/stay.manage.service";
 

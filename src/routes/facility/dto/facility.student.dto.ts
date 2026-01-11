@@ -1,8 +1,9 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsIn, IsNumber, IsOptional, IsString, Matches } from "class-validator";
+import { IsIn, IsOptional, IsString, Matches } from "class-validator";
 
-import { FacilityReportType, FacilityReportTypeValues } from "../../../common/mapper/types";
-import { User } from "../../../schemas";
+import { type FacilityReportType, FacilityReportTypeValues } from "@/common/mapper/types";
+import { User } from "@/schemas";
+import { FileDTO } from "./facility.dto";
 
 export class ReportFacilityDTO {
   @ApiProperty()
@@ -24,7 +25,8 @@ export class ReportFacilityDTO {
       format: "binary",
     },
   })
-  file: any;
+  @IsOptional()
+  file: FileDTO[];
 }
 
 export class PostCommentDTO {

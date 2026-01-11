@@ -1,4 +1,4 @@
-import { LaundryTimeline } from "../../../schemas";
+import { LaundryTimeline } from "@/schemas";
 
 export abstract class LaundryTimelineScheduler {
   abstract evaluate(timelines: LaundryTimeline[]): Promise<boolean>;

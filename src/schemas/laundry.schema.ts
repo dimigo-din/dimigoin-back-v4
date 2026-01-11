@@ -12,9 +12,16 @@ import {
   Unique,
 } from "typeorm";
 
-import { Gender, Grade, LaundryMachineType, LaundryTimelineSchedule } from "../common/mapper/types";
-
-import { User } from "./user.schema";
+import {
+  type Gender,
+  GenderValues,
+  type Grade,
+  type LaundryMachineType,
+  LaundryMachineTypeValues,
+  type LaundryTimelineSchedule,
+} from "../common/mapper/types";
+import type { User } from "./user.schema";
+import { User as UserEntity } from "./user.schema";
 
 @Entity()
 @Index("UQ_laundrytimeline_scheduler_not_etc", ["scheduler"], {
@@ -32,7 +39,7 @@ export class LaundryTimeline {
   name: string;
 
   @ApiProperty({ nullable: true })
-  @Column({ nullable: true, default: "etc" })
+  @Column({ type: "varchar", nullable: true, default: "etc" })
   scheduler: LaundryTimelineSchedule | null = "etc";
 
   @ApiProperty()
@@ -111,7 +118,7 @@ export class LaundryMachine {
   id: string;
 
   @ApiProperty()
-  @Column()
+  @Column({ type: "enum", enum: LaundryMachineTypeValues })
   type: LaundryMachineType;
 
   @ApiProperty()
@@ -119,7 +126,7 @@ export class LaundryMachine {
   name: string;
 
   @ApiProperty()
-  @Column()
+  @Column({ type: "enum", enum: GenderValues })
   gender: Gender;
 
   @ApiProperty()
@@ -186,9 +193,9 @@ export class LaundryApply {
   )
   laundryMachine: LaundryMachine;
 
-  @ApiProperty({ type: () => User })
+  @ApiProperty({ type: () => UserEntity })
   @ManyToOne(
-    () => User,
+    () => UserEntity,
     (user) => user.laundryApplies,
     {
       onUpdate: "CASCADE",

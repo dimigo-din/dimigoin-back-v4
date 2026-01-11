@@ -3,9 +3,8 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { format, startOfWeek } from "date-fns";
 import { Repository } from "typeorm";
 
-import { safeFindOne } from "../../../common/utils/safeFindOne.util";
-import { FrigoApply, FrigoApplyPeriod, User } from "../../../schemas";
-import { UserManageService } from "../../user/providers";
+import { safeFindOne } from "@/common/utils/safeFindOne.util";
+import { FrigoApply, FrigoApplyPeriod, User } from "@/schemas";
 import {
   AuditFrigoApply,
   FrigoApplyDTO,
@@ -23,7 +22,6 @@ export class FrigoManageService {
     private readonly frigoApplyRepository: Repository<FrigoApply>,
     @InjectRepository(FrigoApplyPeriod)
     private readonly frigoApplyPeriodRepository: Repository<FrigoApplyPeriod>,
-    private readonly userManageService: UserManageService,
   ) {}
 
   async getApplyPeriod() {

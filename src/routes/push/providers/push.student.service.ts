@@ -1,15 +1,13 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-
-import { safeFindOne } from "src/common/utils/safeFindOne.util";
-
 import {
   PushNotificationSubject,
   PushNotificationSubjectIdentifierValues,
   UserJWT,
-} from "../../../common/mapper/types";
-import { PushSubject, PushSubscription, User } from "../../../schemas";
+} from "@/common/mapper/types";
+import { safeFindOne } from "@/common/utils/safeFindOne.util";
+import { PushSubject, PushSubscription, User } from "@/schemas";
 import {
   CreateFCMTokenDTO,
   DeleteFCMTokenDTO,
@@ -41,7 +39,7 @@ export class PushStudentService {
       subscription.subjects = PushNotificationSubjectIdentifierValues.map((i) => {
         const s = new PushSubject();
         s.identifier = i;
-        s.name = PushNotificationSubject[i];
+        s.name = PushNotificationSubject[i] ?? "";
         s.user = target;
 
         return s;
@@ -109,7 +107,7 @@ export class PushStudentService {
     ).map((i) => {
       const s = new PushSubject();
       s.identifier = i;
-      s.name = PushNotificationSubject[i];
+      s.name = PushNotificationSubject[i] ?? "";
       s.user = target;
 
       return s;

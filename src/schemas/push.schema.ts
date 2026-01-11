@@ -10,11 +10,11 @@ import {
 } from "typeorm";
 
 import {
-  PushNotificationSubjectIdentifier,
+  type PushNotificationSubjectIdentifier,
   PushNotificationSubjectIdentifierValues,
 } from "../common/mapper/types";
-
-import { User } from "./user.schema";
+import type { User } from "./user.schema";
+import { User as UserEntity } from "./user.schema";
 
 @Entity()
 export class PushSubscription {
@@ -49,7 +49,7 @@ export class PushSubscription {
   subjects: PushSubject[];
 
   @ManyToOne(
-    () => User,
+    () => UserEntity,
     (user) => user.pushSubscriptions,
     {
       onDelete: "CASCADE",
@@ -66,7 +66,7 @@ export class PushSubject {
 
   /** eng identifier for code. */
   @ApiProperty({ enum: PushNotificationSubjectIdentifierValues })
-  @Column()
+  @Column({ type: "enum", enum: PushNotificationSubjectIdentifierValues })
   identifier: PushNotificationSubjectIdentifier;
 
   /** kor name for users */
@@ -85,7 +85,7 @@ export class PushSubject {
   subscription: PushSubscription;
 
   @ManyToOne(
-    () => User,
+    () => UserEntity,
     (user) => user.pushSubject,
     {
       onDelete: "CASCADE",

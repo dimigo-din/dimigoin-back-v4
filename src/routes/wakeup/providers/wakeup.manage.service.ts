@@ -3,8 +3,8 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { format, startOfWeek } from "date-fns";
 import { Repository } from "typeorm";
 
-import { safeFindOne } from "../../../common/utils/safeFindOne.util";
-import { WakeupSongApplication, WakeupSongHistory, WakeupSongVote } from "../../../schemas";
+import { safeFindOne } from "@/common/utils/safeFindOne.util";
+import { WakeupSongApplication, WakeupSongHistory } from "@/schemas";
 import { WakeupSongDeleteDTO, WakeupSongSelectDTO } from "../dto/wakeup.manage.dto";
 
 @Injectable()
@@ -12,8 +12,6 @@ export class WakeupManageService {
   constructor(
     @InjectRepository(WakeupSongApplication)
     private readonly wakeupSongApplicationRepository: Repository<WakeupSongApplication>,
-    @InjectRepository(WakeupSongVote)
-    private readonly wakeupSongVoteRepository: Repository<WakeupSongVote>,
     @InjectRepository(WakeupSongHistory)
     private readonly wakeupSongHistoryRepository: Repository<WakeupSongHistory>,
   ) {}
@@ -30,7 +28,6 @@ export class WakeupManageService {
   }
 
   async selectApply(data: WakeupSongSelectDTO) {
-    const week = format(startOfWeek(new Date()), "yyyy-MM-dd");
     const apply = await safeFindOne<WakeupSongApplication>(this.wakeupSongApplicationRepository, {
       where: { id: data.id },
       relations: { wakeupSongVote: true },

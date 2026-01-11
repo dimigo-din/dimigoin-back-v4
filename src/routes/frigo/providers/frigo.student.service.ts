@@ -1,13 +1,21 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { format, startOfWeek, setDay, setHours, isAfter, addWeeks, isWithinInterval } from "date-fns";
+import {
+  addWeeks,
+  format,
+  isAfter,
+  isWithinInterval,
+  setDay,
+  setHours,
+  startOfWeek,
+} from "date-fns";
 import { Repository } from "typeorm";
 
-import { ErrorMsg } from "../../../common/mapper/error";
-import { UserJWT } from "../../../common/mapper/types";
-import { DayNumber2String } from "../../../common/utils/date.util";
-import { safeFindOne } from "../../../common/utils/safeFindOne.util";
-import { FrigoApply, FrigoApplyPeriod, User } from "../../../schemas";
+import { ErrorMsg } from "@/common/mapper/error";
+import { UserJWT } from "@/common/mapper/types";
+import { DayNumber2String } from "@/common/utils/date.util";
+import { safeFindOne } from "@/common/utils/safeFindOne.util";
+import { FrigoApply, FrigoApplyPeriod, User } from "@/schemas";
 import { UserManageService } from "../../user/providers";
 import { ClientFrigoApplyDTO } from "../dto/frigo.dto";
 
@@ -49,8 +57,10 @@ export class FrigoStudentService {
     const now = new Date();
     let start = setHours(setDay(now, period.apply_start_day), period.apply_start_hour);
     const end = setHours(setDay(now, period.apply_end_day), period.apply_end_hour);
-    if (isAfter(start, end)) start = addWeeks(start, 1);
-    if (!isWithinInterval(now, { start, end }))
+    if (isAfter(start, end)) {
+      start = addWeeks(start, 1);
+    }
+    if (!isWithinInterval(now, { start, end })) {
       throw new HttpException(
         ErrorMsg.FrigoPeriod_NotInApplyPeriod(
           DayNumber2String(period.apply_start_day),
@@ -60,13 +70,16 @@ export class FrigoStudentService {
         ),
         HttpStatus.BAD_REQUEST,
       );
+    }
 
     // apply
     const dbUser = await safeFindOne<User>(this.userRepository, user.id);
     const exists = await this.frigoApplyRepository.findOne({
       where: { week: format(startOfWeek(new Date()), "yyyy-MM-dd"), user: dbUser },
     });
-    if (exists) throw new HttpException(ErrorMsg.Frigo_AlreadyApplied(), HttpStatus.BAD_REQUEST);
+    if (exists) {
+      throw new HttpException(ErrorMsg.Frigo_AlreadyApplied(), HttpStatus.BAD_REQUEST);
+    }
 
     const apply = new FrigoApply();
     apply.timing = data.timing;

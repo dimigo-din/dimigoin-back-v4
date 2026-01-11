@@ -1,14 +1,11 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { InjectRepository } from "@nestjs/typeorm";
-import axios, { AxiosInstance } from "axios";
-import * as bcrypt from "bcrypt";
 import { Like, Repository } from "typeorm";
-
-import { PermissionType } from "../../../common/mapper/permissions";
-import { Grade } from "../../../common/mapper/types";
-import { numberPermission, parsePermission } from "../../../common/utils/permission.util";
-import { Login, User } from "../../../schemas";
+import { PermissionType } from "@/common/mapper/permissions";
+import type { Grade } from "@/common/mapper/types";
+import { numberPermission, parsePermission } from "@/common/utils/permission.util";
+import { Login, User } from "@/schemas";
 import {
   AddPermissionDTO,
   CreateUserDTO,
@@ -20,39 +17,13 @@ import {
 // this chuck of code need to be refactored
 @Injectable()
 export class UserManageService {
-  private client: AxiosInstance;
-
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     @InjectRepository(Login)
     private readonly loginRepository: Repository<Login>,
     private readonly configService: ConfigService,
-  ) {
-    this.client = axios.create({
-      baseURL: this.configService.get<string>("PERSONAL_INFORMATION_SERVER"),
-    });
-    this.client.interceptors.request.use((config) => {
-      config.headers.setAuthorization(
-        `Bearer ${this.configService.get<string>("PERSONAL_INFORMATION_TOKEN")}`,
-      );
-      return config;
-    });
-    this.client.interceptors.response.use(
-      (res) => res,
-      (error) => {
-        if (!error.response) return Promise.reject(error);
-        if (error.response.status - 400 >= 0 && error.response.status - 400 < 100) {
-          return Promise.resolve(error.response);
-        }
-        return Promise.reject(error);
-      },
-    );
-  }
-
-  async getUserById(id: string): Promise<User> {
-    return await this.userRepository.findOne({ where: { id } });
-  }
+  ) {}
 
   // TODO: get from array like fetchUserDetail(...email)
   // async fetchUserDetail(...emails: string[]): Promise<PersonalData[]> {
@@ -91,14 +62,32 @@ export class UserManageService {
     email: string,
     config: { gender?: "male" | "female"; grade?: Grade | string },
   ): Promise<boolean | null> {
-    if (config.grade) config.grade = config.grade.toString();
-    const res = await this.client.post("/personalInformation/check", {
-      mail: email,
-      ...config,
+    if (config.grade) {
+      config.grade = config.grade.toString();
+    }
+    const baseURL = this.configService.get<string>("PERSONAL_INFORMATION_SERVER");
+    const token = this.configService.get<string>("PERSONAL_INFORMATION_TOKEN");
+    const res = await Bun.fetch(`${baseURL}/personalInformation/check`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        mail: email,
+        ...config,
+      }),
     });
 
-    if (res.status !== 200) return null;
-    else return res.data as boolean;
+    if (res.status === 200) {
+      return (await res.json()) as boolean;
+    }
+
+    if (res.status >= 400 && res.status < 500) {
+      return null;
+    }
+
+    throw new Error(`Request failed with status ${res.status}`);
   }
 
   async createUser(data: CreateUserDTO): Promise<User> {
@@ -119,16 +108,14 @@ export class UserManageService {
     return user;
   }
 
-  async deleteUser(id: string): Promise<User> {
-    const user = await this.getUserById(id);
-    return await this.userRepository.remove(user);
-  }
-
   async addPasswordLogin(user: string, password: string) {
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    const hashedPassword = await Bun.password.hash(password);
 
     const dbUser = await this.userRepository.findOne({ where: { id: user } });
+    if (!dbUser) {
+      throw new NotFoundException("User not found");
+    }
+
     const login = new Login();
     login.type = "password";
     login.identifier1 = dbUser.email;
@@ -142,6 +129,9 @@ export class UserManageService {
   // but I left it like this for optimization.
   async setPermission(data: SetPermissionDTO) {
     const user = await this.userRepository.findOne({ where: { id: data.id } });
+    if (!user) {
+      throw new NotFoundException("User not found");
+    }
     user.permission = numberPermission(...data.permissions).toString();
 
     return await this.userRepository.save(user);
@@ -149,6 +139,9 @@ export class UserManageService {
 
   async addPermission(data: AddPermissionDTO) {
     const user = await this.userRepository.findOne({ where: { id: data.id } });
+    if (!user) {
+      throw new NotFoundException("User not found");
+    }
 
     const permissions = parsePermission(user.permission);
 
@@ -156,7 +149,7 @@ export class UserManageService {
       (p: PermissionType) => !permissions.find((p2) => p2 === p),
     );
 
-    const resultPermission = [].concat(permissions, addPermissionTarget);
+    const resultPermission = permissions.concat(addPermissionTarget);
 
     user.permission = numberPermission(...resultPermission).toString();
 
@@ -165,6 +158,9 @@ export class UserManageService {
 
   async removePermission(data: RemovePermissionDTO) {
     const user = await this.userRepository.findOne({ where: { id: data.id } });
+    if (!user) {
+      throw new NotFoundException("User not found");
+    }
 
     const resultPermissions = parsePermission(user.permission).filter(
       (p: PermissionType) => !data.permissions.find((p2) => p2 === p),

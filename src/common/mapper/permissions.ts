@@ -12,7 +12,7 @@ export type PermissionType = (typeof PermissionValues)[number];
 
 // Create enum for easy permission management with binary
 export const PermissionEnum = Object.fromEntries(
-  PermissionValues.map((v: PermissionType, i) => [v, Math.pow(2, i++)]),
+  PermissionValues.map((v: PermissionType, i) => [v, 2 ** i++]),
 ) as { [key in PermissionType]: number };
 
 // group of well-used permissions
@@ -25,6 +25,33 @@ export const PermissionGroups = {
   TeacherUserPermission,
   AdminUserPermission,
 };
-export const NumberedPermissionGroupsEnum = Object.fromEntries(
-  Object.keys(PermissionGroups).map((v) => [v, numberPermission(...PermissionGroups[v])]),
-) as { [key in string]: number };
+
+let _cachedNumberedPermissionGroupsEnum: { [key in string]: number } | null = null;
+
+export const getNumberedPermissionGroupsEnum = (): { [key in string]: number } => {
+  if (!_cachedNumberedPermissionGroupsEnum) {
+    _cachedNumberedPermissionGroupsEnum = Object.fromEntries(
+      Object.keys(PermissionGroups).map((v) => [
+        v,
+        numberPermission(...PermissionGroups[v as keyof typeof PermissionGroups]),
+      ]),
+    ) as { [key in string]: number };
+  }
+  return _cachedNumberedPermissionGroupsEnum;
+};
+
+export const NumberedPermissionGroupsEnum = new Proxy({} as { [key in string]: number }, {
+  get(_target, prop) {
+    return getNumberedPermissionGroupsEnum()[prop as string];
+  },
+  ownKeys() {
+    return Object.keys(getNumberedPermissionGroupsEnum());
+  },
+  getOwnPropertyDescriptor(_target, prop) {
+    return {
+      enumerable: true,
+      configurable: true,
+      value: getNumberedPermissionGroupsEnum()[prop as string],
+    };
+  },
+});

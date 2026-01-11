@@ -1,12 +1,13 @@
-import { Body, Controller, Delete, Get, HttpStatus, Patch, Post, Query, Req } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpStatus, Patch, Post, Query } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
 
-import { CustomJwtAuthGuard } from "../../../auth/guards";
-import { PermissionGuard } from "../../../auth/guards/permission.guard";
-import { UseGuardsWithSwagger } from "../../../auth/guards/useGuards";
-import { ApiResponseFormat } from "../../../common/dto/response_format.dto";
-import { PermissionEnum } from "../../../common/mapper/permissions";
-import { Stay, StayApply, StayOuting } from "../../../schemas";
+import { CustomJwtAuthGuard } from "@/auth/guards";
+import { PermissionGuard } from "@/auth/guards/permission.guard";
+import { UseGuardsWithSwagger } from "@/auth/guards/useGuards";
+import { CurrentUser } from "@/common/decorators/user.decorator";
+import { ApiResponseFormat } from "@/common/dto/response_format.dto";
+import { PermissionEnum } from "@/common/mapper/permissions";
+import { Stay, StayApply, StayOuting, User } from "@/schemas";
 import {
   AddStayOutingDTO,
   CreateUserStayApplyDTO,
@@ -32,8 +33,8 @@ export class StayStudentController {
     type: [Stay],
   })
   @Get("")
-  async getStayList(@Req() req, @Query() data: GetStayListDTO) {
-    return this.stayService.getStayList(req.user, data);
+  async getStayList(@CurrentUser() user: User, @Query() data: GetStayListDTO) {
+    return this.stayService.getStayList(user, data);
   }
 
   @ApiOperation({
@@ -45,8 +46,8 @@ export class StayStudentController {
     type: [StayApply],
   })
   @Get("/apply")
-  async getStayApplies(@Req() req) {
-    return await this.stayService.getStayApplies(req.user);
+  async getStayApplies(@CurrentUser() user: User) {
+    return await this.stayService.getStayApplies(user);
   }
 
   @ApiOperation({
@@ -58,8 +59,8 @@ export class StayStudentController {
     type: StayApply,
   })
   @Post("/apply")
-  async createStayApply(@Req() req, @Body() data: CreateUserStayApplyDTO) {
-    return await this.stayService.createStayApply(req.user, data);
+  async createStayApply(@CurrentUser() user: User, @Body() data: CreateUserStayApplyDTO) {
+    return await this.stayService.createStayApply(user, data);
   }
 
   @ApiOperation({
@@ -71,8 +72,8 @@ export class StayStudentController {
     type: StayApply,
   })
   @Patch("/apply")
-  async updateStayApply(@Req() req, @Body() data: CreateUserStayApplyDTO) {
-    return await this.stayService.updateStayApply(req.user, data);
+  async updateStayApply(@CurrentUser() user: User, @Body() data: CreateUserStayApplyDTO) {
+    return await this.stayService.updateStayApply(user, data);
   }
 
   @ApiOperation({
@@ -84,8 +85,8 @@ export class StayStudentController {
     type: StayApply,
   })
   @Delete("/apply")
-  async deleteStayApply(@Req() req, @Query() data: StayIdDTO) {
-    return await this.stayService.deleteStayApply(req.user, data);
+  async deleteStayApply(@CurrentUser() user: User, @Query() data: StayIdDTO) {
+    return await this.stayService.deleteStayApply(user, data);
   }
 
   @ApiOperation({
@@ -97,8 +98,8 @@ export class StayStudentController {
     type: [StayOuting],
   })
   @Get("/outing")
-  async getStayOuting(@Req() req, @Query() data: StayIdDTO) {
-    return await this.stayService.getStayOuting(req.user, data);
+  async getStayOuting(@CurrentUser() user: User, @Query() data: StayIdDTO) {
+    return await this.stayService.getStayOuting(user, data);
   }
 
   @ApiOperation({
@@ -110,8 +111,8 @@ export class StayStudentController {
     type: StayOuting,
   })
   @Post("/outing")
-  async addStayOuting(@Req() req, @Body() data: AddStayOutingDTO) {
-    return await this.stayService.addStayOuting(req.user, data);
+  async addStayOuting(@CurrentUser() user: User, @Body() data: AddStayOutingDTO) {
+    return await this.stayService.addStayOuting(user, data);
   }
 
   @ApiOperation({
@@ -123,8 +124,8 @@ export class StayStudentController {
     type: StayOuting,
   })
   @Patch("/outing")
-  async editStayOuting(@Req() req, @Body() data: EditStayOutingDTO) {
-    return await this.stayService.editStayOuting(req.user, data);
+  async editStayOuting(@CurrentUser() user: User, @Body() data: EditStayOutingDTO) {
+    return await this.stayService.editStayOuting(user, data);
   }
 
   @ApiOperation({
@@ -136,7 +137,7 @@ export class StayStudentController {
     type: StayOuting,
   })
   @Delete("/outing")
-  async deleteStayOuting(@Req() req, @Query() data: StayOutingIdDTO) {
-    return await this.stayService.removeStayOuting(req.user, data);
+  async deleteStayOuting(@CurrentUser() user: User, @Query() data: StayOutingIdDTO) {
+    return await this.stayService.removeStayOuting(user, data);
   }
 }
