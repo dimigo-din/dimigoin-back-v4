@@ -12,6 +12,7 @@ import { catchError, map } from "rxjs/operators";
 export class ResponseWrapperInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     const res = context.switchToHttp().getResponse();
+    const logger = context.switchToHttp().getRequest().logger;
 
     return next.handle().pipe(
       map((data) => {
@@ -36,6 +37,7 @@ export class ResponseWrapperInterceptor implements NestInterceptor {
             error = (error as Error).message || error;
           }
         } else {
+          logger.error(err);
           status = 500;
           error = "Internal Server Error";
         }
