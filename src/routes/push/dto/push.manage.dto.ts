@@ -4,7 +4,7 @@ import { IsIn, IsObject, IsOptional, IsString, ValidateNested } from "class-vali
 import {
   type PushNotificationSubjectIdentifier,
   PushNotificationSubjectIdentifierValues,
-} from "@/common/mapper/types";
+} from "$mapper/types";
 
 export class PushNotificationPayloadDTO {
   @ApiProperty()

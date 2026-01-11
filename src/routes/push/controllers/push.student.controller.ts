@@ -1,21 +1,20 @@
 import { Body, Controller, Delete, Get, HttpStatus, Patch, Put, Query } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
-
-import { CustomJwtAuthGuard } from "src/auth/guards";
-import { PermissionGuard } from "src/auth/guards/permission.guard";
-import { UseGuardsWithSwagger } from "src/auth/guards/useGuards";
-import { CurrentUser } from "src/common/decorators/user.decorator";
-import { ApiResponseFormat } from "src/common/dto/response_format.dto";
-import { PermissionEnum } from "src/common/mapper/permissions";
-import { PushSubject, PushSubscription, User } from "@/schemas";
+import { PushSubject, PushSubscription, User } from "#/schemas";
+import { CustomJwtAuthGuard } from "#auth/guards";
+import { PermissionGuard } from "#auth/guards/permission.guard";
+import { UseGuardsWithSwagger } from "#auth/guards/useGuards";
+import { CurrentUser } from "$decorators/user.decorator";
+import { ApiResponseFormat } from "$dto/response_format.dto";
+import { PermissionEnum } from "$mapper/permissions";
 import {
   CreateFCMTokenDTO,
   DeleteFCMTokenDTO,
   GetSubscribedSubjectDTO,
   PushNotificationSubjectsResponseDTO,
   SetSubscribeSubjectDTO,
-} from "../dto/push.student.dto";
-import { PushStudentService } from "../providers";
+} from "~push/dto/push.student.dto";
+import { PushStudentService } from "~push/providers";
 
 @ApiTags("Push Student")
 @Controller("/student/push")

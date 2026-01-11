@@ -1,7 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsBoolean, IsString } from "class-validator";
-
-import { WakeupSongApplication } from "@/schemas";
+import { WakeupSongApplication } from "#/schemas";
 
 export class SearchVideoDTO {
   @ApiProperty()

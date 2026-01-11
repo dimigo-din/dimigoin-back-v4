@@ -1,8 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Column, Entity, Index, OneToMany, PrimaryGeneratedColumn } from "typeorm";
-
-import { StudentUserPermission } from "../common/mapper/permissions";
-import { numberPermission } from "../common/utils/permission.util";
+import { StudentUserPermission } from "$mapper/permissions";
+import { numberPermission } from "$utils/permission.util";
 import type { Login, Session } from "./auth.schema";
 import { Login as LoginEntity, Session as SessionEntity } from "./auth.schema";
 import type { FacilityReport, FacilityReportComment } from "./facility.schema";

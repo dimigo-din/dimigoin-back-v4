@@ -1,16 +1,11 @@
 import { Injectable, Logger, Module } from "@nestjs/common";
 import { InjectRepository, TypeOrmModule } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-
-import { PermissionValidator, Session, User } from "../../schemas";
-import { LaundrySchedulePriority } from "../mapper/constants";
-import {
-  NumberedPermissionGroupsEnum,
-  PermissionEnum,
-  PermissionType,
-} from "../mapper/permissions";
-import { LaundryTimelineSchedulerValues } from "../mapper/types";
-import { numberPermission, parsePermission } from "../utils/permission.util";
+import { PermissionValidator, Session, User } from "#/schemas";
+import { LaundrySchedulePriority } from "$mapper/constants";
+import { NumberedPermissionGroupsEnum, PermissionEnum, PermissionType } from "$mapper/permissions";
+import { LaundryTimelineSchedulerValues } from "$mapper/types";
+import { numberPermission, parsePermission } from "$utils/permission.util";
 
 @Injectable()
 export class ValidationService {

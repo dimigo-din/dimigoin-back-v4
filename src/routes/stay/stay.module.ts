@@ -1,7 +1,6 @@
 import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import importToArray from "import-to-array";
-
 import {
   Login,
   Stay,
@@ -13,8 +12,8 @@ import {
   StaySeatPreset,
   StaySeatPresetRange,
   User,
-} from "../../schemas";
-import { UserManageService } from "../user/providers";
+} from "#/schemas";
+import { UserManageService } from "~user/providers";
 
 import * as controllers from "./controllers";
 import * as providers from "./providers";

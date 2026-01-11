@@ -9,8 +9,7 @@ import {
   PrimaryGeneratedColumn,
   Unique,
 } from "typeorm";
-
-import { type Grade, StaySeatMappingValues, type StaySeatTargets } from "../common/mapper/types";
+import { type Grade, StaySeatMappingValues, type StaySeatTargets } from "$mapper/types";
 import type { User } from "./user.schema";
 import { User as UserEntity } from "./user.schema";
 

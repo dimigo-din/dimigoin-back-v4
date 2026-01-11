@@ -2,8 +2,7 @@ import { CACHE_MANAGER, Cache, CacheModule } from "@nestjs/cache-manager";
 import { Inject, Logger, Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { RedisClient } from "bun";
-
-import { YoutubeSearchResults, YoutubeVideoItem } from "../mapper/types";
+import { YoutubeSearchResults, YoutubeVideoItem } from "$mapper/types";
 
 class BunRedisStore {
   constructor(private readonly client: RedisClient) {}

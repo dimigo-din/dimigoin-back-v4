@@ -1,12 +1,11 @@
 import { Body, Controller, Delete, Get, HttpStatus, Patch, Post, Query } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
-
-import { CustomJwtAuthGuard } from "@/auth/guards";
-import { PermissionGuard } from "@/auth/guards/permission.guard";
-import { UseGuardsWithSwagger } from "@/auth/guards/useGuards";
-import { ApiResponseFormat } from "@/common/dto/response_format.dto";
-import { PermissionEnum } from "@/common/mapper/permissions";
-import { Stay, StayApply, StayOuting, StaySchedule, StaySeatPreset } from "@/schemas";
+import { Stay, StayApply, StayOuting, StaySchedule, StaySeatPreset } from "#/schemas";
+import { CustomJwtAuthGuard } from "#auth/guards";
+import { PermissionGuard } from "#auth/guards/permission.guard";
+import { UseGuardsWithSwagger } from "#auth/guards/useGuards";
+import { ApiResponseFormat } from "$dto/response_format.dto";
+import { PermissionEnum } from "$mapper/permissions";
 import {
   AuditOutingDTO,
   CreateStayApplyDTO,
@@ -23,8 +22,8 @@ import {
   UpdateStayDTO,
   UpdateStayScheduleDTO,
   UpdateStaySeatPresetDTO,
-} from "../dto/stay.manage.dto";
-import { StayManageService } from "../providers/stay.manage.service";
+} from "~stay/dto/stay.manage.dto";
+import { StayManageService } from "~stay/providers/stay.manage.service";
 
 @ApiTags("Stay Manage")
 @Controller("/manage/stay")

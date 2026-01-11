@@ -2,11 +2,7 @@ import { Body, Controller, Get, HttpStatus, Post, Query, Req, Res } from "@nestj
 import { ConfigService } from "@nestjs/config";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
 import type { FastifyReply, FastifyRequest } from "fastify";
-import { CurrentUser } from "../common/decorators/user.decorator";
-import { ApiResponseFormat } from "../common/dto/response_format.dto";
-import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE } from "../common/mapper/constants";
-import { PermissionEnum } from "../common/mapper/permissions";
-import { User } from "../schemas";
+import { User } from "#/schemas";
 import {
   GoogleAppLoginDTO,
   GoogleWebLoginDTO,
@@ -14,12 +10,16 @@ import {
   PasswordLoginDTO,
   RedirectUriDTO,
   RefreshTokenDTO,
-} from "./auth.dto";
-import { AuthService } from "./auth.service";
-import { CustomJwtAuthGuard } from "./guards";
-import { PermissionGuard } from "./guards/permission.guard";
-import { PersonalInformationVerifyTokenAuthGuard } from "./guards/personalInformationVerifyToken.guard";
-import { UseGuardsWithSwagger } from "./guards/useGuards";
+} from "#auth/auth.dto";
+import { AuthService } from "#auth/auth.service";
+import { CustomJwtAuthGuard } from "#auth/guards";
+import { PermissionGuard } from "#auth/guards/permission.guard";
+import { PersonalInformationVerifyTokenAuthGuard } from "#auth/guards/personalInformationVerifyToken.guard";
+import { UseGuardsWithSwagger } from "#auth/guards/useGuards";
+import { CurrentUser } from "$decorators/user.decorator";
+import { ApiResponseFormat } from "$dto/response_format.dto";
+import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE } from "$mapper/constants";
+import { PermissionEnum } from "$mapper/permissions";
 
 @ApiTags("Auth")
 @Controller("/auth")

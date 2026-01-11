@@ -1,7 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
-
-import { type FrigoTiming, FrigoTimingValues, type Grade } from "../common/mapper/types";
+import { type FrigoTiming, FrigoTimingValues, type Grade } from "$mapper/types";
 import type { User } from "./user.schema";
 import { User as UserEntity } from "./user.schema";
 

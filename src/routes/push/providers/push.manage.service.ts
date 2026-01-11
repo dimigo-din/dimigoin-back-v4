@@ -4,16 +4,15 @@ import { ConfigService } from "@nestjs/config";
 import { InjectRepository } from "@nestjs/typeorm";
 import { GoogleAuth } from "google-auth-library";
 import { Repository } from "typeorm";
-
-import { safeFindOne } from "../../../common/utils/safeFindOne.util";
-import { PushSubscription, User } from "../../../schemas";
+import { PushSubscription, User } from "#/schemas";
+import { safeFindOne } from "$utils/safeFindOne.util";
 import {
   GetSubscriptionsByCategoryDTO,
   GetSubscriptionsByUserAndCategoryDTO,
   GetSubscriptionsByUserDTO,
   PushNotificationPayloadDTO,
   PushNotificationToSpecificDTO,
-} from "../dto/push.manage.dto";
+} from "~push/dto/push.manage.dto";
 
 @Injectable()
 export class PushManageService {

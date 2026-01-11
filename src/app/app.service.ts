@@ -1,6 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { pick } from "lodash";
-import { ClusterDto, Deployment } from "src/common/dto";
+import { ClusterDto, Deployment } from "$/dto";
 
 @Injectable()
 export class AppService {

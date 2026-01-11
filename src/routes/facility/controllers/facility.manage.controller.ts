@@ -14,14 +14,13 @@ import {
 } from "@nestjs/common";
 import { ApiBody, ApiConsumes, ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 import type { FastifyReply } from "fastify";
-
-import { CustomJwtAuthGuard } from "@/auth/guards";
-import { PermissionGuard } from "@/auth/guards/permission.guard";
-import { UseGuardsWithSwagger } from "@/auth/guards/useGuards";
-import { CurrentUser } from "@/common/decorators/user.decorator";
-import { ApiResponseFormat } from "@/common/dto/response_format.dto";
-import { PermissionEnum } from "@/common/mapper/permissions";
-import { FacilityImg, FacilityReport, FacilityReportComment, User } from "@/schemas";
+import { FacilityImg, FacilityReport, FacilityReportComment, User } from "#/schemas";
+import { CustomJwtAuthGuard } from "#auth/guards";
+import { PermissionGuard } from "#auth/guards/permission.guard";
+import { UseGuardsWithSwagger } from "#auth/guards/useGuards";
+import { CurrentUser } from "$decorators/user.decorator";
+import { ApiResponseFormat } from "$dto/response_format.dto";
+import { PermissionEnum } from "$mapper/permissions";
 import {
   ChangeFacilityReportStatusDTO,
   ChangeFacilityReportTypeDTO,
@@ -32,9 +31,9 @@ import {
   GetReportListDTO,
   PostCommentDTO,
   ReportFacilityDTO,
-} from "../dto/facility.manage.dto";
-import { ImageUploadInterceptor } from "../interceptor/image-upload.interceptor";
-import { FacilityManageService } from "../providers";
+} from "~facility/dto/facility.manage.dto";
+import { ImageUploadInterceptor } from "~facility/interceptor/image-upload.interceptor";
+import { FacilityManageService } from "~facility/providers";
 
 @ApiTags("Facility Manage")
 @Controller("/manage/facility")
@@ -54,7 +53,7 @@ export class FacilityManageController {
   async getImg(@Res() res: FastifyReply, @Query() data: FacilityImgIdDTO) {
     const result = await this.facilityManageService.getImg(data);
 
-    res.header("Content-Disposition", `attachment; filename="${result.filename}"`);
+    res.header("Content-Disposition", `attachment; filename="#{result.filename}"`);
     return res.send(result.stream);
   }
 

@@ -1,8 +1,8 @@
 import { Logger } from "@nestjs/common";
 import { NestFastifyApplication } from "@nestjs/platform-fastify";
 import { DocumentBuilder, SwaggerCustomOptions, SwaggerModule } from "@nestjs/swagger";
-import { AppService } from "src/app/app.service";
 import { SwaggerTheme, SwaggerThemeNameEnum } from "swagger-themes";
+import { AppService } from "#app/app.service";
 
 export const CustomSwaggerSetup = async (app: NestFastifyApplication) => {
   const logger = new Logger(CustomSwaggerSetup.name);

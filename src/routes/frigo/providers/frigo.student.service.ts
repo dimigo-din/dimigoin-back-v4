@@ -10,14 +10,13 @@ import {
   startOfWeek,
 } from "date-fns";
 import { Repository } from "typeorm";
-
-import { ErrorMsg } from "@/common/mapper/error";
-import { UserJWT } from "@/common/mapper/types";
-import { DayNumber2String } from "@/common/utils/date.util";
-import { safeFindOne } from "@/common/utils/safeFindOne.util";
-import { FrigoApply, FrigoApplyPeriod, User } from "@/schemas";
-import { UserManageService } from "../../user/providers";
-import { ClientFrigoApplyDTO } from "../dto/frigo.dto";
+import { FrigoApply, FrigoApplyPeriod, User } from "#/schemas";
+import { ErrorMsg } from "$mapper/error";
+import { UserJWT } from "$mapper/types";
+import { DayNumber2String } from "$utils/date.util";
+import { safeFindOne } from "$utils/safeFindOne.util";
+import { ClientFrigoApplyDTO } from "~frigo/dto/frigo.dto";
+import { UserManageService } from "~user/providers";
 
 @Injectable()
 export class FrigoStudentService {

@@ -3,24 +3,19 @@ import { generateKeyPairSync } from "node:crypto";
 import { NestFastifyApplication } from "@nestjs/platform-fastify";
 import { getRepositoryToken } from "@nestjs/typeorm";
 import type { Repository } from "typeorm";
-
-import { JWTResponse } from "@/auth/auth.dto";
-import { PermissionEnum, StudentUserPermission } from "@/common/mapper/permissions";
-import { numberPermission } from "@/common/utils/permission.util";
-import { FacilityManageService, FacilityStudentService } from "@/routes/facility/providers";
-import { FrigoManageService, FrigoStudentService } from "@/routes/frigo/providers";
-import { LaundryManageService, LaundryStudentService } from "@/routes/laundry/providers";
-import { PushManageService, PushStudentService } from "@/routes/push/providers";
-import { StayManageService, StayStudentService } from "@/routes/stay/providers";
-import { UserManageService, UserStudentService } from "@/routes/user/providers";
-import {
-  WakeupManageService,
-  WakeupService,
-  WakeupStudentService,
-} from "@/routes/wakeup/providers";
-import { Login, Session, User } from "@/schemas";
-import { TestApp } from "./app.helper";
-import { RequestHelper } from "./request.helper";
+import { Login, Session, User } from "#/schemas";
+import { JWTResponse } from "#auth/auth.dto";
+import { TestApp } from "#test/helpers/app.helper";
+import { RequestHelper } from "#test/helpers/request.helper";
+import { PermissionEnum, StudentUserPermission } from "$mapper/permissions";
+import { numberPermission } from "$utils/permission.util";
+import { FacilityManageService, FacilityStudentService } from "~facility/providers";
+import { FrigoManageService, FrigoStudentService } from "~frigo/providers";
+import { LaundryManageService, LaundryStudentService } from "~laundry/providers";
+import { PushManageService, PushStudentService } from "~push/providers";
+import { StayManageService, StayStudentService } from "~stay/providers";
+import { UserManageService, UserStudentService } from "~user/providers";
+import { WakeupManageService, WakeupService, WakeupStudentService } from "~wakeup/providers";
 
 type SessionMatcher = { refreshToken?: string; sessionIdentifier?: string };
 
@@ -53,7 +48,7 @@ const ensureJwtKeys = () => {
 const createUsers = () => {
   const studentUser: User = {
     id: "student-1",
-    email: "student@test.com",
+    email: "student$test.com",
     name: "Student User",
     picture: "pic",
     permission: numberPermission(...StudentUserPermission).toString(),
@@ -61,7 +56,7 @@ const createUsers = () => {
 
   const teacherUser: User = {
     id: "teacher-1",
-    email: "teacher@test.com",
+    email: "teacher$test.com",
     name: "Teacher User",
     picture: "pic",
     permission: numberPermission(

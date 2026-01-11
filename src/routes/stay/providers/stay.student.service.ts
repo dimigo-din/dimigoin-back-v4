@@ -2,14 +2,12 @@ import { HttpException, HttpStatus, Injectable, NotFoundException } from "@nestj
 import { InjectRepository } from "@nestjs/typeorm";
 import { isEqual } from "date-fns";
 import { LessThanOrEqual, MoreThanOrEqual, Repository } from "typeorm";
-
-import { SelfDevelopment_Outing_From, SelfDevelopment_Outing_To } from "@/common/mapper/constants";
-import { ErrorMsg } from "@/common/mapper/error";
-import type { Gender, Grade, UserJWT } from "@/common/mapper/types";
-import { safeFindOne } from "@/common/utils/safeFindOne.util";
-import { isInRange } from "@/common/utils/staySeat.util";
-import { Stay, StayApply, StayApplyPeriod_Stay, StayOuting, StaySeatPreset, User } from "@/schemas";
-import { UserManageService } from "../../user/providers";
+import { Stay, StayApply, StayApplyPeriod_Stay, StayOuting, StaySeatPreset, User } from "#/schemas";
+import { SelfDevelopment_Outing_From, SelfDevelopment_Outing_To } from "$mapper/constants";
+import { ErrorMsg } from "$mapper/error";
+import type { Gender, Grade, UserJWT } from "$mapper/types";
+import { safeFindOne } from "$utils/safeFindOne.util";
+import { isInRange } from "$utils/staySeat.util";
 import {
   AddStayOutingDTO,
   CreateUserStayApplyDTO,
@@ -17,7 +15,8 @@ import {
   GetStayListDTO,
   StayIdDTO,
   StayOutingIdDTO,
-} from "../dto/stay.student.dto";
+} from "~stay/dto/stay.student.dto";
+import { UserManageService } from "~user/providers";
 
 @Injectable()
 export class StayStudentService {

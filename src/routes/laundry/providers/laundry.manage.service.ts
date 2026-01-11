@@ -5,13 +5,11 @@ import { Cron, CronExpression } from "@nestjs/schedule";
 import { InjectRepository } from "@nestjs/typeorm";
 import { addMinutes, format } from "date-fns";
 import { In, Repository } from "typeorm";
-import { LaundrySchedulePriority } from "@/common/mapper/constants";
-import { ErrorMsg } from "@/common/mapper/error";
-import { CacheService } from "@/common/modules/cache.module";
-import { safeFindOne } from "@/common/utils/safeFindOne.util";
-import { LaundryApply, LaundryMachine, LaundryTime, LaundryTimeline, User } from "@/schemas";
-import { PushNotificationToSpecificDTO } from "../../push/dto/push.manage.dto";
-import { PushManageService } from "../../push/providers";
+import { LaundryApply, LaundryMachine, LaundryTime, LaundryTimeline, User } from "#/schemas";
+import { LaundrySchedulePriority } from "$mapper/constants";
+import { ErrorMsg } from "$mapper/error";
+import { CacheService } from "$modules/cache.module";
+import { safeFindOne } from "$utils/safeFindOne.util";
 import {
   CreateLaundryApplyDTO,
   CreateLaundryMachineDTO,
@@ -22,8 +20,10 @@ import {
   UpdateLaundryApplyDTO,
   UpdateLaundryMachineDTO,
   UpdateLaundryTimelineDTO,
-} from "../dto/laundry.manage.dto";
-import { LaundryTimelineScheduler } from "../schedulers/scheduler.interface";
+} from "~laundry/dto/laundry.manage.dto";
+import { LaundryTimelineScheduler } from "~laundry/schedulers/scheduler.interface";
+import { PushNotificationToSpecificDTO } from "~push/dto/push.manage.dto";
+import { PushManageService } from "~push/providers";
 
 @Injectable()
 export class LaundryManageService {

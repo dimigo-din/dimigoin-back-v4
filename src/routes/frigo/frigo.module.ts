@@ -1,9 +1,8 @@
 import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import importToArray from "import-to-array";
-
-import { FrigoApply, FrigoApplyPeriod, Login, User } from "../../schemas";
-import { UserManageService } from "../user/providers";
+import { FrigoApply, FrigoApplyPeriod, Login, User } from "#/schemas";
+import { UserManageService } from "~user/providers";
 
 import * as controllers from "./controllers";
 import * as providers from "./providers";

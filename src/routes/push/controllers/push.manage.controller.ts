@@ -1,20 +1,18 @@
 import { Body, Controller, Get, HttpStatus, Post, Query } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
-
-import { CustomJwtAuthGuard } from "src/auth/guards";
-import { PermissionGuard } from "src/auth/guards/permission.guard";
-import { UseGuardsWithSwagger } from "src/auth/guards/useGuards";
-import { ApiResponseFormat } from "src/common/dto/response_format.dto";
-import { PermissionEnum } from "src/common/mapper/permissions";
-
-import { PushSubscription } from "@/schemas";
+import { PushSubscription } from "#/schemas";
+import { CustomJwtAuthGuard } from "#auth/guards";
+import { PermissionGuard } from "#auth/guards/permission.guard";
+import { UseGuardsWithSwagger } from "#auth/guards/useGuards";
+import { ApiResponseFormat } from "$dto/response_format.dto";
+import { PermissionEnum } from "$mapper/permissions";
 import {
   GetSubscriptionsByUserDTO,
   PushNotificationPayloadDTO,
   PushNotificationResultResponseDTO,
   PushNotificationToSpecificDTO,
-} from "../dto/push.manage.dto";
-import { PushManageService } from "../providers";
+} from "~push/dto/push.manage.dto";
+import { PushManageService } from "~push/providers";
 
 @ApiTags("Push Manage")
 @Controller("/manage/push")

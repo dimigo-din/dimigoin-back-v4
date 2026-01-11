@@ -1,7 +1,10 @@
-import { applyDecorators, CanActivate, UseGuards } from "@nestjs/common";
+import { applyDecorators, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth } from "@nestjs/swagger";
 
-// biome-ignore lint/complexity/noBannedTypes: helper function
-export function UseGuardsWithSwagger(...args: (CanActivate | Function)[]) {
-  return applyDecorators(ApiBearerAuth("access-token"), UseGuards(...args));
+export function UseGuardsWithSwagger(...guards: Parameters<typeof UseGuards>) {
+  return applyDecorators(ApiBearerAuth("access-token"), UseGuards(...guards));
+}
+
+export function UseGuardWhenProduction(...guards: Parameters<typeof UseGuards>) {
+  return Bun.env.NODE_ENV === "prod" ? UseGuards(...guards) : () => {};
 }

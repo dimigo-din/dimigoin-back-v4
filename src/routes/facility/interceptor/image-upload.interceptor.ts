@@ -1,5 +1,4 @@
 import * as path from "node:path";
-
 import {
   CallHandler,
   ExecutionContext,
@@ -10,10 +9,9 @@ import {
 } from "@nestjs/common";
 import { FastifyRequest } from "fastify";
 import { Observable } from "rxjs";
-
-import { Allowed_Image_Extensions, Allowed_Image_Signatures } from "@/common/mapper/constants";
-import { ErrorMsg } from "@/common/mapper/error";
-import { FileDTO } from "../dto/facility.dto";
+import { Allowed_Image_Extensions, Allowed_Image_Signatures } from "$mapper/constants";
+import { ErrorMsg } from "$mapper/error";
+import { FileDTO } from "~facility/dto/facility.dto";
 
 @Injectable()
 export class ImageUploadInterceptor implements NestInterceptor {

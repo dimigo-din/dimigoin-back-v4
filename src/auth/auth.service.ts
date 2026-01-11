@@ -14,14 +14,14 @@ import { subMonths } from "date-fns";
 import { OAuth2Client, TokenPayload } from "google-auth-library";
 import { StringValue } from "ms";
 import { LessThan, Repository } from "typeorm";
-import { ErrorMsg } from "../common/mapper/error";
-import { PermissionEnum } from "../common/mapper/permissions";
-import { UserJWT } from "../common/mapper/types";
-import { CacheService } from "../common/modules/cache.module";
-import { hasPermission } from "../common/utils/permission.util";
-import { UserManageService } from "../routes/user/providers";
-import { Login, Session, User } from "../schemas";
-import { JWTResponse, RedirectUriDTO } from "./auth.dto";
+import { Login, Session, User } from "#/schemas";
+import { JWTResponse, RedirectUriDTO } from "#auth/auth.dto";
+import { ErrorMsg } from "$mapper/error";
+import { PermissionEnum } from "$mapper/permissions";
+import { UserJWT } from "$mapper/types";
+import { CacheService } from "$modules/cache.module";
+import { hasPermission } from "$utils/permission.util";
+import { UserManageService } from "~user/providers";
 
 @Injectable()
 export class AuthService {

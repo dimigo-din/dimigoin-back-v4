@@ -1,12 +1,11 @@
 import { Module } from "@nestjs/common";
 import { APP_INTERCEPTOR } from "@nestjs/core";
 import importToArray from "import-to-array";
-import { AuthModule } from "src/auth";
-import { CustomLoggerInterceptor } from "src/common/interceptors";
-import { CustomEssentialModules } from "src/common/modules";
-import * as routes from "src/routes";
-
-import { AppService } from "./app.service";
+import { AuthModule } from "#/auth";
+import * as routes from "#/routes";
+import { AppService } from "#app/app.service";
+import { CustomLoggerInterceptor } from "$/interceptors";
+import { CustomEssentialModules } from "$/modules";
 
 @Module({
   imports: [...CustomEssentialModules, AuthModule, ...importToArray(routes)],

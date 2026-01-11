@@ -18,10 +18,6 @@ import {
   subSeconds,
 } from "date-fns";
 import { In, IsNull, LessThan, MoreThan, MoreThanOrEqual, Not, Repository } from "typeorm";
-
-import { ErrorMsg } from "@/common/mapper/error";
-import { safeFindOne } from "@/common/utils/safeFindOne.util";
-import { isInRange } from "@/common/utils/staySeat.util";
 import {
   Stay,
   StayApply,
@@ -32,7 +28,10 @@ import {
   StaySeatPreset,
   StaySeatPresetRange,
   User,
-} from "@/schemas";
+} from "#/schemas";
+import { ErrorMsg } from "$mapper/error";
+import { safeFindOne } from "$utils/safeFindOne.util";
+import { isInRange } from "$utils/staySeat.util";
 import {
   AuditOutingDTO,
   CreateStayApplyDTO,
@@ -50,7 +49,7 @@ import {
   UpdateStayDTO,
   UpdateStayScheduleDTO,
   UpdateStaySeatPresetDTO,
-} from "../dto/stay.manage.dto";
+} from "~stay/dto/stay.manage.dto";
 
 @Injectable()
 export class StayManageService {

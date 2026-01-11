@@ -2,7 +2,7 @@ import { Global, Module } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { JwtModule, JwtModuleAsyncOptions } from "@nestjs/jwt";
 
-import { CustomConfigModule } from "./config.module";
+import { CustomConfigModule } from "$modules/config.module";
 
 export const JWTOptions: JwtModuleAsyncOptions = {
   imports: [CustomConfigModule],

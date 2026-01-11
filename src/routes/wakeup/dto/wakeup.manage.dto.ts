@@ -1,8 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsString } from "class-validator";
-
-import type { Gender } from "@/common/mapper/types";
-import { WakeupSongVote } from "@/schemas";
+import { WakeupSongVote } from "#/schemas";
+import type { Gender } from "$mapper/types";
 
 export class WakeupSongSelectDTO {
   @ApiProperty()
