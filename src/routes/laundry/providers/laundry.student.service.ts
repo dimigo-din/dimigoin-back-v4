@@ -1,13 +1,13 @@
+import { TZDate } from "@date-fns/tz";
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { format, isAfter, addHours, startOfDay } from "date-fns";
-import { TZDate } from "@date-fns/tz";
+import { addHours, format, isAfter, startOfDay } from "date-fns";
 import { Repository } from "typeorm";
 
-import { ErrorMsg } from "../../../common/mapper/error";
-import { Grade, UserJWT } from "../../../common/mapper/types";
-import { safeFindOne } from "../../../common/utils/safeFindOne.util";
-import { LaundryApply, LaundryMachine, LaundryTime, LaundryTimeline, User } from "../../../schemas";
+import { ErrorMsg } from "@/common/mapper/error";
+import type { Grade, UserJWT } from "@/common/mapper/types";
+import { safeFindOne } from "@/common/utils/safeFindOne.util";
+import { LaundryApply, LaundryMachine, LaundryTime, LaundryTimeline, User } from "@/schemas";
 import { UserManageService } from "../../user/providers";
 import { LaundryApplyDTO, LaundryApplyIdDTO } from "../dto/laundry.student.dto";
 
@@ -49,8 +49,9 @@ export class LaundryStudentService {
     const now = new Date();
     const seoulNow = new TZDate(now, "Asia/Seoul");
     const eightAM = addHours(startOfDay(seoulNow), 8);
-    if (!isAfter(seoulNow, eightAM))
+    if (!isAfter(seoulNow, eightAM)) {
       throw new HttpException(ErrorMsg.LaundryApplyIsAfterEightAM(), HttpStatus.BAD_REQUEST);
+    }
 
     const dbUser = await safeFindOne<User>(this.userRepository, user.id);
 
@@ -63,11 +64,12 @@ export class LaundryStudentService {
         laundryMachine: { type: machine.type },
       },
     });
-    if (applyExists)
+    if (applyExists) {
       throw new HttpException(
         ErrorMsg.LaundryApply_AlreadyExists(machine.type === "washer" ? "세탁" : "건조"),
         HttpStatus.BAD_REQUEST,
       );
+    }
 
     const timeline = await safeFindOne<LaundryTimeline>(this.laundryTimelineRepository, {
       where: { times: { id: data.time } },
@@ -80,8 +82,9 @@ export class LaundryStudentService {
         grade: data.grade,
         gender: machine.gender,
       }))
-    )
+    ) {
       throw new HttpException(ErrorMsg.PermissionDenied_Resource_Grade(), HttpStatus.FORBIDDEN);
+    }
 
     const machineTaken = await this.laundryApplyRepository.findOne({
       where: {
@@ -90,8 +93,9 @@ export class LaundryStudentService {
         laundryTime: time,
       },
     });
-    if (machineTaken)
+    if (machineTaken) {
       throw new HttpException(ErrorMsg.LaundryMachine_AlreadyTaken(), HttpStatus.BAD_REQUEST);
+    }
 
     const apply = new LaundryApply();
     apply.laundryTimeline = timeline;

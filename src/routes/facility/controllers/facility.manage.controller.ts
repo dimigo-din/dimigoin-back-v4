@@ -1,6 +1,4 @@
-import fs from "node:fs";
 import path from "node:path";
-
 import {
   Body,
   Controller,
@@ -10,30 +8,30 @@ import {
   Patch,
   Post,
   Query,
-  Req,
   Res,
   StreamableFile,
-  UploadedFiles,
   UseInterceptors,
 } from "@nestjs/common";
 import { ApiBody, ApiConsumes, ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
+import type { FastifyReply } from "fastify";
 
-import { CustomJwtAuthGuard } from "../../../auth/guards";
-import { PermissionGuard } from "../../../auth/guards/permission.guard";
-import { UseGuardsWithSwagger } from "../../../auth/guards/useGuards";
-import { ApiResponseFormat } from "../../../common/dto/response_format.dto";
-import { PermissionEnum } from "../../../common/mapper/permissions";
-import { FacilityImg, FacilityReport, FacilityReportComment } from "../../../schemas";
+import { CustomJwtAuthGuard } from "@/auth/guards";
+import { PermissionGuard } from "@/auth/guards/permission.guard";
+import { UseGuardsWithSwagger } from "@/auth/guards/useGuards";
+import { CurrentUser } from "@/common/decorators/user.decorator";
+import { ApiResponseFormat } from "@/common/dto/response_format.dto";
+import { PermissionEnum } from "@/common/mapper/permissions";
+import { FacilityImg, FacilityReport, FacilityReportComment, User } from "@/schemas";
 import {
+  ChangeFacilityReportStatusDTO,
+  ChangeFacilityReportTypeDTO,
   FacilityImgIdDTO,
-  ReportFacilityDTO,
+  FacilityReportCommentIdDTO,
   FacilityReportIdDTO,
   FacilityReportListResDTO,
   GetReportListDTO,
   PostCommentDTO,
-  FacilityReportCommentIdDTO,
-  ChangeFacilityReportTypeDTO,
-  ChangeFacilityReportStatusDTO,
+  ReportFacilityDTO,
 } from "../dto/facility.manage.dto";
 import { ImageUploadInterceptor } from "../interceptor/image-upload.interceptor";
 import { FacilityManageService } from "../providers";
@@ -53,12 +51,11 @@ export class FacilityManageController {
     type: StreamableFile,
   })
   @Get("/img")
-  async getImg(@Res() res, @Query() data: FacilityImgIdDTO) {
+  async getImg(@Res() res: FastifyReply, @Query() data: FacilityImgIdDTO) {
     const result = await this.facilityManageService.getImg(data);
-    console.log(result);
 
-    res.set("Content-Disposition", `attachment; filename="${result.filename}"`);
-    result.stream.pipe(res);
+    res.header("Content-Disposition", `attachment; filename="${result.filename}"`);
+    return res.send(result.stream);
   }
 
   @ApiOperation({
@@ -112,18 +109,19 @@ export class FacilityManageController {
   @ApiBody({ type: ReportFacilityDTO })
   @Post("/")
   @UseInterceptors(ImageUploadInterceptor)
-  async report(
-    @Req() req,
-    @Body() data: ReportFacilityDTO,
-    @UploadedFiles() files: { file: Array<Express.Multer.File> },
-  ) {
+  async report(@CurrentUser() user: User, @Body() data: ReportFacilityDTO) {
+    const files = data.file || [];
     try {
-      return await this.facilityManageService.createReport(req.user, data, files.file);
+      return await this.facilityManageService.createReport(user, data, files);
     } catch (e) {
-      console.log(e);
-      files.file.forEach((f) =>
-        fs.rmSync(path.join(__dirname, "./upload", f.filename), { force: true, recursive: true }),
-      );
+      for (const fileInfo of files) {
+        const targetFile = Bun.file(
+          path.join(process.cwd(), "uploads/facility", fileInfo.filename ?? ""),
+        );
+        if (await targetFile.exists()) {
+          await targetFile.delete();
+        }
+      }
       throw e;
     }
   }
@@ -150,8 +148,8 @@ export class FacilityManageController {
     type: FacilityReportComment,
   })
   @Post("/comment")
-  async writeComment(@Req() req, @Body() data: PostCommentDTO) {
-    return await this.facilityManageService.writeComment(req.user, data);
+  async writeComment(@CurrentUser() user: User, @Body() data: PostCommentDTO) {
+    return await this.facilityManageService.writeComment(user, data);
   }
 
   @ApiOperation({

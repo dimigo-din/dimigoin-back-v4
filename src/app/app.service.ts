@@ -1,7 +1,6 @@
-import type { ClusterDto, Deployment } from "src/common/dto";
-
 import { Injectable, Logger } from "@nestjs/common";
 import { pick } from "lodash";
+import { ClusterDto, Deployment } from "src/common/dto";
 
 @Injectable()
 export class AppService {
@@ -25,12 +24,14 @@ export class AppService {
   }
 
   async getBackendInfo(): Promise<ClusterDto> {
-    if (this.cluster) return this.cluster;
+    if (this.cluster) {
+      return this.cluster;
+    }
 
     const packageFile = await import(`${process.cwd()}/package.json`);
     const packageInfo = pick(packageFile, ["name", "version", "description", "author"]);
 
-    const mode = (process.env.NODE_ENV as Deployment) || "prod";
+    const mode = (Bun.env.NODE_ENV as Deployment) || "prod";
 
     this.cluster = { ...packageInfo, mode };
     return this.cluster;

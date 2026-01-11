@@ -3,16 +3,14 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinColumn,
   ManyToOne,
-  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from "typeorm";
-
-import { LoginType, LoginTypeValues } from "../common/mapper/types";
-
-import { User } from "./user.schema";
+import type { LoginType } from "../common/mapper/types";
+import { LoginTypeValues } from "../common/mapper/types";
+import type { User } from "./user.schema";
+import { User as UserEntity } from "./user.schema";
 
 @Entity()
 export class Login {
@@ -20,9 +18,9 @@ export class Login {
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @ApiProperty({ type: () => User })
+  @ApiProperty({ type: () => UserEntity })
   @ManyToOne(
-    () => User,
+    () => UserEntity,
     (user) => user.login,
     {
       cascade: ["insert", "update"],
@@ -34,12 +32,12 @@ export class Login {
   user: User;
 
   @ApiProperty()
-  @Column({ enum: LoginTypeValues })
-  type: LoginType = null;
+  @Column({ type: "enum", enum: LoginTypeValues })
+  type: LoginType;
 
   @ApiProperty()
   @Column("text")
-  identifier1: string = null;
+  identifier1: string;
 
   @ApiProperty()
   @Column("text", { nullable: true })
@@ -54,11 +52,11 @@ export class Session {
 
   @ApiProperty()
   @Column()
-  refreshToken: string = null;
+  refreshToken: string;
 
   @ApiProperty()
   @Column()
-  sessionIdentifier: string = null;
+  sessionIdentifier: string;
 
   @ApiProperty()
   @CreateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP(6)" })
@@ -72,9 +70,9 @@ export class Session {
   })
   updated_at: Date;
 
-  @ApiProperty({ type: () => User })
+  @ApiProperty({ type: () => UserEntity })
   @ManyToOne(
-    () => User,
+    () => UserEntity,
     (user) => user.session,
     {
       onUpdate: "CASCADE",

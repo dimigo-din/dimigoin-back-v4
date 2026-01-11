@@ -1,12 +1,13 @@
-import { Body, Controller, Delete, Get, HttpStatus, Post, Req } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpStatus, Post } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
 
-import { CustomJwtAuthGuard } from "../../../auth/guards";
-import { PermissionGuard } from "../../../auth/guards/permission.guard";
-import { UseGuardsWithSwagger } from "../../../auth/guards/useGuards";
-import { ApiResponseFormat } from "../../../common/dto/response_format.dto";
-import { PermissionEnum } from "../../../common/mapper/permissions";
-import { FrigoApply } from "../../../schemas";
+import { CustomJwtAuthGuard } from "@/auth/guards";
+import { PermissionGuard } from "@/auth/guards/permission.guard";
+import { UseGuardsWithSwagger } from "@/auth/guards/useGuards";
+import { CurrentUser } from "@/common/decorators/user.decorator";
+import { ApiResponseFormat } from "@/common/dto/response_format.dto";
+import { PermissionEnum } from "@/common/mapper/permissions";
+import { FrigoApply, User } from "@/schemas";
 import { ClientFrigoApplyDTO } from "../dto/frigo.dto";
 import { FrigoStudentService } from "../providers";
 
@@ -25,8 +26,8 @@ export class FrigoStudentController {
     type: FrigoApply,
   })
   @Get("/")
-  async getApply(@Req() req) {
-    return await this.frigoService.getApply(req.user);
+  async getApply(@CurrentUser() user: User) {
+    return await this.frigoService.getApply(user);
   }
 
   @ApiOperation({
@@ -38,8 +39,8 @@ export class FrigoStudentController {
     type: FrigoApply,
   })
   @Post("/")
-  async apply(@Req() req, @Body() data: ClientFrigoApplyDTO) {
-    return await this.frigoService.frigoApply(req.user, data);
+  async apply(@CurrentUser() user: User, @Body() data: ClientFrigoApplyDTO) {
+    return await this.frigoService.frigoApply(user, data);
   }
 
   @ApiOperation({
@@ -51,7 +52,7 @@ export class FrigoStudentController {
     type: FrigoApply,
   })
   @Delete("/")
-  async cancel(@Req() req) {
-    return await this.frigoService.cancelApply(req.user);
+  async cancel(@CurrentUser() user: User) {
+    return await this.frigoService.cancelApply(user);
   }
 }

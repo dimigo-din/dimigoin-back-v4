@@ -1,4 +1,6 @@
-import { IsEnum, IsString } from "nestjs-swagger-dto";
+import { ApiProperty } from "@nestjs/swagger";
+import { IsIn } from "class-validator";
+import { IsString } from "nestjs-swagger-dto";
 
 export const deployment = ["prod", "stg", "dev", "test"] as const;
 export type Deployment = (typeof deployment)[number];
@@ -22,11 +24,11 @@ export class ClusterDto {
   })
   description: string;
 
-  @IsEnum({
-    enum: { deployment } as any,
+  @ApiProperty({
     description: "배포 모드",
-    example: deployment[0],
+    example: deployment[0] as string,
   })
+  @IsIn(deployment)
   mode: Deployment;
 
   @IsString({

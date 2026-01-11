@@ -1,15 +1,15 @@
-import { generateRange } from "../utils/staySeat.util";
-import { LaundryTimelineSchedule } from "./types";
-import { LaundryTimelineScheduler } from "../../routes/laundry/schedulers/scheduler.interface";
+import { Type } from "@nestjs/common";
 import {
   EtcScheduler,
   PrimaryScheduler,
   StayScheduler,
-  VacationScheduler
+  VacationScheduler,
 } from "../../routes/laundry/schedulers";
-import { Type } from "@nestjs/common";
+import { LaundryTimelineScheduler } from "../../routes/laundry/schedulers/scheduler.interface";
+import { generateRange } from "../utils/staySeat.util";
+import { LaundryTimelineSchedule } from "./types";
 
-export const StaySeats = [].concat(generateRange(["A1", "L18"]), generateRange(["M1", "N7"]));
+export const StaySeats = generateRange(["A1", "L18"]).concat(generateRange(["M1", "N7"]));
 
 export const ACCESS_TOKEN_COOKIE = "access-token";
 export const REFRESH_TOKEN_COOKIE = "refresh-token";
@@ -28,7 +28,10 @@ export const Allowed_Image_Signatures = [
 export const SelfDevelopment_Outing_From = (date: string) => `${date}T10:20:00.000+09:00`;
 export const SelfDevelopment_Outing_To = (date: string) => `${date}T14:00:00.000+09:00`;
 
-export const LaundrySchedulePriority: { schedule: LaundryTimelineSchedule, scheduler: Type<LaundryTimelineScheduler> }[] = [
+export const LaundrySchedulePriority: {
+  schedule: LaundryTimelineSchedule;
+  scheduler: Type<LaundryTimelineScheduler>;
+}[] = [
   { schedule: "etc", scheduler: EtcScheduler },
   { schedule: "vacation", scheduler: VacationScheduler },
   { schedule: "stay", scheduler: StayScheduler },

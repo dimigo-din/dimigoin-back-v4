@@ -1,31 +1,20 @@
-import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { isEqual, parseISO } from "date-fns";
-import { FindOneOptions, LessThanOrEqual, MoreThanOrEqual, Repository } from "typeorm";
+import { isEqual } from "date-fns";
+import { LessThanOrEqual, MoreThanOrEqual, Repository } from "typeorm";
 
-import {
-  SelfDevelopment_Outing_From,
-  SelfDevelopment_Outing_To,
-} from "../../../common/mapper/constants";
-import { ErrorMsg } from "../../../common/mapper/error";
-import { Gender, Grade, UserJWT } from "../../../common/mapper/types";
-import { safeFindOne } from "../../../common/utils/safeFindOne.util";
-import { isInRange } from "../../../common/utils/staySeat.util";
-import {
-  Stay,
-  StayApply,
-  StayOuting,
-  StaySeatPreset,
-  User,
-  StayApplyPeriod_Stay,
-} from "../../../schemas";
+import { SelfDevelopment_Outing_From, SelfDevelopment_Outing_To } from "@/common/mapper/constants";
+import { ErrorMsg } from "@/common/mapper/error";
+import type { Gender, Grade, UserJWT } from "@/common/mapper/types";
+import { safeFindOne } from "@/common/utils/safeFindOne.util";
+import { isInRange } from "@/common/utils/staySeat.util";
+import { Stay, StayApply, StayApplyPeriod_Stay, StayOuting, StaySeatPreset, User } from "@/schemas";
 import { UserManageService } from "../../user/providers";
 import {
   AddStayOutingDTO,
   CreateUserStayApplyDTO,
   EditStayOutingDTO,
   GetStayListDTO,
-  StayApplyIdDTO,
   StayIdDTO,
   StayOutingIdDTO,
 } from "../dto/stay.student.dto";
@@ -45,8 +34,8 @@ export class StayStudentService {
   ) {}
 
   // just give all stay?
-  async getStayList(user: UserJWT, data: GetStayListDTO) {
-    const now = new Date().toISOString();
+  async getStayList(user: UserJWT, _data: GetStayListDTO) {
+    const _now = new Date().toISOString();
 
     const stays = await this.stayRepository
       .createQueryBuilder("stay")
@@ -116,7 +105,9 @@ export class StayStudentService {
     const exists = await this.stayApplyRepository.findOne({
       where: { user: target, stay: { id: data.stay } },
     });
-    if (exists) throw new HttpException(ErrorMsg.Stay_AlreadyApplied(), HttpStatus.BAD_REQUEST);
+    if (exists) {
+      throw new HttpException(ErrorMsg.Stay_AlreadyApplied(), HttpStatus.BAD_REQUEST);
+    }
 
     const staySeatCheck = await this.stayApplyRepository.findOne({
       where: { stay_seat: data.stay_seat.toUpperCase(), stay: { id: data.stay } },
@@ -125,8 +116,9 @@ export class StayStudentService {
       staySeatCheck &&
       (isInRange(["A1", "L18"], staySeatCheck.stay_seat) ||
         isInRange(["M1", "N18"], staySeatCheck.stay_seat))
-    )
+    ) {
       throw new HttpException(ErrorMsg.StaySeat_Duplication(), HttpStatus.BAD_REQUEST);
+    }
 
     if (
       !(await this.isAvailableSeat(
@@ -136,8 +128,9 @@ export class StayStudentService {
         data.grade,
         data.gender,
       ))
-    )
+    ) {
       throw new HttpException(ErrorMsg.StaySeat_NotAllowed(), HttpStatus.BAD_REQUEST);
+    }
 
     const stayApply = new StayApply();
     stayApply.stay_seat = data.stay_seat.toUpperCase();
@@ -180,8 +173,9 @@ export class StayStudentService {
       where: { user: dbUser, stay: { id: data.stay } },
       relations: { stay: true },
     });
-    if (stayApply.user.id !== user.id)
+    if (stayApply.user.id !== user.id) {
       throw new HttpException(ErrorMsg.PermissionDenied_Resource(), HttpStatus.FORBIDDEN);
+    }
 
     if (!(await this.validateStayPeriod(user, data.grade, stayApply.stay.stay_apply_period))) {
       throw new HttpException(ErrorMsg.Stay_NotInApplyPeriod(), HttpStatus.FORBIDDEN);
@@ -195,8 +189,9 @@ export class StayStudentService {
       staySeatCheck.id !== stayApply.id &&
       (isInRange(["A1", "L18"], staySeatCheck.stay_seat) ||
         isInRange(["M1", "N18"], staySeatCheck.stay_seat))
-    )
+    ) {
       throw new HttpException(ErrorMsg.StaySeat_Duplication(), HttpStatus.BAD_REQUEST);
+    }
 
     if (
       !(await this.isAvailableSeat(
@@ -206,8 +201,9 @@ export class StayStudentService {
         data.grade,
         data.gender,
       ))
-    )
+    ) {
       throw new HttpException(ErrorMsg.StaySeat_NotAllowed(), HttpStatus.BAD_REQUEST);
+    }
 
     stayApply.stay_seat = data.stay_seat.toUpperCase();
     stayApply.user = dbUser;
@@ -246,19 +242,23 @@ export class StayStudentService {
   }
 
   async deleteStayApply(user: UserJWT, data: StayIdDTO) {
-    const now = new Date();
+    const _now = new Date();
 
     const stayApply = await this.stayApplyRepository.findOne({
       where: { id: data.id },
       relations: ["stay", "stay.stay_apply_period"],
     });
-    if (!stayApply) throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
+    if (!stayApply) {
+      throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
+    }
 
-    if (stayApply.user.id !== user.id)
+    if (stayApply.user.id !== user.id) {
       throw new HttpException(ErrorMsg.PermissionDenied_Resource(), HttpStatus.FORBIDDEN);
+    }
 
-    if (!(await this.userManageService.checkUserDetail(user.email, { grade: data.grade })))
+    if (!(await this.userManageService.checkUserDetail(user.email, { grade: data.grade }))) {
       throw new HttpException(ErrorMsg.PermissionDenied_Resource(), HttpStatus.FORBIDDEN);
+    }
 
     if (!(await this.validateStayPeriod(user, data.grade, stayApply.stay.stay_apply_period))) {
       throw new HttpException(ErrorMsg.Stay_NotInApplyPeriod(), HttpStatus.FORBIDDEN);
@@ -288,10 +288,9 @@ export class StayStudentService {
     if (!(await this.validateStayPeriod(user, data.grade, apply.stay.stay_apply_period))) {
       throw new HttpException(ErrorMsg.Stay_NotInApplyPeriod(), HttpStatus.FORBIDDEN);
     }
-
-    console.log(apply.user.id);
-    if (apply.user.id !== target.id)
+    if (apply.user.id !== target.id) {
       throw new HttpException(ErrorMsg.PermissionDenied_Resource(), HttpStatus.FORBIDDEN);
+    }
 
     const outing = new StayOuting();
     outing.reason = data.outing.reason;
@@ -329,10 +328,12 @@ export class StayStudentService {
       relations: { stay_apply: { user: true, stay: { stay_apply_period: true } } },
       loadEagerRelations: false,
     });
-
-    console.log(outing.stay_apply.user.id);
-    if (outing.stay_apply.user.id !== target.id)
+    if (!outing) {
+      throw new NotFoundException("Stay outing not found");
+    }
+    if (outing.stay_apply.user.id !== target.id) {
       throw new HttpException(ErrorMsg.PermissionDenied_Resource(), HttpStatus.FORBIDDEN);
+    }
 
     // verification period
     if (
@@ -375,10 +376,9 @@ export class StayStudentService {
       relations: { stay_apply: { user: true, stay: { stay_apply_period: true } } },
       loadEagerRelations: false,
     });
-
-    console.log(outing.stay_apply.user.id);
-    if (outing.stay_apply.user.id !== target.id)
+    if (outing.stay_apply.user.id !== target.id) {
       throw new HttpException(ErrorMsg.PermissionDenied_Resource(), HttpStatus.FORBIDDEN);
+    }
 
     if (
       !(await this.validateStayPeriod(user, data.grade, outing.stay_apply.stay.stay_apply_period))
@@ -389,13 +389,16 @@ export class StayStudentService {
   }
 
   // pass if only_readingRoom false, pass if it's true and seat is in available range
-  private async isAvailableSeat(
+  async isAvailableSeat(
     user: UserJWT,
     preset: StaySeatPreset,
     target: string,
     grade: Grade,
     gender: Gender,
   ) {
+    if (!preset || !preset.stay_seat || preset.stay_seat.length === 0) {
+      return await this.userManageService.checkUserDetail(user.email, { gender, grade });
+    }
     return (
       preset.stay_seat
         .filter((stay_seat) => stay_seat.target === `${grade}_${gender}`)
@@ -431,8 +434,9 @@ export class StayStudentService {
 
     if (!isSame) {
       const success = await this.userManageService.checkUserDetail(user.email, { grade: grade });
-      if (!success)
+      if (!success) {
         throw new HttpException(ErrorMsg.PermissionDenied_Resource_Grade(), HttpStatus.FORBIDDEN);
+      }
     }
 
     const now = new Date();

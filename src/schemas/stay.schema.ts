@@ -2,17 +2,17 @@ import { ApiProperty } from "@nestjs/swagger";
 import {
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   Entity,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
-  DeleteDateColumn,
   Unique,
 } from "typeorm";
 
-import { Grade, StaySeatTargets } from "../common/mapper/types";
-
-import { User } from "./user.schema";
+import { type Grade, StaySeatMappingValues, type StaySeatTargets } from "../common/mapper/types";
+import type { User } from "./user.schema";
+import { User as UserEntity } from "./user.schema";
 
 // I think my schema naming is like shit.
 // someone who have better idea, plz improve these shits
@@ -53,7 +53,7 @@ export class StaySeatPresetRange {
   id: string;
 
   @ApiProperty()
-  @Column()
+  @Column({ type: "enum", enum: StaySeatMappingValues })
   target: StaySeatTargets;
 
   @ApiProperty()
@@ -312,9 +312,9 @@ export class StayApply {
   )
   outing: StayOuting[];
 
-  @ApiProperty({ type: () => User })
+  @ApiProperty({ type: () => UserEntity })
   @ManyToOne(
-    () => User,
+    () => UserEntity,
     (user) => user.stay_apply,
     {
       onUpdate: "CASCADE",
@@ -362,11 +362,11 @@ export class StayOuting {
 
   @ApiProperty({ nullable: true })
   @Column("boolean", { nullable: true })
-  approved?: boolean;
+  approved: boolean | null;
 
   @ApiProperty({ nullable: true })
   @Column("varchar", { nullable: true })
-  audit_reason?: string;
+  audit_reason: string | null;
 
   @ManyToOne(
     () => StayApply,

@@ -14,6 +14,8 @@ export const safeFindOne = async <T extends IdTable>(
     typeof condition === "string"
       ? await repo.findOne({ where: { id: condition } } as FindOneOptions<T>)
       : await repo.findOne(condition);
-  if (!result) throw error;
+  if (!result) {
+    throw error;
+  }
   return result;
 };

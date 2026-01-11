@@ -3,23 +3,20 @@ import { InjectRepository, TypeOrmModule } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 
 import { PermissionValidator, Session, User } from "../../schemas";
+import { LaundrySchedulePriority } from "../mapper/constants";
 import {
   NumberedPermissionGroupsEnum,
   PermissionEnum,
   PermissionType,
 } from "../mapper/permissions";
-import { deepObjectCompare } from "../utils/compare.util";
-import { numberPermission, parsePermission } from "../utils/permission.util";
 import { LaundryTimelineSchedulerValues } from "../mapper/types";
-import { LaundrySchedulePriority } from "../mapper/constants";
+import { numberPermission, parsePermission } from "../utils/permission.util";
 
 @Injectable()
 export class ValidationService {
   private logger = new Logger(ValidationModule.name);
 
   constructor(
-    @InjectRepository(Session)
-    private readonly sessionRepository: Repository<Session>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     @InjectRepository(PermissionValidator)
@@ -33,7 +30,7 @@ export class ValidationService {
       savedPermissionMappings
         .filter((v) => v.type === "permission")
         .sort()
-        .map((v) => [v.key, parseInt(v.value as unknown as string)]),
+        .map((v) => [v.key, parseInt(v.value as unknown as string, 10)]),
     ) as {
       [K in PermissionType]: number;
     };
@@ -41,14 +38,14 @@ export class ValidationService {
       savedPermissionMappings
         .filter((v) => v.type === "permission_group")
         .sort()
-        .map((v) => [v.key, parseInt(v.value as unknown as string)]),
+        .map((v) => [v.key, parseInt(v.value as unknown as string, 10)]),
     ) as {
-      [K in PermissionType]: number;
+      [key: string]: number;
     };
 
     if (
-      deepObjectCompare(PermissionEnum, fixedPermissionMappings) &&
-      deepObjectCompare(NumberedPermissionGroupsEnum, fixedPermissionGroupMappings)
+      Bun.deepEquals(PermissionEnum, fixedPermissionMappings) &&
+      Bun.deepEquals(NumberedPermissionGroupsEnum, fixedPermissionGroupMappings)
     ) {
       this.logger.log("Permission validation successful - no changes");
       return;
@@ -66,14 +63,18 @@ export class ValidationService {
     );
     const groupUsers = users
       .filter((u) =>
-        Object.values(deprecatedPermissionGroups).some((dpg) => dpg.toString() === u.permission),
+        Object.values(deprecatedPermissionGroups).some((dpg) => dpg?.toString() === u.permission),
       )
       .map((u) => {
         users.splice(users.indexOf(u), 1);
         const groupName = Object.entries(deprecatedPermissionGroups).find(
-          (v) => v[1].toString() === u.permission,
-        )[0];
-        u.permission = NumberedPermissionGroupsEnum[groupName].toString();
+          (v) => v[1]?.toString() === u.permission,
+        )?.[0];
+        if (!groupName) {
+          exceptions.push(u);
+          return u;
+        }
+        u.permission = NumberedPermissionGroupsEnum[groupName]?.toString() ?? u.permission;
         return u;
       });
 
@@ -81,13 +82,15 @@ export class ValidationService {
 
     this.logger.log("Individual Permission migration: ");
 
-    const exceptions = [];
+    const exceptions: User[] = [];
     users = users.map((user) => {
-      const permissions = parsePermission(parseInt(user.permission), fixedPermissionMappings);
+      const permissions = parsePermission(parseInt(user.permission, 10), fixedPermissionMappings);
 
-      const newPermissions = [];
+      const newPermissions: number[] = [];
       permissions.forEach((permission) => {
-        if (exceptions.includes(user)) return;
+        if (exceptions.includes(user)) {
+          return;
+        }
         if (!PermissionEnum[permission]) {
           exceptions.push(user);
           return;
@@ -113,7 +116,7 @@ export class ValidationService {
     // Commit changes
     this.logger.log("Commiting changes:");
 
-    users = [].concat(groupUsers, users);
+    users = groupUsers.concat(users);
     await this.userRepository.save(users);
 
     await this.permissionValidatorRepository.clear();
@@ -123,14 +126,14 @@ export class ValidationService {
       const permission = new PermissionValidator();
       permission.type = "permission";
       permission.key = K;
-      permission.value = PermissionEnum[K];
+      permission.value = PermissionEnum[K as PermissionType].toString();
       permissions.push(permission);
     });
     Object.keys(NumberedPermissionGroupsEnum).forEach((pg) => {
       const permissionGroup = new PermissionValidator();
       permissionGroup.type = "permission_group";
       permissionGroup.key = pg;
-      permissionGroup.value = NumberedPermissionGroupsEnum[pg].toString();
+      permissionGroup.value = NumberedPermissionGroupsEnum[pg]?.toString() ?? pg;
       permissions.push(permissionGroup);
     });
 
@@ -146,10 +149,12 @@ export class ValidationService {
     this.logger.log("NOP");
   }
 
-  async validateLaundrySchedulePriority(){
-    for (let schedule of LaundryTimelineSchedulerValues) {
+  async validateLaundrySchedulePriority() {
+    for (const schedule of LaundryTimelineSchedulerValues) {
       if (!LaundrySchedulePriority.some((s) => s.schedule === schedule)) {
-        throw new Error(`There is an unlisted LaundryTimelineScheduler value on LaundrySchedule Priority. ${schedule}`);
+        throw new Error(
+          `There is an unlisted LaundryTimelineScheduler value on LaundrySchedule Priority. ${schedule}`,
+        );
       }
     }
 

@@ -8,9 +8,13 @@ import {
   PrimaryGeneratedColumn,
 } from "typeorm";
 
-import { FacilityReportStatus, FacilityReportType } from "../common/mapper/types";
-
-import { User } from "./user.schema";
+import {
+  type FacilityReportStatus,
+  type FacilityReportType,
+  FacilityReportTypeValues,
+} from "../common/mapper/types";
+import type { User } from "./user.schema";
+import { User as UserEntity } from "./user.schema";
 
 @Entity()
 export class FacilityReport {
@@ -23,7 +27,7 @@ export class FacilityReport {
   status: FacilityReportStatus;
 
   @ApiProperty()
-  @Column()
+  @Column({ type: "enum", enum: FacilityReportTypeValues })
   report_type: FacilityReportType;
 
   @ApiProperty()
@@ -56,7 +60,7 @@ export class FacilityReport {
   file: FacilityImg[];
 
   @ManyToOne(
-    () => User,
+    () => UserEntity,
     (user) => user.facilityReport,
     {
       onUpdate: "CASCADE",
@@ -108,7 +112,7 @@ export class FacilityReportComment {
     onUpdate: "CASCADE",
     onDelete: "CASCADE",
   })
-  comment_parent?: FacilityReportComment;
+  comment_parent: FacilityReportComment | null;
 
   @ApiProperty({ type: () => FacilityReport })
   @ManyToOne(
@@ -125,9 +129,9 @@ export class FacilityReportComment {
   @CreateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP(6)" })
   created_at: Date;
 
-  @ApiProperty({ type: () => User })
+  @ApiProperty({ type: () => UserEntity })
   @ManyToOne(
-    () => User,
+    () => UserEntity,
     (user) => user.facilityReportComment,
   )
   user: User;

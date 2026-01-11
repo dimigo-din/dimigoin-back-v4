@@ -1,8 +1,6 @@
-import type { JwtModuleAsyncOptions } from "@nestjs/jwt";
-
-import { Module } from "@nestjs/common";
+import { Global, Module } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { JwtModule } from "@nestjs/jwt";
+import { JwtModule, JwtModuleAsyncOptions } from "@nestjs/jwt";
 
 import { CustomConfigModule } from "./config.module";
 
@@ -19,6 +17,7 @@ export const JWTOptions: JwtModuleAsyncOptions = {
   }),
 };
 
+@Global()
 @Module({
   imports: [JwtModule.registerAsync(JWTOptions)],
   exports: [JwtModule],
