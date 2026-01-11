@@ -12,13 +12,12 @@ import {
   Matches,
   ValidateNested,
 } from "class-validator";
-
 import {
   type Grade,
   GradeValues,
   StaySeatMappingValues,
   type StaySeatTargets,
-} from "@/common/mapper/types";
+} from "$mapper/types";
 
 export class StaySeatPresetIdDTO {
   @ApiProperty()

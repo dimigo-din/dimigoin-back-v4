@@ -1,10 +1,9 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-
-import { ErrorMsg } from "@/common/mapper/error";
-import { WakeupSongHistory } from "@/schemas";
-import { GetDateSongDTO } from "../dto/wakeup.dto";
+import { WakeupSongHistory } from "#/schemas";
+import { ErrorMsg } from "$mapper/error";
+import { GetDateSongDTO } from "~wakeup/dto/wakeup.dto";
 
 @Injectable()
 export class WakeupService {

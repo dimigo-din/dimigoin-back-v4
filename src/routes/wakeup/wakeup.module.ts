@@ -1,16 +1,9 @@
 import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import importToArray from "import-to-array";
-
-import { CustomCacheModule } from "../../common/modules/cache.module";
-import {
-  Login,
-  User,
-  WakeupSongApplication,
-  WakeupSongHistory,
-  WakeupSongVote,
-} from "../../schemas";
-import { UserManageService } from "../user/providers";
+import { Login, User, WakeupSongApplication, WakeupSongHistory, WakeupSongVote } from "#/schemas";
+import { CustomCacheModule } from "$modules/cache.module";
+import { UserManageService } from "~user/providers";
 
 import * as controllers from "./controllers";
 import * as providers from "./providers";

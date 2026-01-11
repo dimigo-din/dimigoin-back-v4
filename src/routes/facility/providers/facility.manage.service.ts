@@ -2,12 +2,11 @@ import path from "node:path";
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-
-import { ErrorMsg } from "@/common/mapper/error";
-import { UserJWT } from "@/common/mapper/types";
-import { safeFindOne } from "@/common/utils/safeFindOne.util";
-import { FacilityImg, FacilityReport, FacilityReportComment, User } from "@/schemas";
-import { FileDTO } from "../dto/facility.dto";
+import { FacilityImg, FacilityReport, FacilityReportComment, User } from "#/schemas";
+import { ErrorMsg } from "$mapper/error";
+import { UserJWT } from "$mapper/types";
+import { safeFindOne } from "$utils/safeFindOne.util";
+import { FileDTO } from "~facility/dto/facility.dto";
 import {
   ChangeFacilityReportStatusDTO,
   ChangeFacilityReportTypeDTO,
@@ -17,7 +16,7 @@ import {
   GetReportListDTO,
   PostCommentDTO,
   ReportFacilityDTO,
-} from "../dto/facility.manage.dto";
+} from "~facility/dto/facility.manage.dto";
 
 @Injectable()
 export class FacilityManageService {

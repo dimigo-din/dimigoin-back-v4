@@ -8,8 +8,7 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from "typeorm";
-
-import { type Gender, GenderValues } from "../common/mapper/types";
+import { type Gender, GenderValues } from "$mapper/types";
 import type { User } from "./user.schema";
 import { User as UserEntity } from "./user.schema";
 

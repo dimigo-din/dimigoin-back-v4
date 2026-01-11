@@ -2,16 +2,15 @@ import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { format, startOfWeek } from "date-fns";
 import { Repository } from "typeorm";
-
-import { safeFindOne } from "@/common/utils/safeFindOne.util";
-import { FrigoApply, FrigoApplyPeriod, User } from "@/schemas";
+import { FrigoApply, FrigoApplyPeriod, User } from "#/schemas";
+import { safeFindOne } from "$utils/safeFindOne.util";
 import {
   AuditFrigoApply,
   FrigoApplyDTO,
   FrigoApplyIdDTO,
   FrigoApplyPeriodIdDTO,
   SetFrigoApplyPeriodDTO,
-} from "../dto/frigo.manage.dto";
+} from "~frigo/dto/frigo.manage.dto";
 
 @Injectable()
 export class FrigoManageService {

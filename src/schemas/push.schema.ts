@@ -8,11 +8,10 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from "typeorm";
-
 import {
   type PushNotificationSubjectIdentifier,
   PushNotificationSubjectIdentifierValues,
-} from "../common/mapper/types";
+} from "$mapper/types";
 import type { User } from "./user.schema";
 import { User as UserEntity } from "./user.schema";
 

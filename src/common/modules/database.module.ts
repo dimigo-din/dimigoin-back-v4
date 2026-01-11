@@ -2,10 +2,9 @@ import { Module } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { TypeOrmModule, TypeOrmModuleAsyncOptions } from "@nestjs/typeorm";
 import importToArray from "import-to-array";
+import * as entities from "#/schemas";
 
-import * as entities from "src/schemas";
-
-import { CustomConfigModule } from "./config.module";
+import { CustomConfigModule } from "$modules/config.module";
 
 const typeOrmModuleOptions: TypeOrmModuleAsyncOptions = {
   imports: [CustomConfigModule],

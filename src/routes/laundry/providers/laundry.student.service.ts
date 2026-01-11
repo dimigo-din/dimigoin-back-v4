@@ -3,13 +3,12 @@ import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { addHours, format, isAfter, startOfDay } from "date-fns";
 import { Repository } from "typeorm";
-
-import { ErrorMsg } from "@/common/mapper/error";
-import type { Grade, UserJWT } from "@/common/mapper/types";
-import { safeFindOne } from "@/common/utils/safeFindOne.util";
-import { LaundryApply, LaundryMachine, LaundryTime, LaundryTimeline, User } from "@/schemas";
-import { UserManageService } from "../../user/providers";
-import { LaundryApplyDTO, LaundryApplyIdDTO } from "../dto/laundry.student.dto";
+import { LaundryApply, LaundryMachine, LaundryTime, LaundryTimeline, User } from "#/schemas";
+import { ErrorMsg } from "$mapper/error";
+import type { Grade, UserJWT } from "$mapper/types";
+import { safeFindOne } from "$utils/safeFindOne.util";
+import { LaundryApplyDTO, LaundryApplyIdDTO } from "~laundry/dto/laundry.student.dto";
+import { UserManageService } from "~user/providers";
 
 @Injectable()
 export class LaundryStudentService {

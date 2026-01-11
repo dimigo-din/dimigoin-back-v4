@@ -12,14 +12,13 @@ import {
 } from "@nestjs/common";
 import { ApiBody, ApiConsumes, ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 import type { FastifyReply } from "fastify";
-
-import { CustomJwtAuthGuard } from "@/auth/guards";
-import { PermissionGuard } from "@/auth/guards/permission.guard";
-import { UseGuardsWithSwagger } from "@/auth/guards/useGuards";
-import { CurrentUser } from "@/common/decorators/user.decorator";
-import { ApiResponseFormat } from "@/common/dto/response_format.dto";
-import { PermissionEnum } from "@/common/mapper/permissions";
-import { FacilityReport, FacilityReportComment, User } from "@/schemas";
+import { FacilityReport, FacilityReportComment, User } from "#/schemas";
+import { CustomJwtAuthGuard } from "#auth/guards";
+import { PermissionGuard } from "#auth/guards/permission.guard";
+import { UseGuardsWithSwagger } from "#auth/guards/useGuards";
+import { CurrentUser } from "$decorators/user.decorator";
+import { ApiResponseFormat } from "$dto/response_format.dto";
+import { PermissionEnum } from "$mapper/permissions";
 import {
   FacilityImgIdDTO,
   FacilityReportIdDTO,
@@ -27,9 +26,9 @@ import {
   GetReportListDTO,
   PostCommentDTO,
   ReportFacilityDTO,
-} from "../dto/facility.student.dto";
-import { ImageUploadInterceptor } from "../interceptor/image-upload.interceptor";
-import { FacilityStudentService } from "../providers";
+} from "~facility/dto/facility.student.dto";
+import { ImageUploadInterceptor } from "~facility/interceptor/image-upload.interceptor";
+import { FacilityStudentService } from "~facility/providers";
 
 @ApiTags("Facility Student")
 @Controller("/student/facility")
@@ -49,7 +48,7 @@ export class FacilityStudentController {
   async getImg(@Res() res: FastifyReply, @Query() data: FacilityImgIdDTO) {
     const result = await this.facilityService.getImg(data);
 
-    res.header("Content-Disposition", `attachment; filename="${result.filename}"`);
+    res.header("Content-Disposition", `attachment; filename="#{result.filename}"`);
     return res.send(result.stream);
   }
 

@@ -1,12 +1,11 @@
 import { Body, Controller, Delete, Get, HttpStatus, Patch, Post, Query } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
-
-import { CustomJwtAuthGuard } from "@/auth/guards";
-import { PermissionGuard } from "@/auth/guards/permission.guard";
-import { UseGuardsWithSwagger } from "@/auth/guards/useGuards";
-import { ApiResponseFormat } from "@/common/dto/response_format.dto";
-import { PermissionEnum } from "@/common/mapper/permissions";
-import { LaundryApply, LaundryMachine, LaundryTimeline } from "@/schemas";
+import { LaundryApply, LaundryMachine, LaundryTimeline } from "#/schemas";
+import { CustomJwtAuthGuard } from "#auth/guards";
+import { PermissionGuard } from "#auth/guards/permission.guard";
+import { UseGuardsWithSwagger } from "#auth/guards/useGuards";
+import { ApiResponseFormat } from "$dto/response_format.dto";
+import { PermissionEnum } from "$mapper/permissions";
 import {
   CreateLaundryApplyDTO,
   CreateLaundryMachineDTO,
@@ -18,8 +17,8 @@ import {
   UpdateLaundryApplyDTO,
   UpdateLaundryMachineDTO,
   UpdateLaundryTimelineDTO,
-} from "../dto/laundry.manage.dto";
-import { LaundryManageService } from "../providers";
+} from "~laundry/dto/laundry.manage.dto";
+import { LaundryManageService } from "~laundry/providers";
 
 @ApiTags("Laundry Manage")
 @Controller("/manage/laundry")

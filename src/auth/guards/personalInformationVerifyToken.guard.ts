@@ -1,8 +1,7 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { FastifyRequest } from "fastify";
-
-import { CacheService } from "../../common/modules/cache.module";
+import { CacheService } from "$modules/cache.module";
 
 @Injectable()
 export class PersonalInformationVerifyTokenAuthGuard implements CanActivate {

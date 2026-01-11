@@ -1,19 +1,19 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
+import { PushSubject, PushSubscription, User } from "#/schemas";
 import {
   PushNotificationSubject,
   PushNotificationSubjectIdentifierValues,
   UserJWT,
-} from "@/common/mapper/types";
-import { safeFindOne } from "@/common/utils/safeFindOne.util";
-import { PushSubject, PushSubscription, User } from "@/schemas";
+} from "$mapper/types";
+import { safeFindOne } from "$utils/safeFindOne.util";
 import {
   CreateFCMTokenDTO,
   DeleteFCMTokenDTO,
   GetSubscribedSubjectDTO,
   SetSubscribeSubjectDTO,
-} from "../dto/push.student.dto";
+} from "~push/dto/push.student.dto";
 
 @Injectable()
 export class PushStudentService {

@@ -2,17 +2,17 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Like, Repository } from "typeorm";
-import { PermissionType } from "@/common/mapper/permissions";
-import type { Grade } from "@/common/mapper/types";
-import { numberPermission, parsePermission } from "@/common/utils/permission.util";
-import { Login, User } from "@/schemas";
+import { Login, User } from "#/schemas";
+import { PermissionType } from "$mapper/permissions";
+import type { Grade } from "$mapper/types";
+import { numberPermission, parsePermission } from "$utils/permission.util";
 import {
   AddPermissionDTO,
   CreateUserDTO,
   RemovePermissionDTO,
   SearchUserDTO,
   SetPermissionDTO,
-} from "../dto";
+} from "~user/dto";
 
 // this chuck of code need to be refactored
 @Injectable()

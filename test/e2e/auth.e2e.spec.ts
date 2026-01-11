@@ -1,9 +1,8 @@
 import { afterAll, beforeAll, describe, expect, mock, test } from "bun:test";
 import { HttpStatus } from "@nestjs/common";
-
-import { JWTResponse } from "@/auth/auth.dto";
-import { AuthService } from "@/auth/auth.service";
-import { E2EContext, setupE2EContext } from "../helpers";
+import { JWTResponse } from "#auth/auth.dto";
+import { AuthService } from "#auth/auth.service";
+import { E2EContext, setupE2EContext } from "#test/helpers";
 
 describe("Auth E2E", () => {
   let ctx: E2EContext;
@@ -96,7 +95,7 @@ describe("Auth E2E", () => {
   describe("POST /auth/login/password", () => {
     test("should login with valid credentials and set cookies", async () => {
       const response = await ctx.request.post("/auth/login/password", {
-        email: "student@test.com",
+        email: "student$test.com",
         password: "test-password",
       });
 
@@ -154,7 +153,7 @@ describe("Auth E2E", () => {
   describe("POST /auth/refresh", () => {
     test("should refresh tokens using cookie header", async () => {
       const login = await ctx.request.post("/auth/login/password", {
-        email: "student@test.com",
+        email: "student$test.com",
         password: "test-password",
       });
       const cookies = login.headers["set-cookie"];
@@ -284,7 +283,7 @@ describe("Auth E2E", () => {
       expect(response.statusCode).toBe(HttpStatus.CREATED);
       const body = ctx.request.parseBody<{ ok: boolean; data: string }>(response);
       expect(body.ok).toBe(true);
-      expect(body.data).toBe("student@test.com");
+      expect(body.data).toBe("student$test.com");
     });
   });
 

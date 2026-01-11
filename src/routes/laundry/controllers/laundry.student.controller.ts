@@ -1,16 +1,15 @@
-import { Body, Controller, Delete, Get, HttpStatus, Post, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpStatus, Post, Query } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
-import { CurrentUser } from "src/common/decorators/user.decorator";
-import { User } from "@/schemas";
-import { AppCheckGuard, CustomJwtAuthGuard } from "../../../auth/guards";
-import { PermissionGuard } from "../../../auth/guards/permission.guard";
-import { UseGuardsWithSwagger } from "../../../auth/guards/useGuards";
-import { ApiResponseFormat } from "../../../common/dto/response_format.dto";
-import { PermissionEnum } from "../../../common/mapper/permissions";
-import { LaundryApply, LaundryTimeline } from "../../../schemas";
-import { LaundryApplyIdDTO } from "../dto/laundry.manage.dto";
-import { LaundryApplyDTO } from "../dto/laundry.student.dto";
-import { LaundryStudentService } from "../providers/laundry.student.service";
+import { LaundryApply, LaundryTimeline, User } from "#/schemas";
+import { AppCheckGuard, CustomJwtAuthGuard } from "#auth/guards";
+import { PermissionGuard } from "#auth/guards/permission.guard";
+import { UseGuardsWithSwagger, UseGuardWhenProduction } from "#auth/guards/useGuards";
+import { CurrentUser } from "$decorators/user.decorator";
+import { ApiResponseFormat } from "$dto/response_format.dto";
+import { PermissionEnum } from "$mapper/permissions";
+import { LaundryApplyIdDTO } from "~laundry/dto/laundry.manage.dto";
+import { LaundryApplyDTO } from "~laundry/dto/laundry.student.dto";
+import { LaundryStudentService } from "~laundry/providers/laundry.student.service";
 
 @ApiTags("Laundry Student")
 @Controller("/student/laundry")
@@ -53,7 +52,7 @@ export class LaundryStudentController {
     type: LaundryApply,
   })
   @Post("/")
-  @UseGuards(AppCheckGuard)
+  @UseGuardWhenProduction(AppCheckGuard)
   async createApply(@CurrentUser() user: User, @Body() data: LaundryApplyDTO) {
     return await this.laundryService.createApply(user, data);
   }

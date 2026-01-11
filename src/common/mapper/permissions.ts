@@ -1,4 +1,4 @@
-import { numberPermission } from "../utils/permission.util";
+import { numberPermission } from "$utils/permission.util";
 
 export const UserPermissionValues = ["STUDENT", "TEACHER"] as const;
 

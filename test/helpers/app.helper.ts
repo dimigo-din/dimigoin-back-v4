@@ -5,11 +5,11 @@ import { FastifyAdapter, NestFastifyApplication } from "@nestjs/platform-fastify
 import { Test, TestingModule } from "@nestjs/testing";
 import { getRepositoryToken } from "@nestjs/typeorm";
 import importToArray from "import-to-array";
-import { AppModule } from "@/app/app.module";
-import * as interceptors from "@/common/interceptors";
-import { CustomDatabaseModule } from "@/common/modules/database.module";
-import * as entities from "@/schemas";
-import { createMockRepository } from "../mocks/repository";
+import * as entities from "#/schemas";
+import { AppModule } from "#app/app.module";
+import { createMockRepository } from "#test/mocks/repository";
+import * as interceptors from "$/interceptors";
+import { CustomDatabaseModule } from "$modules/database.module";
 
 @Module({})
 class MockDatabaseModule {}

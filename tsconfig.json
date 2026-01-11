@@ -16,9 +16,30 @@
     "verbatimModuleSyntax": false,
     "noEmit": true,
 
-    "baseUrl": "./",
+    "baseUrl": "./src",
     "paths": {
-      "@/*": ["src/*"]
+      "#/*": ["*"],
+      "#app/*": ["app/*"],
+      "#auth/*": ["auth/*"],
+      "#scripts/*": ["scripts/*"],
+      "#test/*": ["../test/*"],
+
+      "$/*": ["common/*"],
+      "$decorators/*": ["common/decorators/*"],
+      "$dto/*": ["common/dto/*"],
+      "$interceptors/*": ["common/interceptors/*"],
+      "$mapper/*": ["common/mapper/*"],
+      "$modules/*": ["common/modules/*"],
+      "$utils/*": ["common/utils/*"],
+
+      "~/*": ["routes/*"],
+      "~facility/*": ["routes/facility/*"],
+      "~frigo/*": ["routes/frigo/*"],
+      "~laundry/*": ["routes/laundry/*"],
+      "~push/*": ["routes/push/*"],
+      "~stay/*": ["routes/stay/*"],
+      "~user/*": ["routes/user/*"],
+      "~wakeup/*": ["routes/wakeup/*"]
     },
 
     "strict": true,

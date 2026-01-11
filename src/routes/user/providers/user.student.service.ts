@@ -2,11 +2,10 @@ import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { format } from "date-fns";
 import { Repository } from "typeorm";
-
-import type { UserJWT } from "../../../common/mapper/types";
-import { safeFindOne } from "../../../common/utils/safeFindOne.util";
-import { LaundryApply, StayApply, User } from "../../../schemas";
-import { ComciData } from "../dto";
+import { LaundryApply, StayApply, User } from "#/schemas";
+import type { UserJWT } from "$mapper/types";
+import { safeFindOne } from "$utils/safeFindOne.util";
+import { ComciData } from "~user/dto";
 
 @Injectable()
 export class UserStudentService {

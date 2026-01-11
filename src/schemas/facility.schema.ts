@@ -7,12 +7,11 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from "typeorm";
-
 import {
   type FacilityReportStatus,
   type FacilityReportType,
   FacilityReportTypeValues,
-} from "../common/mapper/types";
+} from "$mapper/types";
 import type { User } from "./user.schema";
 import { User as UserEntity } from "./user.schema";
 

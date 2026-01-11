@@ -11,7 +11,6 @@ import {
   PrimaryGeneratedColumn,
   Unique,
 } from "typeorm";
-
 import {
   type Gender,
   GenderValues,
@@ -19,7 +18,7 @@ import {
   type LaundryMachineType,
   LaundryMachineTypeValues,
   type LaundryTimelineSchedule,
-} from "../common/mapper/types";
+} from "$mapper/types";
 import type { User } from "./user.schema";
 import { User as UserEntity } from "./user.schema";
 

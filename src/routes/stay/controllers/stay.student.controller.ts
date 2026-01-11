@@ -1,13 +1,12 @@
 import { Body, Controller, Delete, Get, HttpStatus, Patch, Post, Query } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
-
-import { CustomJwtAuthGuard } from "@/auth/guards";
-import { PermissionGuard } from "@/auth/guards/permission.guard";
-import { UseGuardsWithSwagger } from "@/auth/guards/useGuards";
-import { CurrentUser } from "@/common/decorators/user.decorator";
-import { ApiResponseFormat } from "@/common/dto/response_format.dto";
-import { PermissionEnum } from "@/common/mapper/permissions";
-import { Stay, StayApply, StayOuting, User } from "@/schemas";
+import { Stay, StayApply, StayOuting, User } from "#/schemas";
+import { CustomJwtAuthGuard } from "#auth/guards";
+import { PermissionGuard } from "#auth/guards/permission.guard";
+import { UseGuardsWithSwagger } from "#auth/guards/useGuards";
+import { CurrentUser } from "$decorators/user.decorator";
+import { ApiResponseFormat } from "$dto/response_format.dto";
+import { PermissionEnum } from "$mapper/permissions";
 import {
   AddStayOutingDTO,
   CreateUserStayApplyDTO,
@@ -15,8 +14,8 @@ import {
   GetStayListDTO,
   StayIdDTO,
   StayOutingIdDTO,
-} from "../dto/stay.student.dto";
-import { StayStudentService } from "../providers";
+} from "~stay/dto/stay.student.dto";
+import { StayStudentService } from "~stay/providers";
 
 @ApiTags("Stay Student")
 @Controller("/student/stay")

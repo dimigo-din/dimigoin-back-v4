@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { HttpStatus } from "@nestjs/common";
-import { E2EContext, setupE2EContext } from "../helpers";
+import { E2EContext, setupE2EContext } from "#test/helpers";
 
 describe("Laundry Manage E2E", () => {
   let ctx: E2EContext;

@@ -1,9 +1,5 @@
 import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
-
-import {
-  type PermissionValidationType,
-  PermissionValidationTypeValues,
-} from "../common/mapper/types";
+import { type PermissionValidationType, PermissionValidationTypeValues } from "$mapper/types";
 
 @Entity()
 export class PermissionValidator {

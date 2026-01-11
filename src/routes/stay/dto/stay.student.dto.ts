@@ -1,8 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsBoolean, IsDateString, IsIn, IsString, ValidateNested } from "class-validator";
-
-import { type Gender, GenderValues, type Grade, GradeValues } from "@/common/mapper/types";
+import { type Gender, GenderValues, type Grade, GradeValues } from "$mapper/types";
 
 export class StayIdDTO {
   @ApiProperty()

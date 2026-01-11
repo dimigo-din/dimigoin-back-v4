@@ -1,7 +1,6 @@
 import { HttpException, HttpStatus } from "@nestjs/common";
 import { FindOneOptions, Repository } from "typeorm";
-
-import { ErrorMsg } from "../mapper/error";
+import { ErrorMsg } from "$mapper/error";
 
 type IdTable = { id: string };
 

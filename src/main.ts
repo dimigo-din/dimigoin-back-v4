@@ -6,11 +6,11 @@ import { NestFactory } from "@nestjs/core";
 import { FastifyAdapter, NestFastifyApplication } from "@nestjs/platform-fastify";
 import importToArray from "import-to-array";
 
-import { AppModule } from "./app";
-import * as interceptors from "./common/interceptors";
-import { CustomSwaggerSetup } from "./common/modules/swagger.module";
-import { ValidationService } from "./common/modules/validation.module";
-import { ClusterLogger } from "./common/utils/logger.util";
+import { AppModule } from "#/app";
+import * as interceptors from "$/interceptors";
+import { CustomSwaggerSetup } from "$modules/swagger.module";
+import { ValidationService } from "$modules/validation.module";
+import { ClusterLogger } from "$utils/logger.util";
 
 export async function bootstrap(isInit: boolean = true) {
   const logger = new ClusterLogger(isInit);
