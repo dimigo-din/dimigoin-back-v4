@@ -1,0 +1,6 @@
+[test]
+preload = ["./test/setup.ts"]
+
+coverage = true
+coveragePathIgnorePatterns = ["test/**/*", "src/common/mapper/*", "src/schemas/*", "src/**/*.dto.ts"]
+timeout = 10000

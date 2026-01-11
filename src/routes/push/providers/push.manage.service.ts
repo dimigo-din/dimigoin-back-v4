@@ -1,16 +1,16 @@
+import { fcm, fcm_v1 } from "@googleapis/fcm";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { InjectRepository } from "@nestjs/typeorm";
 import { GoogleAuth } from "google-auth-library";
-import { fcm, fcm_v1 } from "@googleapis/fcm";
-import { In, Repository } from "typeorm";
+import { Repository } from "typeorm";
 
 import { safeFindOne } from "../../../common/utils/safeFindOne.util";
 import { PushSubscription, User } from "../../../schemas";
 import {
   GetSubscriptionsByCategoryDTO,
-  GetSubscriptionsByUserDTO,
   GetSubscriptionsByUserAndCategoryDTO,
+  GetSubscriptionsByUserDTO,
   PushNotificationPayloadDTO,
   PushNotificationToSpecificDTO,
 } from "../dto/push.manage.dto";
@@ -28,8 +28,8 @@ export class PushManageService {
     private readonly pushRepository: Repository<PushSubscription>,
     private readonly configService: ConfigService,
   ) {
-    this.projectId = this.configService.get<string>("FIREBASE_PROJECT_ID");
-    let googleAuth = new GoogleAuth({
+    this.projectId = this.configService.get<string>("FIREBASE_PROJECT_ID") ?? "";
+    const googleAuth = new GoogleAuth({
       credentials: {
         client_email: configService.get<string>("FIREBASE_CLIENT_EMAIL"),
         private_key: configService.get<string>("FIREBASE_PRIVATE_KEY")?.replace(/\\n/g, "\n"),
@@ -70,7 +70,7 @@ export class PushManageService {
   }
 
   async sendToSpecificUsers(data: PushNotificationToSpecificDTO) {
-    let targets = await Promise.all(
+    const targets = await Promise.all(
       data.to.map(
         async (id) => await this.getSubscriptionsByUserAndCategory({ id, category: data.category }),
       ),
@@ -84,7 +84,9 @@ export class PushManageService {
   }
 
   private async sendBatch(subscriptions: PushSubscription[], payload: PushNotificationPayloadDTO) {
-    if (!subscriptions.length) return { sent: 0, failed: 0 };
+    if (!subscriptions.length) {
+      return { sent: 0, failed: 0 };
+    }
 
     let sent = 0;
     let failed = 0;
@@ -101,7 +103,9 @@ export class PushManageService {
           sent++;
         } else {
           failed++;
-          await this.doPushFailCleanup(subscriptions[i], r.reason);
+          if (subscriptions[i]) {
+            await this.doPushFailCleanup(subscriptions[i], r.reason);
+          }
         }
       }),
     );
@@ -127,21 +131,26 @@ export class PushManageService {
         },
       });
       return { sent_message: response.data };
-    } catch (error: any) {
-      const statusCode = error.code || error.response?.status || 500;
-      const message = error.message || "Unknown error";
+    } catch (error: unknown) {
+      const statusCode =
+        (error as { code?: number }).code ||
+        (error as { response?: { status?: number } }).response?.status ||
+        500;
+      const message = (error as Error)?.message || "Unknown error";
       throw { statusCode, message };
     }
   }
 
-  private async doPushFailCleanup(subscription: PushSubscription, reason: any) {
-    const code = reason?.statusCode || reason?.body?.statusCode;
+  private async doPushFailCleanup(subscription: PushSubscription, reason: unknown) {
+    const code =
+      (reason as { statusCode?: number })?.statusCode ||
+      (reason as { body?: { statusCode?: number } })?.body?.statusCode;
     if (code === 404 || code === 410) {
       await this.pushRepository.delete({ token: subscription.token });
       this.logger.warn(`Removed dead FCM token: ${subscription.token}`);
     } else {
       this.logger.warn(
-        `Push send failed: ${(subscription.user ?? subscription).id} code=${code ?? "N/A"} msg=${reason?.message ?? reason}`,
+        `Push send failed: ${(subscription.user ?? subscription).id} code=${code ?? "N/A"} msg=${(reason as Error)?.message ?? reason}`,
       );
     }
   }

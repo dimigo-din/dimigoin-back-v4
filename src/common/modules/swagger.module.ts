@@ -1,15 +1,13 @@
-import * as process from "node:process";
-
-import { INestApplication, Logger } from "@nestjs/common";
+import { Logger } from "@nestjs/common";
+import { NestFastifyApplication } from "@nestjs/platform-fastify";
 import { DocumentBuilder, SwaggerCustomOptions, SwaggerModule } from "@nestjs/swagger";
+import { AppService } from "src/app/app.service";
 import { SwaggerTheme, SwaggerThemeNameEnum } from "swagger-themes";
 
-import { AppService } from "src/app/app.service";
-
-export const CustomSwaggerSetup = async (app: INestApplication) => {
+export const CustomSwaggerSetup = async (app: NestFastifyApplication) => {
   const logger = new Logger(CustomSwaggerSetup.name);
 
-  if (process.env.NODE_ENV === "prod") {
+  if (Bun.env.NODE_ENV === "prod") {
     logger.log("Swagger not initializing in production");
     return;
   }
@@ -30,7 +28,6 @@ export const CustomSwaggerSetup = async (app: INestApplication) => {
       },
       "access-token",
     )
-    // .addSecurityRequirements("access-token")
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

@@ -1,15 +1,13 @@
-import * as fs from "node:fs";
-import * as path from "node:path";
-
-import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
+import path from "node:path";
+import { HttpException, HttpStatus, Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 
-import { ErrorMsg } from "../../../common/mapper/error";
-import { UserJWT } from "../../../common/mapper/types";
-import { safeFindOne } from "../../../common/utils/safeFindOne.util";
-import { FacilityImg, FacilityReport, FacilityReportComment, User } from "../../../schemas";
-import { UserManageService } from "../../user/providers";
+import { ErrorMsg } from "@/common/mapper/error";
+import { UserJWT } from "@/common/mapper/types";
+import { safeFindOne } from "@/common/utils/safeFindOne.util";
+import { FacilityImg, FacilityReport, FacilityReportComment, User } from "@/schemas";
+import { FileDTO } from "../dto/facility.dto";
 import {
   FacilityImgIdDTO,
   FacilityReportIdDTO,
@@ -29,14 +27,13 @@ export class FacilityStudentService {
     private readonly facilityReportCommentRepository: Repository<FacilityReportComment>,
     @InjectRepository(FacilityImg)
     private readonly facilityImgRepository: Repository<FacilityImg>,
-    private readonly userManageService: UserManageService,
   ) {}
 
   async getImg(data: FacilityImgIdDTO) {
     const img = await safeFindOne<FacilityImg>(this.facilityImgRepository, data.id);
 
     return {
-      stream: fs.createReadStream(path.join(__dirname, "../upload", img.location)),
+      stream: Bun.file(path.join(process.cwd(), "uploads/facility", img.location)).stream(),
       filename: img.name,
     };
   }
@@ -55,7 +52,7 @@ export class FacilityStudentService {
   }
 
   async getReport(data: FacilityReportIdDTO) {
-    const report: FacilityReport = await this.facilityReportRepository
+    const report = await this.facilityReportRepository
       .createQueryBuilder("report")
       .leftJoinAndSelect("report.comment", "comment")
       .leftJoinAndSelect("report.file", "file")
@@ -65,10 +62,14 @@ export class FacilityStudentService {
       .where("report.id = :id", { id: data.id })
       .getOne();
 
+    if (!report) {
+      throw new NotFoundException("Report not found");
+    }
+
     return report;
   }
 
-  async createReport(user: UserJWT, data: ReportFacilityDTO, files: Array<Express.Multer.File>) {
+  async createReport(user: UserJWT, data: ReportFacilityDTO, files: Array<FileDTO>) {
     const dbUser = await safeFindOne<User>(this.userRepository, user.id);
 
     const facilityReport = new FacilityReport();
@@ -81,11 +82,12 @@ export class FacilityStudentService {
     for (const file of files) {
       const img = new FacilityImg();
       img.name = file.originalname;
-      img.location = file.filename;
+      img.location = file.filename ?? "";
       img.parent = facilityReport;
 
       imgs.push(img);
     }
+    facilityReport.file = imgs;
 
     const saved = await this.facilityReportRepository.save(facilityReport);
     return await safeFindOne<FacilityReport>(this.facilityReportRepository, saved.id);
@@ -101,8 +103,9 @@ export class FacilityStudentService {
           relations: ["parent"],
         })
       : null;
-    if (parentComment && parentComment.parent.id !== data.post)
+    if (parentComment && parentComment.parent.id !== data.post) {
       throw new HttpException(ErrorMsg.Invalid_Parent(), HttpStatus.BAD_REQUEST);
+    }
 
     const comment = new FacilityReportComment();
     comment.parent = post;

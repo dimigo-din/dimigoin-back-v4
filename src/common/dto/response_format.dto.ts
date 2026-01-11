@@ -1,8 +1,8 @@
 import { applyDecorators, Type } from "@nestjs/common";
-import { ApiProperty, ApiExtraModels, ApiResponse } from "@nestjs/swagger";
+import { ApiExtraModels, ApiProperty, ApiResponse } from "@nestjs/swagger";
 
 export function ApiResponseFormat<
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+  // biome-ignore lint/complexity/noBannedTypes: helper function
   TModel extends Type<unknown> | Function | [Function] | string,
 >(options: {
   status: number | "default" | "1XX" | "2XX" | "3XX" | "4XX" | "5XX";

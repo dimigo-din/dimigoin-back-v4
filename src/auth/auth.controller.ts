@@ -1,14 +1,12 @@
-import * as process from "node:process";
-
 import { Body, Controller, Get, HttpStatus, Post, Query, Req, Res } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
-
-import { ApiResponseFormat } from "src/common/dto/response_format.dto";
-
+import type { FastifyReply, FastifyRequest } from "fastify";
+import { CurrentUser } from "../common/decorators/user.decorator";
+import { ApiResponseFormat } from "../common/dto/response_format.dto";
 import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE } from "../common/mapper/constants";
 import { PermissionEnum } from "../common/mapper/permissions";
-
+import { User } from "../schemas";
 import {
   GoogleAppLoginDTO,
   GoogleWebLoginDTO,
@@ -16,7 +14,6 @@ import {
   PasswordLoginDTO,
   RedirectUriDTO,
   RefreshTokenDTO,
-  RunPersonalInformationVerifyTokenDTO,
 } from "./auth.dto";
 import { AuthService } from "./auth.service";
 import { CustomJwtAuthGuard } from "./guards";
@@ -51,7 +48,10 @@ export class AuthController {
     type: JWTResponse,
   })
   @Post("/login/password")
-  async passwordLogin(@Res({ passthrough: true }) res, @Body() data: PasswordLoginDTO) {
+  async passwordLogin(
+    @Res({ passthrough: true }) res: FastifyReply,
+    @Body() data: PasswordLoginDTO,
+  ) {
     const token = await this.authService.loginByIdPassword(data.email, data.password);
     this.generateCookie(res, token);
 
@@ -67,7 +67,6 @@ export class AuthController {
   })
   @Get("/login/google")
   async googleLogin(@Query() data: RedirectUriDTO) {
-    // return res.redirect(await this.authService.getGoogleLoginUrl(data));
     return await this.authService.getGoogleLoginUrl(data);
   }
 
@@ -80,11 +79,15 @@ export class AuthController {
     type: JWTResponse,
   })
   @Post("/login/google/callback")
-  async googleWebLoginCallback(@Res({ passthrough: true }) res, @Body() data: GoogleWebLoginDTO) {
+  async googleWebLoginCallback(
+    @Res({ passthrough: true }) res: FastifyReply,
+    @Body() data: GoogleWebLoginDTO,
+  ) {
     const token = await this.authService.loginByGoogle(data.code, null, data.redirect_uri);
     this.generateCookie(res, token);
     return token;
   }
+
   @ApiOperation({
     summary: "로그인 콜백 - 구글 앱 로그인",
     description: "구글 앱 로그인 콜백 엔드포인트입니다.",
@@ -94,7 +97,10 @@ export class AuthController {
     type: JWTResponse,
   })
   @Post("/login/google/callback/app")
-  async googleAppLoginCallback(@Res({ passthrough: true }) res, @Body() data: GoogleAppLoginDTO) {
+  async googleAppLoginCallback(
+    @Res({ passthrough: true }) res: FastifyReply,
+    @Body() data: GoogleAppLoginDTO,
+  ) {
     const token = await this.authService.loginByGoogle(null, data.idToken, null);
     this.generateCookie(res, token);
     return token;
@@ -109,10 +115,14 @@ export class AuthController {
     type: JWTResponse,
   })
   @Post("/refresh")
-  async refreshToken(@Req() req, @Res({ passthrough: true }) res, @Body() data: RefreshTokenDTO) {
-    let token;
+  async refreshToken(
+    @Req() req: FastifyRequest,
+    @Res({ passthrough: true }) res: FastifyReply,
+    @Body() data: RefreshTokenDTO,
+  ) {
+    let token: { accessToken: string; refreshToken: string };
     if (!data || !data.refreshToken) {
-      token = await this.authService.refresh(req.cookies[REFRESH_TOKEN_COOKIE]);
+      token = await this.authService.refresh(req.cookies[REFRESH_TOKEN_COOKIE] ?? "");
       this.generateCookie(res, token);
     } else {
       token = await this.authService.refresh(data.refreshToken);
@@ -129,19 +139,19 @@ export class AuthController {
   })
   @UseGuardsWithSwagger(CustomJwtAuthGuard)
   @Get("/logout")
-  async logout(@Req() req, @Res({ passthrough: true }) res) {
-    await this.authService.logout(req.user);
+  async logout(@CurrentUser() user: User, @Res({ passthrough: true }) res: FastifyReply) {
+    await this.authService.logout(user);
 
-    const sameSite = process.env.NODE_ENV !== "dev" ? "None" : undefined;
+    const sameSite = Bun.env.NODE_ENV !== "dev" ? "none" : "lax";
     const domains =
-      process.env.NODE_ENV !== "dev"
-        ? this.configService.get<string>("ALLOWED_DOMAIN").split(",")
+      Bun.env.NODE_ENV !== "dev"
+        ? (this.configService.get<string>("ALLOWED_DOMAIN")?.split(",") ?? [undefined])
         : [undefined];
-    const secure = process.env.NODE_ENV !== "dev";
+    const secure = Bun.env.NODE_ENV !== "dev";
 
-    res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
-    res.set("Pragma", "no-cache");
-    res.set("Expires", "0");
+    res.header("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+    res.header("Pragma", "no-cache");
+    res.header("Expires", "0");
 
     for (const domain of domains) {
       res.clearCookie(ACCESS_TOKEN_COOKIE, {
@@ -172,8 +182,8 @@ export class AuthController {
   })
   @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.STUDENT]))
   @Get("/personalInformationVerifyToken")
-  async getPersonalInformationVerifyToken(@Req() req) {
-    return await this.authService.generatePersonalInformationVerifyToken(req.user);
+  async getPersonalInformationVerifyToken(@CurrentUser() user: User) {
+    return await this.authService.generatePersonalInformationVerifyToken(user);
   }
 
   @ApiOperation({
@@ -185,37 +195,34 @@ export class AuthController {
   })
   @UseGuardsWithSwagger(PersonalInformationVerifyTokenAuthGuard)
   @Post("/personalInformationVerifyToken")
-  async runPersonalInformationVerifyToken(
-    @Req() req,
-    @Body() data: RunPersonalInformationVerifyTokenDTO,
-  ) {
-    return req.user.email;
+  async runPersonalInformationVerifyToken(@CurrentUser() user: User) {
+    return user.email;
   }
 
-  generateCookie(res: any, token) {
+  generateCookie(res: FastifyReply, token: { accessToken: string; refreshToken: string }) {
     res.clearCookie(ACCESS_TOKEN_COOKIE);
     res.clearCookie(REFRESH_TOKEN_COOKIE);
 
-    const sameSite = process.env.NODE_ENV !== "dev" ? "None" : undefined;
+    const sameSite = Bun.env.NODE_ENV !== "dev" ? "none" : "lax";
     const domains =
-      process.env.NODE_ENV !== "dev"
-        ? this.configService.get<string>("ALLOWED_DOMAIN").split(",")
+      Bun.env.NODE_ENV !== "dev"
+        ? (this.configService.get<string>("ALLOWED_DOMAIN")?.split(",") ?? [undefined])
         : [undefined];
 
     for (const domain of domains) {
-      res.cookie(ACCESS_TOKEN_COOKIE, token.accessToken, {
+      res.setCookie(ACCESS_TOKEN_COOKIE, token.accessToken, {
         path: "/",
-        maxAge: 1000 * 60 * 30,
+        maxAge: 60 * 30,
         httpOnly: true,
-        secure: process.env.NODE_ENV !== "dev",
+        secure: Bun.env.NODE_ENV !== "dev",
         sameSite,
         domain,
       });
-      res.cookie(REFRESH_TOKEN_COOKIE, token.refreshToken, {
+      res.setCookie(REFRESH_TOKEN_COOKIE, token.refreshToken, {
         path: "/",
-        maxAge: 1000 * 60 * 60 * 24 * 30,
+        maxAge: 60 * 60 * 24 * 30,
         httpOnly: true,
-        secure: process.env.NODE_ENV !== "dev",
+        secure: Bun.env.NODE_ENV !== "dev",
         sameSite,
         domain,
       });

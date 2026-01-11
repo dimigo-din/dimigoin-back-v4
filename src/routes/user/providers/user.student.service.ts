@@ -1,12 +1,12 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import axios from "axios";
 import { format } from "date-fns";
 import { Repository } from "typeorm";
 
-import { UserJWT } from "../../../common/mapper/types";
+import type { UserJWT } from "../../../common/mapper/types";
 import { safeFindOne } from "../../../common/utils/safeFindOne.util";
 import { LaundryApply, StayApply, User } from "../../../schemas";
+import { ComciData } from "../dto";
 
 @Injectable()
 export class UserStudentService {
@@ -34,20 +34,17 @@ export class UserStudentService {
     };
   }
 
-  async getTimeTable(grade: number, klass: number, opts: any = {}) {
-    const rawData = (await axios.get("http://comci.net:4082/36179?NzM2MjlfMjkxNzVfMF8x")).data;
-    const data = JSON.parse(rawData.substring(0, rawData.lastIndexOf("}") + 1));
+  async getTimeTable(grade: number, klass: number) {
+    const res = await fetch("http://comci.net:4082/36179?NzM2MjlfMjkxNzVfMF8x");
+    const text = await res.text();
+    const data: ComciData = JSON.parse(text.replace(/\0/g, "")) as ComciData;
 
-    const DIV = data["분리"] ?? 100; // division value (100 or 1000)
-    const subjects = data["자료492"]; // subject array
-    const teachers = data["자료446"]; // teacher array
-    const MAX_P = 8; // 1~8 periods
-    const MAX_D = 5; // Mon~Fri
+    const DIV = data.분리 ?? 100;
+    const MAX_P = 8;
+    const MAX_D = 5;
 
     const table = Array.from({ length: MAX_D }, () =>
-      Array(MAX_P)
-        .fill(null)
-        .map(() => ({ content: "", temp: false })),
+      Array.from({ length: MAX_P }, () => ({ content: "", temp: false })),
     );
 
     const mTh = (mm: number, m2: number) => {
@@ -71,13 +68,12 @@ export class UserStudentService {
       const t = Math.floor(mm / m2);
       if (t >= 1 && t <= 26) {
         const n = t + 64;
-        return String.fromCharCode(n) + "_";
+        return `${String.fromCharCode(n)}_`;
       }
       return "";
     };
 
-    // Q자료 function: undefined check
-    const safeData = (m: any) => {
+    const safeData = (m: unknown) => {
       if (m === undefined) {
         return 0;
       } else {
@@ -86,38 +82,51 @@ export class UserStudentService {
     };
 
     const getGroupCode = (
-      dataObj: any,
+      dataObj: ComciData,
       gradeNum: number,
       classNum: number,
       subjectCode: number,
       dayOfWeek: number,
       period: number,
     ) => {
-      const division = dataObj["분리"] ?? 100;
+      const division = dataObj.분리 ?? 100;
 
-      if (!Array.isArray(dataObj["동시그룹"])) {
+      if (!Array.isArray(dataObj.동시그룹)) {
         return "";
       }
 
-      for (let i = 1; i <= dataObj["동시그룹"][0][0]; i++) {
+      const groupCount = dataObj.동시그룹[0]?.[0] ?? 0;
+
+      for (let i = 1; i <= groupCount; i++) {
         for (let k = 1; k <= 2; k++) {
           let check = 0;
           let currentGroup = 0;
 
-          for (let j = 1; j <= dataObj["동시그룹"][i][0]; j++) {
-            const subject4 = Math.floor(dataObj["동시그룹"][i][j] / 1000);
+          const innerCount = dataObj.동시그룹[i]?.[0] ?? 0;
+
+          for (let j = 1; j <= innerCount; j++) {
+            const groupValue: number | undefined = dataObj.동시그룹[i]?.[j];
+            if (groupValue === undefined) {
+              continue;
+            }
+
+            const subject4 = Math.floor(groupValue / 1000);
             const group2 = Math.floor(subject4 / 1000);
             const subject2 = subject4 - group2 * 1000;
             const teacher = Math.floor(group2 / 100);
             const group = group2 - teacher * 100;
-            const classroom = dataObj["동시그룹"][i][j] - subject4 * 1000;
+            const classroom: number = groupValue - subject4 * 1000;
             const grade2 = Math.floor(classroom / 100);
             const class2 = classroom - grade2 * 100;
-            const subject3 = Math.floor(
-              dataObj["자료147"][grade2][class2][dayOfWeek][period] / division,
-            );
-            const teacher2 =
-              dataObj["자료147"][grade2][class2][dayOfWeek][period] - subject3 * division;
+
+            const rawValue = dataObj.자료147?.[grade2]?.[class2]?.[dayOfWeek]?.[period];
+            if (rawValue === undefined) {
+              check = 0;
+              break;
+            }
+
+            const subject3 = Math.floor(rawValue / division);
+            const teacher2 = rawValue - subject3 * division;
 
             if (k === 1) {
               if (!(subject2 === subject3 && teacher === teacher2)) {
@@ -152,7 +161,7 @@ export class UserStudentService {
           }
           if (check === 1) {
             const n2 = currentGroup + 64;
-            return String.fromCharCode(n2) + "_";
+            return `${String.fromCharCode(n2)}_`;
           }
         }
       }
@@ -161,20 +170,18 @@ export class UserStudentService {
 
     for (let day = 1; day <= MAX_D; day++) {
       for (let per = 1; per <= MAX_P; per++) {
-        const originalData = safeData(
-          (((data["자료481"][grade] || [])[klass] || [])[day] || [])[per],
-        );
-        const dailyData = safeData((((data["자료147"][grade] || [])[klass] || [])[day] || [])[per]);
+        const originalData = safeData(data.자료481?.[grade]?.[klass]?.[day]?.[per]);
+        const dailyData = safeData(data.자료147?.[grade]?.[klass]?.[day]?.[per]) as number;
 
         let classroom = "";
         if (data.강의실 === 1) {
-          const roomInfo = (((data.자료245[grade] || [])[klass] || [])[day] || [])[per];
-          if (roomInfo !== undefined && roomInfo.indexOf("_") > 0) {
+          const roomInfo = data.자료245?.[grade]?.[klass]?.[day]?.[per];
+          if (typeof roomInfo === "string" && roomInfo.indexOf("_") > 0) {
             const roomParts = roomInfo.split("_");
             const roomNumber = Number(roomParts[0]);
-            classroom = roomParts[1];
+            classroom = roomParts[1] ?? "";
             if (roomNumber > 0) {
-              classroom = "\n" + classroom;
+              classroom = `\n${classroom}`;
             } else {
               classroom = "";
             }
@@ -182,6 +189,11 @@ export class UserStudentService {
         }
 
         const isTemp = originalData !== dailyData;
+
+        const row = table[day - 1];
+        if (!row) {
+          continue;
+        }
 
         if (dailyData > 100) {
           let teacherName = "";
@@ -193,8 +205,8 @@ export class UserStudentService {
           timePrefix = mTime(subjectIndex, DIV);
           subjectIndex = subjectIndex % DIV;
 
-          if (teacherIndex < data["자료446"].length) {
-            teacherName = data["자료446"][teacherIndex].substr(0, 2);
+          if (data.자료446 && teacherIndex < data.자료446.length) {
+            teacherName = data.자료446[teacherIndex]?.substr(0, 2) ?? "";
           }
 
           if (timePrefix === "") {
@@ -203,20 +215,20 @@ export class UserStudentService {
             groupPrefix = timePrefix;
           }
 
-          const subject = data["자료492"][subjectIndex] || "";
+          const subject = data.자료492?.[subjectIndex] ?? "";
           const teacher = teacherName;
 
           let result = groupPrefix + subject;
           if (teacher) {
-            result += "\n" + teacher;
+            result += `\n${teacher}`;
           }
           if (classroom) {
             result += classroom;
           }
 
-          table[day - 1][per - 1] = { content: result, temp: isTemp };
+          row[per - 1] = { content: result, temp: isTemp };
         } else {
-          table[day - 1][per - 1] = { content: "", temp: isTemp };
+          row[per - 1] = { content: "", temp: isTemp };
         }
       }
     }

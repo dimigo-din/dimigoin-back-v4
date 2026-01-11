@@ -9,9 +9,9 @@ import {
   PrimaryGeneratedColumn,
 } from "typeorm";
 
-import { Gender } from "../common/mapper/types";
-
-import { User } from "./user.schema";
+import { type Gender, GenderValues } from "../common/mapper/types";
+import type { User } from "./user.schema";
+import { User as UserEntity } from "./user.schema";
 
 @Entity()
 @Index(["video_id", "week"], { unique: true })
@@ -44,7 +44,7 @@ export class WakeupSongApplication {
   week: string;
 
   @ApiProperty()
-  @Column()
+  @Column({ type: "enum", enum: GenderValues })
   gender: Gender;
 
   @OneToMany(
@@ -57,7 +57,7 @@ export class WakeupSongApplication {
   wakeupSongVote: WakeupSongVote[];
 
   @ManyToOne(
-    () => User,
+    () => UserEntity,
     (user) => user.wakeupSongApplication,
     {
       onUpdate: "CASCADE",
@@ -91,7 +91,7 @@ export class WakeupSongVote {
   wakeupSongApplication: WakeupSongApplication;
 
   @ManyToOne(
-    () => User,
+    () => UserEntity,
     (user) => user.wakeupSongVote,
     {
       onUpdate: "CASCADE",
@@ -124,7 +124,7 @@ export class WakeupSongHistory {
   date: string;
 
   @ApiProperty()
-  @Column()
+  @Column({ type: "enum", enum: GenderValues })
   gender: Gender;
 
   @ApiProperty()

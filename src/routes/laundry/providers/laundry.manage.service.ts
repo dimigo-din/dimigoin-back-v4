@@ -1,31 +1,16 @@
+import { TZDate } from "@date-fns/tz";
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
+import { ModuleRef } from "@nestjs/core";
 import { Cron, CronExpression } from "@nestjs/schedule";
 import { InjectRepository } from "@nestjs/typeorm";
-import { format, addMinutes } from "date-fns";
-import { TZDate } from "@date-fns/tz";
-import {
-  FindOneOptions,
-  In,
-  IsNull,
-  LessThanOrEqual,
-  MoreThanOrEqual,
-  Not,
-  Repository,
-} from "typeorm";
-
-import { PushNotificationToSpecificDTO } from "src/routes/push/dto/push.manage.dto";
-
-import { ErrorMsg } from "../../../common/mapper/error";
-import { CacheService } from "../../../common/modules/cache.module";
-import { safeFindOne } from "../../../common/utils/safeFindOne.util";
-import {
-  User,
-  LaundryMachine,
-  LaundryTime,
-  LaundryTimeline,
-  LaundryApply,
-  Stay,
-} from "../../../schemas";
+import { addMinutes, format } from "date-fns";
+import { In, Repository } from "typeorm";
+import { LaundrySchedulePriority } from "@/common/mapper/constants";
+import { ErrorMsg } from "@/common/mapper/error";
+import { CacheService } from "@/common/modules/cache.module";
+import { safeFindOne } from "@/common/utils/safeFindOne.util";
+import { LaundryApply, LaundryMachine, LaundryTime, LaundryTimeline, User } from "@/schemas";
+import { PushNotificationToSpecificDTO } from "../../push/dto/push.manage.dto";
 import { PushManageService } from "../../push/providers";
 import {
   CreateLaundryApplyDTO,
@@ -38,17 +23,13 @@ import {
   UpdateLaundryMachineDTO,
   UpdateLaundryTimelineDTO,
 } from "../dto/laundry.manage.dto";
-import { LaundrySchedulePriority } from "../../../common/mapper/constants";
 import { LaundryTimelineScheduler } from "../schedulers/scheduler.interface";
-import { ModuleRef } from "@nestjs/core";
 
 @Injectable()
 export class LaundryManageService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-    @InjectRepository(Stay)
-    private readonly stayRepository: Repository<Stay>,
     @InjectRepository(LaundryTime)
     private readonly laundryTimeRepository: Repository<LaundryTime>,
     @InjectRepository(LaundryApply)
@@ -57,9 +38,9 @@ export class LaundryManageService {
     private readonly laundryMachineRepository: Repository<LaundryMachine>,
     @InjectRepository(LaundryTimeline)
     private readonly laundryTimelineRepository: Repository<LaundryTimeline>,
-    private readonly pushManageService: PushManageService,
-    private readonly cacheService: CacheService,
-    private readonly moduleRef: ModuleRef,
+    readonly pushManageService: PushManageService,
+    readonly cacheService: CacheService,
+    readonly moduleRef: ModuleRef,
   ) {}
 
   async getLaundryTimelineList() {
@@ -198,17 +179,19 @@ export class LaundryManageService {
     const user = await safeFindOne<User>(this.userRepository, data.user);
 
     const applyExists = await this.laundryApplyRepository.findOne({ where: { user: user } });
-    if (applyExists)
+    if (applyExists) {
       throw new HttpException(
         ErrorMsg.LaundryApply_AlreadyExists(laundryMachine.type === "washer" ? "세탁" : "건조"),
         HttpStatus.BAD_REQUEST,
       );
+    }
 
     const machineTaken = await this.laundryApplyRepository.findOne({
       where: { laundryMachine: laundryMachine },
     });
-    if (machineTaken)
+    if (machineTaken) {
       throw new HttpException(ErrorMsg.LaundryMachine_AlreadyTaken(), HttpStatus.BAD_REQUEST);
+    }
 
     const date = format(new Date(), "yyyy-MM-dd");
 
@@ -253,22 +236,26 @@ export class LaundryManageService {
       );
     };
 
-    for (let schedulerItem of LaundrySchedulePriority) {
-      const scheduler: LaundryTimelineScheduler = this.moduleRef.get(schedulerItem.scheduler, { strict: false });
+    for (const schedulerItem of LaundrySchedulePriority) {
+      const scheduler: LaundryTimelineScheduler = this.moduleRef.get(schedulerItem.scheduler, {
+        strict: false,
+      });
 
       const shouldEnable = await scheduler.evaluate(timelines);
       if (shouldEnable) {
         const target = timelines.filter((t) => t.scheduler === schedulerItem.schedule);
-        if (target.length === 1) { // not a etc
-          if (target[0].enabled === true) // already on
+        if (target.length === 1 && target[0]) {
+          // not a etc
+          if (target[0].enabled === true) {
+            // already on
             break; // keep it.
-          else {
+          } else {
             await disable();
             target[0].enabled = true;
             await this.laundryTimelineRepository.save(target[0]); // enable it
             break;
           }
-        }else {
+        } else {
           break; // etc and current enabled is etc
         }
       }
@@ -289,7 +276,9 @@ export class LaundryManageService {
     });
 
     for (const apply of applies) {
-      if (await this.cacheService.isNotificationAlreadySent(apply.id)) continue;
+      if (await this.cacheService.isNotificationAlreadySent(apply.id)) {
+        continue;
+      }
 
       const user = apply.user;
 

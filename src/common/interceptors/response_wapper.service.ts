@@ -1,17 +1,18 @@
 import {
   CallHandler,
   ExecutionContext,
+  HttpException,
   Injectable,
   NestInterceptor,
-  HttpException,
 } from "@nestjs/common";
 import { Observable, of } from "rxjs";
-import { map, catchError } from "rxjs/operators";
+import { catchError, map } from "rxjs/operators";
 
 @Injectable()
 export class ResponseWrapperInterceptor implements NestInterceptor {
-  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+  intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     const res = context.switchToHttp().getResponse();
+    const logger = context.switchToHttp().getRequest().logger;
 
     return next.handle().pipe(
       map((data) => {
@@ -23,8 +24,8 @@ export class ResponseWrapperInterceptor implements NestInterceptor {
       }),
       catchError((err) => {
         let status: number;
-        let error: any;
-        let code: any;
+        let error: unknown;
+        let code: unknown;
 
         if (err instanceof HttpException) {
           status = err.getStatus();
@@ -33,12 +34,12 @@ export class ResponseWrapperInterceptor implements NestInterceptor {
             code = error[0];
             error = error[1];
           } else {
-            error = error.message || error;
+            error = (error as Error).message || error;
           }
         } else {
+          logger.error(err);
           status = 500;
           error = "Internal Server Error";
-          console.log(err);
         }
 
         res.status(status);

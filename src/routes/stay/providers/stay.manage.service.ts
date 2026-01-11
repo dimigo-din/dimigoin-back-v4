@@ -1,27 +1,27 @@
+import { TZDate } from "@date-fns/tz";
 import { HttpException, HttpStatus, Injectable, Logger } from "@nestjs/common";
 import { Cron, CronExpression } from "@nestjs/schedule";
 import { InjectRepository } from "@nestjs/typeorm";
 import {
-  format,
-  setDay,
-  isBefore,
+  addDays,
   addWeeks,
-  startOfDay,
+  format,
+  getDay,
+  isBefore,
+  isWithinInterval,
+  max,
+  setDay,
   setHours,
   setMinutes,
   setSeconds,
-  max,
-  addDays,
+  startOfDay,
   subSeconds,
-  isWithinInterval,
-  getDay,
 } from "date-fns";
-import { TZDate } from "@date-fns/tz";
 import { In, IsNull, LessThan, MoreThan, MoreThanOrEqual, Not, Repository } from "typeorm";
 
-import { ErrorMsg } from "../../../common/mapper/error";
-import { safeFindOne } from "../../../common/utils/safeFindOne.util";
-import { isInRange } from "../../../common/utils/staySeat.util";
+import { ErrorMsg } from "@/common/mapper/error";
+import { safeFindOne } from "@/common/utils/safeFindOne.util";
+import { isInRange } from "@/common/utils/staySeat.util";
 import {
   Stay,
   StayApply,
@@ -32,25 +32,24 @@ import {
   StaySeatPreset,
   StaySeatPresetRange,
   User,
-} from "../../../schemas";
-import { UserManageService } from "../../user/providers";
+} from "@/schemas";
 import {
+  AuditOutingDTO,
   CreateStayApplyDTO,
   CreateStayDTO,
   CreateStayScheduleDTO,
   CreateStaySeatPresetDTO,
-  StayApplyIdDTO,
   DeleteStayDTO,
+  MoveToSomewhereDTO,
+  StayApplyIdDTO,
   StayIdDTO,
   StayScheduleIdDTO,
   StaySeatPresetIdDTO,
+  UpdateOutingMealCancelDTO,
   UpdateStayApplyDTO,
   UpdateStayDTO,
   UpdateStayScheduleDTO,
   UpdateStaySeatPresetDTO,
-  AuditOutingDTO,
-  UpdateOutingMealCancelDTO,
-  MoveToSomewhereDTO,
 } from "../dto/stay.manage.dto";
 
 @Injectable()
@@ -75,7 +74,6 @@ export class StayManageService {
     private readonly stayApplyPeriod_Stay_Repository: Repository<StayApplyPeriod_Stay>,
     @InjectRepository(StayApplyPeriod_StaySchedule)
     private readonly stayApplyPeriod_StaySchedule_Repository: Repository<StayApplyPeriod_StaySchedule>,
-    private readonly userManageService: UserManageService,
   ) {}
 
   async getStaySeatPresetList() {
@@ -167,8 +165,9 @@ export class StayManageService {
     const staySeatPreset = await this.staySeatPresetRepository.findOne({
       where: { id: data.staySeatPreset },
     });
-    if (!staySeatPreset)
+    if (!staySeatPreset) {
       throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
+    }
 
     const staySchedule = new StaySchedule();
     staySchedule.name = data.name;
@@ -199,8 +198,9 @@ export class StayManageService {
     const staySeatPreset = await this.staySeatPresetRepository.findOne({
       where: { id: data.staySeatPreset },
     });
-    if (!staySeatPreset)
+    if (!staySeatPreset) {
       throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
+    }
 
     const staySchedule = await safeFindOne<StaySchedule>(this.stayScheduleRepository, data.id);
 
@@ -248,8 +248,9 @@ export class StayManageService {
     const staySeatPreset = await this.staySeatPresetRepository.findOne({
       where: { id: data.seat_preset },
     });
-    if (!staySeatPreset)
+    if (!staySeatPreset) {
       throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
+    }
 
     const stay = new Stay();
     stay.name = data.name;
@@ -278,8 +279,9 @@ export class StayManageService {
     const staySeatPreset = await this.staySeatPresetRepository.findOne({
       where: { id: data.seat_preset },
     });
-    if (!staySeatPreset)
+    if (!staySeatPreset) {
       throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
+    }
 
     stay.name = data.name;
     stay.stay_from = data.from;
@@ -309,7 +311,9 @@ export class StayManageService {
 
   async getStayApply(data: StayIdDTO) {
     const stay = await this.getStay(data);
-    if (!stay) throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
+    if (!stay) {
+      throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
+    }
 
     const applies = await this.stayApplyRepository.find({ where: { stay: stay } });
 
@@ -323,7 +327,9 @@ export class StayManageService {
     const exists = await this.stayApplyRepository.findOne({
       where: { user: user, stay: stay },
     });
-    if (exists) throw new HttpException(ErrorMsg.StaySeat_Duplication(), HttpStatus.BAD_REQUEST);
+    if (exists) {
+      throw new HttpException(ErrorMsg.StaySeat_Duplication(), HttpStatus.BAD_REQUEST);
+    }
 
     const staySeatCheck = await this.stayApplyRepository.findOne({
       where: { stay_seat: data.stay_seat.toUpperCase(), stay: stay },
@@ -332,8 +338,9 @@ export class StayManageService {
       staySeatCheck &&
       (isInRange(["A1", "L18"], staySeatCheck.stay_seat) ||
         isInRange(["M1", "N18"], staySeatCheck.stay_seat))
-    )
+    ) {
       throw new HttpException(ErrorMsg.StaySeat_Duplication(), HttpStatus.BAD_REQUEST);
+    }
 
     // teacher can force stay_seat. so, stay_seat will not be filtered.
     const stayApply = new StayApply();
@@ -350,8 +357,8 @@ export class StayManageService {
       outing.dinner_cancel = outingData.dinner_cancel;
       outing.from = outingData.from;
       outing.to = outingData.to;
-      outing.approved = outingData.approved;
-      outing.audit_reason = outingData.audit_reason;
+      outing.approved = outingData.approved || null;
+      outing.audit_reason = outingData.audit_reason || null;
       outing.stay_apply = stayApply;
 
       stayApply.outing.push(outing);
@@ -373,8 +380,9 @@ export class StayManageService {
       stayApply.stay_seat.toUpperCase() !== data.stay_seat.toUpperCase() &&
       (isInRange(["A1", "L18"], staySeatCheck.stay_seat) ||
         isInRange(["M1", "N18"], staySeatCheck.stay_seat))
-    )
+    ) {
       throw new HttpException(ErrorMsg.StaySeat_Duplication(), HttpStatus.BAD_REQUEST);
+    }
 
     stayApply.stay_seat = data.stay_seat.toUpperCase();
     stayApply.user = user;
@@ -390,8 +398,8 @@ export class StayManageService {
       outing.dinner_cancel = outingData.dinner_cancel;
       outing.from = outingData.from;
       outing.to = outingData.to;
-      outing.approved = outingData.approved;
-      outing.audit_reason = outingData.audit_reason;
+      outing.approved = outingData.approved || null;
+      outing.audit_reason = outingData.audit_reason || null;
       outing.stay_apply = stayApply;
 
       stayApply.outing.push(outing);
@@ -427,13 +435,16 @@ export class StayManageService {
 
   private weekday2date(base: Date, weekday: number) {
     let target = setDay(base, weekday);
-    if (isBefore(target, base)) target = addWeeks(target, 1);
+    if (isBefore(target, base)) {
+      target = addWeeks(target, 1);
+    }
     return target;
   }
 
   async moveToSomewhere(data: MoveToSomewhereDTO) {
-    if (isInRange(["A1", "L18"], data.to) || isInRange(["M1", "N18"], data.to))
+    if (isInRange(["A1", "L18"], data.to) || isInRange(["M1", "N18"], data.to)) {
       throw new HttpException(ErrorMsg.ItIsStaySeat_ShouldNotBeAllowed(), HttpStatus.BAD_REQUEST);
+    }
 
     const applies = (await this.stayApplyRepository.find({ where: { id: In(data.targets) } })).map(
       (a) => {
@@ -470,7 +481,9 @@ export class StayManageService {
 
     const targetSchedules = schedules.filter((x) => !existingStay.find((y) => y === x.id));
     for (const target of targetSchedules) {
-      if (existingStay.includes(target.id)) continue;
+      if (existingStay.includes(target.id)) {
+        continue;
+      }
 
       const stay = new Stay();
       stay.name = target.name;
@@ -497,9 +510,15 @@ export class StayManageService {
       const applyEnd = max(stay.stay_apply_period.map((p) => p.apply_end));
       let from = this.weekday2date(now, target.stay_from);
       let to = subSeconds(addDays(this.weekday2date(now, target.stay_to), 1), 1);
-      if (isBefore(from, applyEnd)) from = addWeeks(from, 1);
-      if (isBefore(to, applyEnd)) to = addWeeks(to, 1);
-      if (isBefore(to, from)) to = addWeeks(to, 1);
+      if (isBefore(from, applyEnd)) {
+        from = addWeeks(from, 1);
+      }
+      if (isBefore(to, applyEnd)) {
+        to = addWeeks(to, 1);
+      }
+      if (isBefore(to, from)) {
+        to = addWeeks(to, 1);
+      }
 
       stay.stay_from = format(from, "yyyy-MM-dd");
       stay.stay_to = format(to, "yyyy-MM-dd");
@@ -516,7 +535,9 @@ export class StayManageService {
         }
         return format(out, "yyyy-MM-dd");
       });
-      if (!success) continue;
+      if (!success) {
+        continue;
+      }
 
       await this.stayRepository.save(stay);
       this.logger.log(`Successfully added ${stay.id}(${stay.name})`);

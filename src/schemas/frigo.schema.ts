@@ -1,9 +1,9 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 
-import { FrigoTiming, Grade } from "../common/mapper/types";
-
-import { User } from "./user.schema";
+import { type FrigoTiming, FrigoTimingValues, type Grade } from "../common/mapper/types";
+import type { User } from "./user.schema";
+import { User as UserEntity } from "./user.schema";
 
 // frigo is fixed
 @Entity()
@@ -49,7 +49,7 @@ export class FrigoApply {
   week: string;
 
   @ApiProperty()
-  @Column()
+  @Column({ type: "enum", enum: FrigoTimingValues })
   timing: FrigoTiming;
 
   @ApiProperty()
@@ -64,9 +64,9 @@ export class FrigoApply {
   @Column({ type: "bool", nullable: true })
   approved?: boolean;
 
-  @ApiProperty({ type: () => User })
+  @ApiProperty({ type: () => UserEntity })
   @ManyToOne(
-    () => User,
+    () => UserEntity,
     (user) => user.frigo,
     { eager: true },
   )

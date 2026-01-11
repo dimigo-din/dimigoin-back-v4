@@ -3,16 +3,16 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import importToArray from "import-to-array";
 
 import {
-  User,
+  Login,
   Stay,
+  StayApply,
   StayApplyPeriod_Stay,
   StayApplyPeriod_StaySchedule,
+  StayOuting,
   StaySchedule,
   StaySeatPreset,
   StaySeatPresetRange,
-  StayApply,
-  StayOuting,
-  Login,
+  User,
 } from "../../schemas";
 import { UserManageService } from "../user/providers";
 

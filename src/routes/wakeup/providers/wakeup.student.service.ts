@@ -1,20 +1,20 @@
+import { youtube } from "@googleapis/youtube";
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { InjectRepository } from "@nestjs/typeorm";
-import { youtube } from "@googleapis/youtube";
 import { format, startOfWeek } from "date-fns";
 import { Repository } from "typeorm";
 
-import { ErrorMsg } from "../../../common/mapper/error";
-import { UserJWT, YoutubeVideoItem, YoutubeSearchResults } from "../../../common/mapper/types";
-import { CacheService } from "../../../common/modules/cache.module";
-import { safeFindOne } from "../../../common/utils/safeFindOne.util";
-import { User, WakeupSongApplication, WakeupSongVote } from "../../../schemas";
+import { ErrorMsg } from "@/common/mapper/error";
+import type { UserJWT, YoutubeSearchResults, YoutubeVideoItem } from "@/common/mapper/types";
+import { CacheService } from "@/common/modules/cache.module";
+import { safeFindOne } from "@/common/utils/safeFindOne.util";
+import { User, WakeupSongApplication, WakeupSongVote } from "@/schemas";
 import { UserManageService } from "../../user/providers";
 import {
-  VoteIdDTO,
   RegisterVideoDTO,
   SearchVideoDTO,
+  VoteIdDTO,
   VoteVideoDTO,
 } from "../dto/wakeup.student.dto";
 
@@ -33,8 +33,9 @@ export class WakeupStudentService {
   ) {}
 
   async search(user: UserJWT, data: SearchVideoDTO) {
-    if (!(await this.cacheService.musicSearchRateLimit(user.id)))
+    if (!(await this.cacheService.musicSearchRateLimit(user.id))) {
       throw new HttpException(ErrorMsg.RateLimit_Exceeded(), HttpStatus.TOO_MANY_REQUESTS);
+    }
 
     const yt = youtube("v3");
     const search = await yt.search.list({
@@ -90,7 +91,9 @@ export class WakeupStudentService {
           : "female",
       },
     });
-    if (exists) throw new HttpException(ErrorMsg.ResourceAlreadyExists(), HttpStatus.BAD_REQUEST);
+    if (exists) {
+      throw new HttpException(ErrorMsg.ResourceAlreadyExists(), HttpStatus.BAD_REQUEST);
+    }
 
     let videoData: YoutubeVideoItem;
 
@@ -104,11 +107,13 @@ export class WakeupStudentService {
         q: data.videoId,
         maxResults: 1,
       });
-      videoData = (search.data.items[0] as YoutubeVideoItem) || null;
+      videoData = (search.data.items?.[0] as YoutubeVideoItem) || null;
     } else {
       videoData = cache;
     }
-    if (!videoData) throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
+    if (!videoData) {
+      throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
+    }
 
     const dbUser = await safeFindOne<User>(this.userRepository, user.id);
     const application = new WakeupSongApplication();
@@ -126,9 +131,7 @@ export class WakeupStudentService {
 
     try {
       return await this.wakeupSongApplicationRepository.save(application);
-    } catch (error) {
-      console.log(error);
-    }
+    } catch (_error) {}
   }
 
   async getMyVotes(user: UserJWT) {
@@ -158,7 +161,9 @@ export class WakeupStudentService {
     const exists = await this.wakeupSongVoteRepository.findOne({
       where: { user: dbUser, wakeupSongApplication: application },
     });
-    if (exists) throw new HttpException(ErrorMsg.ResourceAlreadyExists(), HttpStatus.BAD_REQUEST);
+    if (exists) {
+      throw new HttpException(ErrorMsg.ResourceAlreadyExists(), HttpStatus.BAD_REQUEST);
+    }
 
     const wakeupSongVote = new WakeupSongVote();
     wakeupSongVote.upvote = data.upvote;

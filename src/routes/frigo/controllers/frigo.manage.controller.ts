@@ -1,13 +1,11 @@
 import { Body, Controller, Delete, Get, HttpStatus, Patch, Post, Query } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
-
-import { FrigoApply, FrigoApplyPeriod } from "src/schemas";
-
-import { CustomJwtAuthGuard } from "../../../auth/guards";
-import { PermissionGuard } from "../../../auth/guards/permission.guard";
-import { UseGuardsWithSwagger } from "../../../auth/guards/useGuards";
-import { ApiResponseFormat } from "../../../common/dto/response_format.dto";
-import { PermissionEnum } from "../../../common/mapper/permissions";
+import { CustomJwtAuthGuard } from "@/auth/guards";
+import { PermissionGuard } from "@/auth/guards/permission.guard";
+import { UseGuardsWithSwagger } from "@/auth/guards/useGuards";
+import { ApiResponseFormat } from "@/common/dto/response_format.dto";
+import { PermissionEnum } from "@/common/mapper/permissions";
+import { FrigoApply, FrigoApplyPeriod } from "@/schemas";
 import {
   AuditFrigoApply,
   FrigoApplyDTO,
