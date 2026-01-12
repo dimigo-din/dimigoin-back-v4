@@ -19,6 +19,11 @@ export class GetTimelineDTO {
   class: number;
 }
 
+export interface CachedTimetable {
+  content: string;
+  temp: boolean;
+}
+
 export interface ComciData {
   분리?: number;
   강의실?: number;

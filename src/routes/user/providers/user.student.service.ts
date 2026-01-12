@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import { Repository } from "typeorm";
 import { LaundryApply, StayApply, User } from "#/schemas";
 import type { UserJWT } from "$mapper/types";
+import { CacheService } from "$modules/cache.module";
 import { ComciData } from "~user/dto";
 
 @Injectable()
@@ -15,6 +16,7 @@ export class UserStudentService {
     private readonly stayApplyRepository: Repository<StayApply>,
     @InjectRepository(LaundryApply)
     private readonly laundryApplyRepository: Repository<LaundryApply>,
+    private readonly cacheService: CacheService,
   ) {}
 
   async getMyApplies(user: UserJWT) {
@@ -29,9 +31,15 @@ export class UserStudentService {
   }
 
   async getTimeTable(grade: number, klass: number) {
-    const res = await fetch("http://comci.net:4082/36179?NzM2MjlfMjkxNzVfMF8x");
-    const text = await res.text();
-    const data: ComciData = JSON.parse(text.replace(/\0/g, "")) as ComciData;
+    let data: ComciData;
+    const cached = await this.cacheService.getCachedTimetable(grade, klass);
+    if (cached) {
+      return cached;
+    } else {
+      const res = await fetch("http://comci.net:4082/36179?NzM2MjlfMjkxNzVfMF8x");
+      const text = await res.text();
+      data = JSON.parse(text.replace(/\0/g, "")) as ComciData;
+    }
 
     const DIV = data.분리 ?? 100;
     const MAX_P = 8;
@@ -226,6 +234,8 @@ export class UserStudentService {
         }
       }
     }
+
+    await this.cacheService.setCachedTimetable(grade, klass, table);
 
     return table;
   }
