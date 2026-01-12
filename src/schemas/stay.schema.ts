@@ -4,6 +4,7 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  Index,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -135,6 +136,7 @@ export class StaySchedule {
 }
 
 @Entity()
+@Index(["stay_from", "stay_to"])
 @Unique(["name", "stay_from", "stay_to"])
 export class Stay {
   @ApiProperty()
