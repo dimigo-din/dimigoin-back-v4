@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, Index, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { type FrigoTiming, FrigoTimingValues, type Grade } from "$mapper/types";
 import type { User } from "./user.schema";
 import { User as UserEntity } from "./user.schema";
@@ -37,6 +37,7 @@ export class FrigoApplyPeriod {
 }
 
 @Entity()
+@Index(["week", "user"])
 export class FrigoApply {
   @ApiProperty()
   @PrimaryGeneratedColumn("uuid")
