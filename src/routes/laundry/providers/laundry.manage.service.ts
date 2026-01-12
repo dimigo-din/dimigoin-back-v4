@@ -88,18 +88,20 @@ export class LaundryManageService {
 
     await this.laundryTimeRepository.remove(laundryTimeline.times);
     laundryTimeline.times = [];
-    const allAssignIds = data.times.flatMap(time => time.assigns);
+    const allAssignIds = data.times.flatMap((time) => time.assigns);
     const machines = await this.laundryMachineRepository.find({
       where: { id: In(allAssignIds) },
     });
 
-    const machineMap = new Map(machines.map(m => [m.id, m]));
+    const machineMap = new Map(machines.map((m) => [m.id, m]));
 
     for (const time of data.times) {
       const laundryTime = new LaundryTime();
       laundryTime.time = time.time;
       laundryTime.grade = time.grade;
-      laundryTime.assigns = time.assigns.map(id => machineMap.get(id) as LaundryMachine).filter(Boolean);
+      laundryTime.assigns = time.assigns
+        .map((id) => machineMap.get(id) as LaundryMachine)
+        .filter(Boolean);
       laundryTime.timeline = laundryTimeline;
 
       laundryTimeline.times.push(laundryTime);

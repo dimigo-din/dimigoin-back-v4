@@ -34,14 +34,15 @@ export class LaundryStudentService {
   }
 
   async getApplies() {
-    return (
-      await this.laundryApplyRepository.find({
-        where: { laundryTimeline: { enabled: true }, date: format(new Date(), "yyyy-MM-dd") },
-        relations: { laundryTime: true, laundryMachine: true, user: true },
-      })
-    ).map((a) => {
-      return { ...a, user: { id: a.user.id, name: a.user.name } };
-    });
+    return await this.laundryApplyRepository
+      .createQueryBuilder("apply")
+      .leftJoinAndSelect("apply.laundryTime", "time")
+      .leftJoinAndSelect("apply.laundryMachine", "machine")
+      .leftJoin("apply.user", "user")
+      .addSelect(["user.id", "user.name"])
+      .where("apply.laundryTimeline.enabled = :enabled", { enabled: true })
+      .andWhere("apply.date = :date", { date: format(new Date(), "yyyy-MM-dd") })
+      .getMany();
   }
 
   async createApply(user: UserJWT, data: LaundryApplyDTO) {
