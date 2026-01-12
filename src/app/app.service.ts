@@ -1,5 +1,4 @@
 import { Injectable, Logger } from "@nestjs/common";
-import { pick } from "lodash";
 import { ClusterDto, Deployment } from "$/dto";
 
 @Injectable()
@@ -29,11 +28,11 @@ export class AppService {
     }
 
     const packageFile = await import(`${process.cwd()}/package.json`);
-    const packageInfo = pick(packageFile, ["name", "version", "description", "author"]);
+    const { name, version, description, author } = packageFile;
 
     const mode = (Bun.env.NODE_ENV as Deployment) || "prod";
 
-    this.cluster = { ...packageInfo, mode };
+    this.cluster = { name, version, description, author, mode };
     return this.cluster;
   }
 }
