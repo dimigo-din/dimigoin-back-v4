@@ -4,7 +4,6 @@ import { ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { NestFactory } from "@nestjs/core";
 import { FastifyAdapter, NestFastifyApplication } from "@nestjs/platform-fastify";
-import importToArray from "import-to-array";
 
 import { AppModule } from "#/app";
 import * as interceptors from "$/interceptors";
@@ -48,7 +47,7 @@ export async function bootstrap(isInit: boolean = true) {
   });
 
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
-  app.useGlobalInterceptors(...importToArray(interceptors).map((i) => new i()));
+  app.useGlobalInterceptors(...Object.values(interceptors).map((i) => new i()));
 
   await CustomSwaggerSetup(app);
 

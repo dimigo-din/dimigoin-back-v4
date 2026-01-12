@@ -1,6 +1,5 @@
 import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
-import importToArray from "import-to-array";
 import {
   Login,
   Stay,
@@ -33,8 +32,8 @@ import * as providers from "./providers";
       StayApplyPeriod_StaySchedule,
     ]),
   ],
-  controllers: importToArray(controllers),
-  providers: [...importToArray(providers), UserManageService],
-  exports: importToArray(providers),
+  controllers: Object.values(controllers),
+  providers: [...Object.values(providers), UserManageService],
+  exports: Object.values(providers),
 })
 export class StayModule {}

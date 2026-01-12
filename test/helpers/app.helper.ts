@@ -4,7 +4,6 @@ import { Module, ValidationPipe } from "@nestjs/common";
 import { FastifyAdapter, NestFastifyApplication } from "@nestjs/platform-fastify";
 import { Test, TestingModule } from "@nestjs/testing";
 import { getRepositoryToken } from "@nestjs/typeorm";
-import importToArray from "import-to-array";
 import * as entities from "#/schemas";
 import { AppModule } from "#app/app.module";
 import { createMockRepository } from "#test/mocks/repository";
@@ -24,7 +23,7 @@ export class TestApp {
       .overrideModule(CustomDatabaseModule)
       .useModule(MockDatabaseModule);
 
-    const allEntities = importToArray(entities);
+    const allEntities = Object.values(entities);
     for (const entity of allEntities) {
       moduleFixtureBuilder
         .overrideProvider(getRepositoryToken(entity))
@@ -49,7 +48,7 @@ export class TestApp {
       }),
     );
 
-    this.app.useGlobalInterceptors(...importToArray(interceptors).map((i) => new i()));
+    this.app.useGlobalInterceptors(...Object.values(interceptors).map((i) => new i()));
 
     await this.app.init();
 

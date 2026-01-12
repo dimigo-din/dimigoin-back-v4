@@ -1,6 +1,5 @@
 import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
-import importToArray from "import-to-array";
 import { FrigoApply, FrigoApplyPeriod, Login, User } from "#/schemas";
 import { UserManageService } from "~user/providers";
 
@@ -9,8 +8,8 @@ import * as providers from "./providers";
 
 @Module({
   imports: [TypeOrmModule.forFeature([User, Login, FrigoApply, FrigoApplyPeriod])],
-  controllers: importToArray(controllers),
-  providers: [...importToArray(providers), UserManageService],
-  exports: importToArray(providers),
+  controllers: Object.values(controllers),
+  providers: [...Object.values(providers), UserManageService],
+  exports: Object.values(providers),
 })
 export class FrigoModule {}

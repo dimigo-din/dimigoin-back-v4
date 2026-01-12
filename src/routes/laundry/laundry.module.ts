@@ -1,6 +1,5 @@
 import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
-import importToArray from "import-to-array";
 import {
   LaundryApply,
   LaundryMachine,
@@ -32,14 +31,14 @@ import * as schedulers from "./schedulers";
       PushSubscription,
     ]),
   ],
-  controllers: importToArray(controllers),
+  controllers: Object.values(controllers),
   providers: [
-    ...importToArray(providers),
-    ...importToArray(schedulers),
+    ...Object.values(providers),
+    ...Object.values(schedulers),
     UserManageService,
     PushManageService,
     CacheService,
   ],
-  exports: importToArray(providers),
+  exports: Object.values(providers),
 })
 export class LaundryModule {}

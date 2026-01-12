@@ -1,6 +1,5 @@
 import { forwardRef, Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
-import importToArray from "import-to-array";
 import { AuthModule } from "#/auth";
 import { LaundryApply, Login, StayApply, User } from "#/schemas";
 
@@ -12,8 +11,8 @@ import * as providers from "./providers";
     TypeOrmModule.forFeature([User, Login, StayApply, LaundryApply]),
     forwardRef(() => AuthModule),
   ],
-  controllers: importToArray(controllers),
-  providers: [...importToArray(providers)],
-  exports: importToArray(providers),
+  controllers: Object.values(controllers),
+  providers: [...Object.values(providers)],
+  exports: Object.values(providers),
 })
 export class UserModule {}
