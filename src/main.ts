@@ -1,4 +1,4 @@
-import fastifyCompress from '@fastify/compress';
+import fastifyCompress from "@fastify/compress";
 import fastifyCookie from "@fastify/cookie";
 import fastifyMultipart from "@fastify/multipart";
 import { ValidationPipe } from "@nestjs/common";
@@ -40,7 +40,7 @@ export async function bootstrap(isInit: boolean = true) {
   });
 
   await app.register(fastifyCompress, {
-    encodings: ['gzip', 'deflate'],
+    encodings: ["gzip", "deflate"],
   });
   await app.register(fastifyCookie);
   await app.register(fastifyMultipart, {

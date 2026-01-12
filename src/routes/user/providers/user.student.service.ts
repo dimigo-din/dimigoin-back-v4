@@ -4,7 +4,6 @@ import { format } from "date-fns";
 import { Repository } from "typeorm";
 import { LaundryApply, StayApply, User } from "#/schemas";
 import type { UserJWT } from "$mapper/types";
-import { safeFindOne } from "$utils/safeFindOne.util";
 import { ComciData } from "~user/dto";
 
 @Injectable()
@@ -19,18 +18,14 @@ export class UserStudentService {
   ) {}
 
   async getMyApplies(user: UserJWT) {
-    const dbUser = await safeFindOne<User>(this.userRepository, user.id);
-
-    const stayApply = await this.stayApplyRepository.findOne({ where: { user: dbUser } });
-    const laundryApply = await this.laundryApplyRepository.findOne({
-      where: { user: dbUser, date: format(new Date(), "yyyy-MM-dd") },
-      relations: { laundryTime: true, laundryMachine: true },
-    });
-
-    return {
-      stayApply: stayApply,
-      laundryApply: laundryApply,
-    };
+    const [stayApply, laundryApply] = await Promise.all([
+      this.stayApplyRepository.findOne({ where: { user: { id: user.id } } }),
+      this.laundryApplyRepository.findOne({
+        where: { user: { id: user.id }, date: format(new Date(), "yyyy-MM-dd") },
+        relations: { laundryTime: true, laundryMachine: true },
+      }),
+    ]);
+    return { stayApply, laundryApply };
   }
 
   async getTimeTable(grade: number, klass: number) {
