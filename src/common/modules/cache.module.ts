@@ -1,3 +1,4 @@
+import { TZDate } from "@date-fns/tz";
 import { CACHE_MANAGER, Cache, CacheModule } from "@nestjs/cache-manager";
 import { Inject, Logger, Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
@@ -99,7 +100,12 @@ export class CacheService {
 
   async setCachedTimetable(grade: number, klass: number, data: CachedTimetable[][]) {
     const cacheKey = `timetable:${grade}:${klass}`;
-    await this.cacheManager.set(cacheKey, data, 1000 * 60 * 30);
+    const currentHour = new TZDate(Date(), "Asia/Seoul").getHours();
+    if (8 < currentHour && currentHour < 9) {
+      await this.cacheManager.set(cacheKey, data, 1000 * 60 * 5);
+    } else {
+      await this.cacheManager.set(cacheKey, data, 1000 * 60 * 60);
+    }
   }
 
   async getCachedTimetable(grade: number, klass: number): Promise<CachedTimetable[][] | undefined> {
