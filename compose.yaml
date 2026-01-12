@@ -1,0 +1,45 @@
+volumes:
+  postgres_data:
+
+services:
+  frontend:
+    image: ghcr.io/dimigo-din/dimigoin-v4-front:${IMAGE_TAG}
+    restart: always
+    ports:
+      - "127.0.0.1:${FRONTEND_PORT}:80"
+    profiles:
+      - stg
+  flutter:
+    image: ghcr.io/dimigo-din/dimigoin-v4-flutter:${IMAGE_TAG}
+    restart: always
+    ports:
+      - "127.0.0.1:${FLUTTER_PORT}:80"
+  backend:
+    image: ghcr.io/dimigo-din/dimigoin-v4-back:${IMAGE_TAG}
+    restart: always
+    ports:
+      - "127.0.0.1:${BACKEND_PORT}:3000"
+    environment:
+      - doppler_token=${DOPPLER_TOKEN}
+      - deploy_type=${DEPLOY_TYPE}
+    tty: true
+    stdin_open: true
+  backoffice:
+    image: ghcr.io/dimigo-din/dimigoin-v4-backoffice:${IMAGE_TAG}
+    restart: always
+    ports:
+      - "127.0.0.1:${BACKOFFICE_PORT}:80"
+  db:
+    image: postgres:17-alpine
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "0.0.0.0:${POSTGRES_PORT}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+  redis:
+    image: docker.dragonflydb.io/dragonflydb/dragonfly
+    restart: always
+    command: dragonfly --proactor_threads=4
