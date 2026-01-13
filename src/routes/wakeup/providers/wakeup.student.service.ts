@@ -130,7 +130,7 @@ export class WakeupStudentService {
 
     try {
       return await this.wakeupSongApplicationRepository.save(application);
-    } catch (_error) {}
+    } catch (_e) {}
   }
 
   async getMyVotes(user: UserJWT) {
