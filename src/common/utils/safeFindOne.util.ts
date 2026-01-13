@@ -7,14 +7,18 @@ type IdTable = { id: string };
 export const safeFindOne = async <T extends IdTable>(
   repo: Repository<T>,
   condition: FindOneOptions<T> | string,
-  error = new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND),
+  error?: HttpException | (() => HttpException),
 ) => {
   const result =
     typeof condition === "string"
       ? await repo.findOne({ where: { id: condition } } as FindOneOptions<T>)
       : await repo.findOne(condition);
   if (!result) {
-    throw error;
+    const err =
+      typeof error === "function"
+        ? error()
+        : (error ?? new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND));
+    throw err;
   }
   return result;
 };
