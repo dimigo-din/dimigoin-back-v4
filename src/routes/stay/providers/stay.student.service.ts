@@ -7,7 +7,7 @@ import { SelfDevelopment_Outing_From, SelfDevelopment_Outing_To } from "$mapper/
 import { ErrorMsg } from "$mapper/error";
 import type { Gender, Grade, UserJWT } from "$mapper/types";
 import { safeFindOne } from "$utils/safeFindOne.util";
-import { isInRange } from "$utils/staySeat.util";
+import { isInValidRange, isInRange } from "$utils/staySeat.util";
 import {
   AddStayOutingDTO,
   CreateUserStayApplyDTO,
@@ -111,11 +111,7 @@ export class StayStudentService {
     const staySeatCheck = await this.stayApplyRepository.findOne({
       where: { stay_seat: data.stay_seat.toUpperCase(), stay: { id: data.stay } },
     });
-    if (
-      staySeatCheck &&
-      (isInRange(["A1", "L18"], staySeatCheck.stay_seat) ||
-        isInRange(["M1", "N18"], staySeatCheck.stay_seat))
-    ) {
+    if (staySeatCheck && isInValidRange(staySeatCheck.stay_seat)) {
       throw new HttpException(ErrorMsg.StaySeat_Duplication(), HttpStatus.BAD_REQUEST);
     }
 
@@ -183,12 +179,7 @@ export class StayStudentService {
     const staySeatCheck = await this.stayApplyRepository.findOne({
       where: { stay_seat: data.stay_seat.toUpperCase(), stay: { id: stayApply.stay.id } },
     });
-    if (
-      staySeatCheck &&
-      staySeatCheck.id !== stayApply.id &&
-      (isInRange(["A1", "L18"], staySeatCheck.stay_seat) ||
-        isInRange(["M1", "N18"], staySeatCheck.stay_seat))
-    ) {
+    if (staySeatCheck && staySeatCheck.id !== stayApply.id && isInValidRange(staySeatCheck.stay_seat)) {
       throw new HttpException(ErrorMsg.StaySeat_Duplication(), HttpStatus.BAD_REQUEST);
     }
 
