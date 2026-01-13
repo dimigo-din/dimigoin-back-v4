@@ -1,40 +1,54 @@
+const parseCell = (cell: string) => {
+  const match = cell.match(/^([A-Z]+)(\d+)$/i);
+  if (!match || !match[1] || !match[2]) {
+    throw new Error(`Invalid cell format: ${cell}`);
+  }
+  return { col: match[1].toUpperCase(), row: parseInt(match[2], 10) };
+};
+
+const compareCol = (a: string, b: string): number => a.localeCompare(b) || a.length - b.length;
+
 export const alignRange = (range: string[]): [string, string] => {
-  const [range1, range2] = range;
-  if (!range1 || !range2) {
+  if (range.length !== 2 || !range[0] || !range[1]) {
     throw new Error("Range must contain exactly 2 elements");
   }
-  const range1Detail = [range1.charAt(0), range1.slice(1)] as const;
-  const range2Detail = [range2.charAt(0), range2.slice(1)] as const;
-  return [
-    `${range1Detail[0].charCodeAt(0) > range2Detail[0].charCodeAt(0) ? range2Detail[0] : range1Detail[0]}${parseInt(range1Detail[1], 10) > parseInt(range2Detail[1], 10) ? parseInt(range2Detail[1], 10) : parseInt(range1Detail[1], 10)}`,
-    `${range1Detail[0].charCodeAt(0) <= range2Detail[0].charCodeAt(0) ? range2Detail[0] : range1Detail[0]}${parseInt(range1Detail[1], 10) <= parseInt(range2Detail[1], 10) ? parseInt(range2Detail[1], 10) : parseInt(range1Detail[1], 10)}`,
-  ];
+
+  const c1 = parseCell(range[0]);
+  const c2 = parseCell(range[1]);
+
+  const minCol = compareCol(c1.col, c2.col) <= 0 ? c1.col : c2.col;
+  const maxCol = compareCol(c1.col, c2.col) > 0 ? c1.col : c2.col;
+  const minRow = Math.min(c1.row, c2.row);
+  const maxRow = Math.max(c1.row, c2.row);
+
+  return [`${minCol}${minRow}`, `${maxCol}${maxRow}`];
 };
 
 export const isInRange = (range: string[], target: string): boolean => {
-  const [range1, range2] = alignRange(range);
-  const range1Detail = [range1.charCodeAt(0), range1.slice(1)] as const;
-  const range2Detail = [range2.charCodeAt(0), range2.slice(1)] as const;
-  const targetDetail = [target.charCodeAt(0), target.slice(1)] as const;
+  const [startStr, endStr] = alignRange(range);
+  const start = parseCell(startStr);
+  const end = parseCell(endStr);
+  const t = parseCell(target);
 
   return (
-    range1Detail[0] <= targetDetail[0] &&
-    targetDetail[0] <= range2Detail[0] &&
-    parseInt(range1Detail[1], 10) <= parseInt(targetDetail[1], 10) &&
-    parseInt(targetDetail[1], 10) <= parseInt(range2Detail[1], 10)
+    compareCol(start.col, t.col) <= 0 &&
+    compareCol(t.col, end.col) <= 0 &&
+    start.row <= t.row &&
+    t.row <= end.row
   );
 };
 
 export const generateRange = (range: string[]): string[] => {
-  const arr: string[] = [];
-  const [start, end] = alignRange(range);
-  const startDetail = [start.charAt(0), start.slice(1)] as const;
-  const endDetail = [end.charAt(0), end.slice(1)] as const;
+  const [startStr, endStr] = alignRange(range);
+  const start = parseCell(startStr);
+  const end = parseCell(endStr);
+  const result: string[] = [];
 
-  for (let i = startDetail[0].charCodeAt(0); i <= endDetail[0].charCodeAt(0); i++) {
-    for (let j = parseInt(startDetail[1], 10); j <= parseInt(endDetail[1], 10); j++) {
-      arr.push(String.fromCharCode(i) + j.toString());
+  for (let c = start.col.charCodeAt(0); c <= end.col.charCodeAt(0); c++) {
+    for (let r = start.row; r <= end.row; r++) {
+      result.push(String.fromCharCode(c) + r);
     }
   }
-  return arr;
+
+  return result;
 };
