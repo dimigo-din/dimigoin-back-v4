@@ -40,7 +40,8 @@ export class LaundryStudentService {
       .leftJoinAndSelect("apply.laundryMachine", "machine")
       .leftJoin("apply.user", "user")
       .addSelect(["user.id", "user.name"])
-      .where("apply.laundryTimeline.enabled = :enabled", { enabled: true })
+      .leftJoin("apply.laundryTimeline", "timeline")
+      .where("timeline.enabled = :enabled", { enabled: true })
       .andWhere("apply.date = :date", { date: format(new Date(), "yyyy-MM-dd") })
       .getMany();
   }
