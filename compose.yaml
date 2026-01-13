@@ -2,13 +2,6 @@ volumes:
   postgres_data:
 
 services:
-  frontend:
-    image: ghcr.io/dimigo-din/dimigoin-v4-front:${IMAGE_TAG}
-    restart: always
-    ports:
-      - "127.0.0.1:${FRONTEND_PORT}:80"
-    profiles:
-      - stg
   flutter:
     image: ghcr.io/dimigo-din/dimigoin-v4-flutter:${IMAGE_TAG}
     restart: always
