@@ -112,7 +112,7 @@ export class FacilityManageController {
     const files = data.file || [];
     try {
       return await this.facilityManageService.createReport(user, data, files);
-    } catch (e) {
+    } catch (_e) {
       for (const fileInfo of files) {
         const targetFile = Bun.file(
           path.join(process.cwd(), "uploads/facility", fileInfo.filename ?? ""),
@@ -121,7 +121,7 @@ export class FacilityManageController {
           await targetFile.delete();
         }
       }
-      throw e;
+      throw _e;
     }
   }
 
