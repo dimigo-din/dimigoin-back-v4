@@ -10,7 +10,7 @@ export type PermissionType = (typeof PermissionValues)[number];
 
 // Create enum for easy permission management with binary
 export const PermissionEnum = Object.fromEntries(
-  PermissionValues.map((v: PermissionType, i) => [v, 2 ** i++]),
+  PermissionValues.map((v: PermissionType, i) => [v, 2 ** i]),
 ) as { [key in PermissionType]: number };
 
 // group of well-used permissions
