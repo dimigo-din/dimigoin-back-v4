@@ -1,5 +1,3 @@
-import { numberPermission } from "$utils/permission.util";
-
 export const UserPermissionValues = ["STUDENT", "TEACHER"] as const;
 
 export const ManagementPermissionValues = ["MANAGE_PERMISSION"] as const;
@@ -33,7 +31,7 @@ export const getNumberedPermissionGroupsEnum = (): { [key in string]: number } =
     _cachedNumberedPermissionGroupsEnum = Object.fromEntries(
       Object.keys(PermissionGroups).map((v) => [
         v,
-        numberPermission(...PermissionGroups[v as keyof typeof PermissionGroups]),
+        PermissionGroups[v as keyof typeof PermissionGroups].reduce((acc, cur) => acc | cur, 0),
       ]),
     ) as { [key in string]: number };
   }
