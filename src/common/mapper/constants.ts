@@ -1,6 +1,6 @@
 import { Type } from "@nestjs/common";
 import { LaundryTimelineSchedule } from "$mapper/types";
-import { generateRange } from "$utils/staySeat.util";
+import { generateValidRange } from "$utils/staySeat.util";
 import {
   EtcScheduler,
   PrimaryScheduler,
@@ -9,7 +9,12 @@ import {
 } from "~laundry/schedulers";
 import { LaundryTimelineScheduler } from "~laundry/schedulers/scheduler.interface";
 
-export const StaySeats = generateRange(["A1", "L18"]).concat(generateRange(["M1", "N7"]));
+export const VALID_STAY_SEAT_RANGES = [
+  ["A1", "L18"],
+  ["M1", "N18"],
+] as const satisfies readonly [string, string][];
+
+export const StaySeats = generateValidRange();
 
 export const ACCESS_TOKEN_COOKIE = "access-token";
 export const REFRESH_TOKEN_COOKIE = "refresh-token";

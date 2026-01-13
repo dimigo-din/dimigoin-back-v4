@@ -31,7 +31,7 @@ import {
 } from "#/schemas";
 import { ErrorMsg } from "$mapper/error";
 import { safeFindOne } from "$utils/safeFindOne.util";
-import { isInRange } from "$utils/staySeat.util";
+import { isInValidRange } from "$utils/staySeat.util";
 import {
   AuditOutingDTO,
   CreateStayApplyDTO,
@@ -333,11 +333,7 @@ export class StayManageService {
     const staySeatCheck = await this.stayApplyRepository.findOne({
       where: { stay_seat: data.stay_seat.toUpperCase(), stay: stay },
     }); // Allow if same as previous user's seat
-    if (
-      staySeatCheck &&
-      (isInRange(["A1", "L18"], staySeatCheck.stay_seat) ||
-        isInRange(["M1", "N18"], staySeatCheck.stay_seat))
-    ) {
+    if (staySeatCheck && isInValidRange(staySeatCheck.stay_seat)) {
       throw new HttpException(ErrorMsg.StaySeat_Duplication(), HttpStatus.BAD_REQUEST);
     }
 
@@ -377,8 +373,7 @@ export class StayManageService {
     if (
       staySeatCheck &&
       stayApply.stay_seat.toUpperCase() !== data.stay_seat.toUpperCase() &&
-      (isInRange(["A1", "L18"], staySeatCheck.stay_seat) ||
-        isInRange(["M1", "N18"], staySeatCheck.stay_seat))
+      isInValidRange(staySeatCheck.stay_seat)
     ) {
       throw new HttpException(ErrorMsg.StaySeat_Duplication(), HttpStatus.BAD_REQUEST);
     }
@@ -441,7 +436,7 @@ export class StayManageService {
   }
 
   async moveToSomewhere(data: MoveToSomewhereDTO) {
-    if (isInRange(["A1", "L18"], data.to) || isInRange(["M1", "N18"], data.to)) {
+    if (isInValidRange(data.to)) {
       throw new HttpException(ErrorMsg.ItIsStaySeat_ShouldNotBeAllowed(), HttpStatus.BAD_REQUEST);
     }
 
