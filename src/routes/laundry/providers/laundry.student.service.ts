@@ -37,6 +37,7 @@ export class LaundryStudentService {
     return await this.laundryApplyRepository
       .createQueryBuilder("apply")
       .leftJoinAndSelect("apply.laundryTime", "time")
+      .leftJoinAndSelect("time.assigns", "assigns")
       .leftJoinAndSelect("apply.laundryMachine", "machine")
       .leftJoin("apply.user", "user")
       .addSelect(["user.id", "user.name"])
