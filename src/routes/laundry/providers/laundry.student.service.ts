@@ -43,7 +43,7 @@ export class LaundryStudentService {
       .addSelect(["user.id", "user.name"])
       .leftJoin("apply.laundryTimeline", "timeline")
       .where("timeline.enabled = :enabled", { enabled: true })
-      .andWhere("apply.date = :date", { date: format(new Date(), "yyyy-MM-dd") })
+      .andWhere("apply.date = :date", { date: format(new TZDate(new Date, "Asia/Seoul"), "yyyy-MM-dd") })
       .getMany();
   }
 
