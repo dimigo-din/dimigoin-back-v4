@@ -1,3 +1,4 @@
+import { TZDate } from "@date-fns/tz";
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { format } from "date-fns";
@@ -23,7 +24,7 @@ export class UserStudentService {
     const [stayApply, laundryApply] = await Promise.all([
       this.stayApplyRepository.findOne({ where: { user: { id: user.id } } }),
       this.laundryApplyRepository.findOne({
-        where: { user: { id: user.id }, date: format(new Date(), "yyyy-MM-dd") },
+        where: { user: { id: user.id }, date: format(new TZDate(new Date, "Asia/Seoul"), "yyyy-MM-dd") },
         relations: { laundryTime: true, laundryMachine: true },
       }),
     ]);
