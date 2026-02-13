@@ -1,34 +1,38 @@
 import { TZDate } from "@date-fns/tz";
-import { Injectable } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
+import { Inject, Injectable } from "@nestjs/common";
 import { format } from "date-fns";
-import { Repository } from "typeorm";
-import { LaundryApply, StayApply, User } from "#/schemas";
 import type { UserJWT } from "$mapper/types";
 import { CacheService } from "$modules/cache.module";
+import { DRIZZLE, type DrizzleDB } from "$modules/drizzle.module";
 import { ComciData } from "~user/dto";
 
 @Injectable()
 export class UserStudentService {
   constructor(
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
-    @InjectRepository(StayApply)
-    private readonly stayApplyRepository: Repository<StayApply>,
-    @InjectRepository(LaundryApply)
-    private readonly laundryApplyRepository: Repository<LaundryApply>,
+    @Inject(DRIZZLE) private readonly db: DrizzleDB,
     private readonly cacheService: CacheService,
   ) {}
 
   async getMyApplies(user: UserJWT) {
-    const [stayApply, laundryApply] = await Promise.all([
-      this.stayApplyRepository.findOne({ where: { user: { id: user.id } } }),
-      this.laundryApplyRepository.findOne({
-        where: { user: { id: user.id }, date: format(new TZDate(new Date, "Asia/Seoul"), "yyyy-MM-dd") },
-        relations: { laundryTime: true, laundryMachine: true },
+    const [stayApplyResult, laundryApplyResult] = await Promise.all([
+      this.db.query.stayApply.findFirst({
+        where: { RAW: (t, { eq }) => eq(t.userId, user.id) },
+      }),
+      this.db.query.laundryApply.findFirst({
+        where: {
+          RAW: (t, { and, eq }) =>
+            and(
+              eq(t.userId, user.id),
+              eq(t.date, format(new TZDate(new Date(), "Asia/Seoul"), "yyyy-MM-dd")),
+            ),
+        },
+        with: { laundryTime: true, laundryMachine: true },
       }),
     ]);
-    return { stayApply, laundryApply };
+    return {
+      stayApply: stayApplyResult ?? null,
+      laundryApply: laundryApplyResult ?? null,
+    };
   }
 
   async getTimeTable(grade: number, klass: number) {
@@ -219,11 +223,11 @@ export class UserStudentService {
           }
 
           const subject = data.자료492?.[subjectIndex] ?? "";
-          const teacher = teacherName;
+          const teacherDisplay = teacherName;
 
           let result = groupPrefix + subject;
-          if (teacher) {
-            result += `\n${teacher}`;
+          if (teacherDisplay) {
+            result += `\n${teacherDisplay}`;
           }
           if (classroom) {
             result += classroom;

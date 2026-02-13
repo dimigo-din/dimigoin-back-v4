@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, HttpStatus, Post, Query } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
-import { LaundryApply, LaundryTimeline, User } from "#/schemas";
+import type { User } from "#/db/schema";
 import { AppCheckGuard, CustomJwtAuthGuard } from "#auth/guards";
 import { PermissionGuard } from "#auth/guards/permission.guard";
 import { UseGuardsWithSwagger, UseGuardWhenProduction } from "#auth/guards/useGuards";
@@ -23,7 +23,6 @@ export class LaundryStudentController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: LaundryTimeline,
   })
   @Get("/timeline")
   async getLaundryTimeline() {
@@ -36,7 +35,6 @@ export class LaundryStudentController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: [LaundryApply],
   })
   @Get("/")
   async getLaundryApplies() {
@@ -49,7 +47,6 @@ export class LaundryStudentController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: LaundryApply,
   })
   @Post("/")
   @UseGuardWhenProduction(AppCheckGuard)
@@ -63,7 +60,6 @@ export class LaundryStudentController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: LaundryApply,
   })
   @Delete("/")
   async deleteApply(@CurrentUser() user: User, @Query() data: LaundryApplyIdDTO) {

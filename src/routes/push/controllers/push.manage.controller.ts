@@ -1,6 +1,5 @@
 import { Body, Controller, Get, HttpStatus, Post, Query } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
-import { PushSubscription } from "#/schemas";
 import { CustomJwtAuthGuard } from "#auth/guards";
 import { PermissionGuard } from "#auth/guards/permission.guard";
 import { UseGuardsWithSwagger } from "#auth/guards/useGuards";
@@ -52,7 +51,6 @@ export class PushManageController {
   })
   @ApiResponseFormat({
     status: HttpStatus.NO_CONTENT,
-    type: [PushSubscription],
   })
   @Get("/userSubscriptions")
   async getUserSubscriptions(@Query() data: GetSubscriptionsByUserDTO) {

@@ -1,6 +1,5 @@
 import { Body, Controller, Delete, Get, HttpStatus, Post, Query } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
-import { WakeupSongApplication } from "#/schemas";
 import { CustomJwtAuthGuard } from "#auth/guards";
 import { PermissionGuard } from "#auth/guards/permission.guard";
 import { UseGuardsWithSwagger } from "#auth/guards/useGuards";
@@ -38,7 +37,6 @@ export class WakeupManageController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: WakeupSongApplication,
   })
   @Post("/")
   async selectApply(@Body() data: WakeupSongSelectDTO) {
@@ -51,7 +49,6 @@ export class WakeupManageController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: WakeupSongApplication,
   })
   @Delete("/")
   async deleteApply(@Query() data: WakeupSongDeleteDTO) {

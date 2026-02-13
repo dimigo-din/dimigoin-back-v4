@@ -14,7 +14,7 @@ import {
 } from "@nestjs/common";
 import { ApiBody, ApiConsumes, ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 import type { FastifyReply } from "fastify";
-import { FacilityImg, FacilityReport, FacilityReportComment, User } from "#/schemas";
+import type { User } from "#/db/schema";
 import { CustomJwtAuthGuard } from "#auth/guards";
 import { PermissionGuard } from "#auth/guards/permission.guard";
 import { UseGuardsWithSwagger } from "#auth/guards/useGuards";
@@ -63,7 +63,6 @@ export class FacilityManageController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: FacilityImg,
   })
   @Delete("/img")
   async deleteImg(@Query() data: FacilityImgIdDTO) {
@@ -89,7 +88,6 @@ export class FacilityManageController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: FacilityReport,
   })
   @Get("/")
   async getReport(@Query() data: FacilityReportIdDTO) {
@@ -102,7 +100,6 @@ export class FacilityManageController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: FacilityReport,
   })
   @ApiConsumes("multipart/form-data")
   @ApiBody({ type: ReportFacilityDTO })
@@ -131,7 +128,6 @@ export class FacilityManageController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: FacilityReport,
   })
   @Delete("/")
   async deleteReport(@Query() data: FacilityReportIdDTO) {
@@ -144,7 +140,6 @@ export class FacilityManageController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: FacilityReportComment,
   })
   @Post("/comment")
   async writeComment(@CurrentUser() user: User, @Body() data: PostCommentDTO) {
@@ -157,7 +152,6 @@ export class FacilityManageController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: FacilityReportComment,
   })
   @Delete("/comment")
   async deleteComment(@Query() data: FacilityReportCommentIdDTO) {
@@ -170,7 +164,6 @@ export class FacilityManageController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: FacilityReport,
   })
   @Patch("/type")
   async changeType(data: ChangeFacilityReportTypeDTO) {
@@ -183,7 +176,6 @@ export class FacilityManageController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: FacilityReport,
   })
   @Patch("/status")
   async changeStatus(@Body() data: ChangeFacilityReportStatusDTO) {

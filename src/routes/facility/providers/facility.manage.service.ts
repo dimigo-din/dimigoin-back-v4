@@ -1,11 +1,11 @@
 import path from "node:path";
-import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
-import { FacilityImg, FacilityReport, FacilityReportComment, User } from "#/schemas";
+import { HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
+import { eq } from "drizzle-orm";
+import { facilityImg, facilityReport, facilityReportComment } from "#/db/schema";
 import { ErrorMsg } from "$mapper/error";
 import { UserJWT } from "$mapper/types";
-import { safeFindOne } from "$utils/safeFindOne.util";
+import { DRIZZLE, type DrizzleDB } from "$modules/drizzle.module";
+import { findOrThrow } from "$utils/findOrThrow.util";
 import { FileDTO } from "~facility/dto/facility.dto";
 import {
   ChangeFacilityReportStatusDTO,
@@ -20,19 +20,12 @@ import {
 
 @Injectable()
 export class FacilityManageService {
-  constructor(
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
-    @InjectRepository(FacilityReport)
-    private readonly facilityReportRepository: Repository<FacilityReport>,
-    @InjectRepository(FacilityReportComment)
-    private readonly facilityReportCommentRepository: Repository<FacilityReportComment>,
-    @InjectRepository(FacilityImg)
-    private readonly facilityImgRepository: Repository<FacilityImg>,
-  ) {}
+  constructor(@Inject(DRIZZLE) private readonly db: DrizzleDB) {}
 
   async getImg(data: FacilityImgIdDTO) {
-    const img = await safeFindOne<FacilityImg>(this.facilityImgRepository, data.id);
+    const img = await findOrThrow(
+      this.db.query.facilityImg.findFirst({ where: { RAW: (t, { eq }) => eq(t.id, data.id) } }),
+    );
 
     return {
       stream: Bun.file(path.join(process.cwd(), "uploads/facility", img.location)).stream(),
@@ -41,108 +34,166 @@ export class FacilityManageService {
   }
 
   async deleteImg(data: FacilityImgIdDTO) {
-    const img = await safeFindOne<FacilityImg>(this.facilityImgRepository, data.id);
+    const img = await findOrThrow(
+      this.db.query.facilityImg.findFirst({ where: { RAW: (t, { eq }) => eq(t.id, data.id) } }),
+    );
 
-    return await this.facilityImgRepository.remove(img);
+    await this.db.delete(facilityImg).where(eq(facilityImg.id, img.id));
+
+    return img;
   }
 
   async reportList(data: GetReportListDTO) {
-    return await this.facilityReportRepository.find({
-      relations: ["user"],
-      take: 10,
-      skip: (data.page ? data.page - 1 : 0) * 10,
-      order: { created_at: "DESC" },
+    const offset = (data.page ? data.page - 1 : 0) * 10;
+
+    return await this.db.query.facilityReport.findMany({
+      with: { user: true },
+      limit: 10,
+      offset: offset,
+      orderBy: (facilityReport, { desc }) => desc(facilityReport.created_at),
     });
   }
 
   async getReport(data: FacilityReportIdDTO) {
-    const report = await this.facilityReportRepository
-      .createQueryBuilder("report")
-      .leftJoinAndSelect("report.comment", "comment")
-      .leftJoinAndSelect("report.file", "file")
-      .leftJoinAndSelect("report.user", "user")
-      .loadRelationIdAndMap("comment.parentId", "comment.parent")
-      .loadRelationIdAndMap("comment.commentParentId", "comment.comment_parent")
-      .where("report.id = :id", { id: data.id })
-      .getOne();
+    const report = await this.db.query.facilityReport.findFirst({
+      where: { RAW: (t, { eq }) => eq(t.id, data.id) },
+      with: {
+        comment: true,
+        file: true,
+        user: true,
+      },
+    });
+
+    return report ?? null;
+  }
+
+  async createReport(userJwt: UserJWT, data: ReportFacilityDTO, files: Array<FileDTO>) {
+    const dbUser = await findOrThrow(
+      this.db.query.user.findFirst({ where: { RAW: (t, { eq }) => eq(t.id, userJwt.id) } }),
+    );
+
+    const [report] = await this.db
+      .insert(facilityReport)
+      .values({
+        report_type: data.report_type,
+        subject: data.subject,
+        body: data.body,
+        userId: dbUser.id,
+      })
+      .returning();
+
+    if (!report) {
+      throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
+    }
+
+    if (files.length > 0) {
+      await this.db.insert(facilityImg).values(
+        files.map((file) => ({
+          name: file.originalname,
+          location: file.filename ?? "",
+          parentId: report.id,
+        })),
+      );
+    }
+
+    return await this.db.query.facilityReport.findFirst({
+      where: { RAW: (t, { eq }) => eq(t.id, report.id) },
+      with: { file: true, user: true },
+    });
+  }
+
+  async deleteReport(data: FacilityReportIdDTO) {
+    const report = await findOrThrow(
+      this.db.query.facilityReport.findFirst({ where: { RAW: (t, { eq }) => eq(t.id, data.id) } }),
+    );
+
+    await this.db.delete(facilityReport).where(eq(facilityReport.id, report.id));
 
     return report;
   }
 
-  async createReport(user: UserJWT, data: ReportFacilityDTO, files: Array<FileDTO>) {
-    const dbUser = await safeFindOne<User>(this.userRepository, user.id);
+  async writeComment(userJwt: UserJWT, data: PostCommentDTO) {
+    const dbUser = await findOrThrow(
+      this.db.query.user.findFirst({ where: { RAW: (t, { eq }) => eq(t.id, userJwt.id) } }),
+    );
 
-    const facilityReport = new FacilityReport();
-    facilityReport.report_type = data.report_type;
-    facilityReport.subject = data.subject;
-    facilityReport.body = data.body;
-    facilityReport.user = dbUser;
+    await findOrThrow(
+      this.db.query.facilityReport.findFirst({
+        where: { RAW: (t, { eq }) => eq(t.id, data.post) },
+      }),
+    );
 
-    const imgs: FacilityImg[] = [];
-    for (const file of files) {
-      const img = new FacilityImg();
-      img.name = file.originalname;
-      img.location = file.filename ?? "";
-      img.parent = facilityReport;
-
-      imgs.push(img);
-    }
-    facilityReport.file = imgs;
-
-    const saved = await this.facilityReportRepository.save(facilityReport);
-    return await safeFindOne<FacilityReport>(this.facilityReportRepository, saved.id);
-  }
-
-  async deleteReport(data: FacilityReportIdDTO) {
-    const report = await safeFindOne<FacilityReport>(this.facilityReportRepository, data.id);
-
-    return await this.facilityReportRepository.remove(report);
-  }
-
-  async writeComment(user: UserJWT, data: PostCommentDTO) {
-    const dbUser = await safeFindOne<User>(this.userRepository, user.id);
-
-    const post = await safeFindOne<FacilityReport>(this.facilityReportRepository, data.post);
-    const parentComment = data.parent_comment
-      ? await safeFindOne<FacilityReportComment>(this.facilityReportCommentRepository, {
-          where: { id: data.parent_comment },
-          relations: ["parent"],
-        })
-      : null;
-    if (parentComment && parentComment.parent.id !== data.post) {
-      throw new HttpException(ErrorMsg.Invalid_Parent(), HttpStatus.BAD_REQUEST);
+    if (data.parent_comment) {
+      const parentCommentRow = await findOrThrow(
+        this.db.query.facilityReportComment.findFirst({
+          where: { RAW: (t, { eq }) => eq(t.id, data.parent_comment) },
+        }),
+      );
+      if (parentCommentRow.parentId !== data.post) {
+        throw new HttpException(ErrorMsg.Invalid_Parent(), HttpStatus.BAD_REQUEST);
+      }
     }
 
-    const comment = new FacilityReportComment();
-    comment.parent = post;
-    comment.comment_parent = parentComment;
-    comment.text = data.text;
-    comment.user = dbUser;
+    const [comment] = await this.db
+      .insert(facilityReportComment)
+      .values({
+        parentId: data.post,
+        commentParentId: data.parent_comment ?? undefined,
+        text: data.text,
+        userId: dbUser.id,
+      })
+      .returning();
 
-    const saved = await this.facilityReportCommentRepository.save(comment);
-    return await safeFindOne<FacilityReportComment>(this.facilityReportCommentRepository, saved.id);
+    if (!comment) {
+      throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
+    }
+
+    return await findOrThrow(
+      this.db.query.facilityReportComment.findFirst({
+        where: { RAW: (t, { eq }) => eq(t.id, comment.id) },
+      }),
+    );
   }
 
   async deleteComment(data: FacilityReportCommentIdDTO) {
-    const comment = await safeFindOne<FacilityReportComment>(
-      this.facilityReportCommentRepository,
-      data.id,
+    const comment = await findOrThrow(
+      this.db.query.facilityReportComment.findFirst({
+        where: { RAW: (t, { eq }) => eq(t.id, data.id) },
+      }),
     );
 
-    return await this.facilityReportCommentRepository.remove(comment);
+    await this.db.delete(facilityReportComment).where(eq(facilityReportComment.id, comment.id));
+
+    return comment;
   }
 
   async changeType(data: ChangeFacilityReportTypeDTO) {
-    const report = await safeFindOne<FacilityReport>(this.facilityReportRepository, data.id);
+    await findOrThrow(
+      this.db.query.facilityReport.findFirst({
+        where: { RAW: (t, { eq }) => eq(t.id, data.id) },
+      }),
+    );
 
-    report.report_type = data.type;
-    return await this.facilityReportRepository.save(report);
+    const [updated] = await this.db
+      .update(facilityReport)
+      .set({ report_type: data.type })
+      .where(eq(facilityReport.id, data.id))
+      .returning();
+
+    return updated;
   }
 
   async changeStatus(data: ChangeFacilityReportStatusDTO) {
-    const report = await safeFindOne<FacilityReport>(this.facilityReportRepository, data.id);
+    await findOrThrow(
+      this.db.query.facilityReport.findFirst({ where: { RAW: (t, { eq }) => eq(t.id, data.id) } }),
+    );
 
-    report.status = data.status;
-    return await this.facilityReportRepository.save(report);
+    const [updated] = await this.db
+      .update(facilityReport)
+      .set({ status: data.status })
+      .where(eq(facilityReport.id, data.id))
+      .returning();
+
+    return updated;
   }
 }

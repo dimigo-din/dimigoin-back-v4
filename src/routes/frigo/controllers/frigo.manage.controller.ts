@@ -1,6 +1,5 @@
 import { Body, Controller, Delete, Get, HttpStatus, Patch, Post, Query } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
-import { FrigoApply, FrigoApplyPeriod } from "#/schemas";
 import { CustomJwtAuthGuard } from "#auth/guards";
 import { PermissionGuard } from "#auth/guards/permission.guard";
 import { UseGuardsWithSwagger } from "#auth/guards/useGuards";
@@ -27,7 +26,6 @@ export class FrigoManageController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: [FrigoApplyPeriod],
   })
   @Get("/period")
   async getApplyPeriod() {
@@ -40,7 +38,6 @@ export class FrigoManageController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: FrigoApply,
   })
   @Post("/period")
   async setApplyPeriod(@Body() data: SetFrigoApplyPeriodDTO) {
@@ -54,7 +51,6 @@ export class FrigoManageController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: FrigoApplyPeriod,
   })
   @Delete("/period")
   async removeApplyPeriod(@Query() data: FrigoApplyPeriodIdDTO) {
@@ -67,7 +63,6 @@ export class FrigoManageController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: [FrigoApply],
   })
   @Get("/")
   async getApplyList() {
@@ -80,7 +75,6 @@ export class FrigoManageController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: FrigoApply,
   })
   @Post("/")
   async apply(@Body() data: FrigoApplyDTO) {
@@ -93,7 +87,6 @@ export class FrigoManageController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: FrigoApply,
   })
   @Delete("/")
   async removeApply(@Query() data: FrigoApplyIdDTO) {
@@ -107,7 +100,6 @@ export class FrigoManageController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: FrigoApply,
   })
   @Patch("/")
   async auditApply(@Body() data: AuditFrigoApply) {

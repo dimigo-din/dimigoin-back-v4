@@ -1,15 +1,21 @@
 import { TZDate } from "@date-fns/tz";
-import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
+import { HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { ModuleRef } from "@nestjs/core";
 import { Cron, CronExpression } from "@nestjs/schedule";
-import { InjectRepository } from "@nestjs/typeorm";
 import { addMinutes, format } from "date-fns";
-import { In, Repository } from "typeorm";
-import { LaundryApply, LaundryMachine, LaundryTime, LaundryTimeline, User } from "#/schemas";
+import { eq } from "drizzle-orm";
+import {
+  laundryApply,
+  laundryMachine,
+  laundryTime,
+  laundryTimeline,
+  laundryTimeToMachine,
+} from "#/db/schema";
 import { LaundrySchedulePriority } from "$mapper/constants";
 import { ErrorMsg } from "$mapper/error";
 import { CacheService } from "$modules/cache.module";
-import { safeFindOne } from "$utils/safeFindOne.util";
+import { DRIZZLE, type DrizzleDB } from "$modules/drizzle.module";
+import { findOrThrow } from "$utils/findOrThrow.util";
 import {
   CreateLaundryApplyDTO,
   CreateLaundryMachineDTO,
@@ -28,173 +34,260 @@ import { PushManageService } from "~push/providers";
 @Injectable()
 export class LaundryManageService {
   constructor(
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
-    @InjectRepository(LaundryTime)
-    private readonly laundryTimeRepository: Repository<LaundryTime>,
-    @InjectRepository(LaundryApply)
-    private readonly laundryApplyRepository: Repository<LaundryApply>,
-    @InjectRepository(LaundryMachine)
-    private readonly laundryMachineRepository: Repository<LaundryMachine>,
-    @InjectRepository(LaundryTimeline)
-    private readonly laundryTimelineRepository: Repository<LaundryTimeline>,
+    @Inject(DRIZZLE) private readonly db: DrizzleDB,
     readonly pushManageService: PushManageService,
     readonly cacheService: CacheService,
     readonly moduleRef: ModuleRef,
   ) {}
 
   async getLaundryTimelineList() {
-    return await this.laundryTimelineRepository.find({
-      select: { id: true, name: true, enabled: true },
+    const timelines = await this.db.query.laundryTimeline.findMany({
+      columns: { id: true, name: true, enabled: true },
     });
+    return timelines;
   }
 
   async getLaundryTimeline(data: LaundryTimelineIdDTO) {
-    return await safeFindOne<LaundryTimeline>(this.laundryTimelineRepository, {
-      where: { id: data.id },
-      relations: { times: true },
-    });
+    return await findOrThrow(
+      this.db.query.laundryTimeline.findFirst({
+        where: { RAW: (t, { eq }) => eq(t.id, data.id) },
+        with: { times: true },
+      }),
+    );
   }
 
   async createLaundryTimeline(data: CreateLaundryTimelineDTO) {
-    const laundryTimeline = new LaundryTimeline();
-    laundryTimeline.name = data.name;
-    laundryTimeline.scheduler = data.scheduler;
+    const [savedTimeline] = await this.db
+      .insert(laundryTimeline)
+      .values({
+        name: data.name,
+        scheduler: data.scheduler,
+      })
+      .returning();
 
-    laundryTimeline.times = [];
-    for (const time of data.times) {
-      const laundryTime = new LaundryTime();
-      laundryTime.time = time.time;
-      laundryTime.grade = time.grade;
-      laundryTime.assigns = await this.laundryMachineRepository.find({
-        where: { id: In(time.assigns) },
-      });
-      laundryTime.timeline = laundryTimeline;
-
-      laundryTimeline.times.push(laundryTime);
+    if (!savedTimeline) {
+      throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
     }
 
-    const saved = await this.laundryTimelineRepository.save(laundryTimeline);
-    return await safeFindOne<LaundryTimeline>(this.laundryTimelineRepository, saved.id);
+    for (const time of data.times) {
+      const [savedTime] = await this.db
+        .insert(laundryTime)
+        .values({
+          time: time.time,
+          grade: time.grade,
+          timelineId: savedTimeline.id,
+        })
+        .returning();
+
+      if (!savedTime) {
+        throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
+      }
+
+      // Insert ManyToMany join records
+      if (time.assigns && time.assigns.length > 0) {
+        const joinValues = time.assigns.map((machineId: string) => ({
+          laundryTimeId: savedTime.id,
+          laundryMachineId: machineId,
+        }));
+        await this.db.insert(laundryTimeToMachine).values(joinValues);
+      }
+    }
+
+    return await findOrThrow(
+      this.db.query.laundryTimeline.findFirst({
+        where: { RAW: (t, { eq }) => eq(t.id, savedTimeline.id) },
+      }),
+    );
   }
 
   async updateLaundryTimeline(data: UpdateLaundryTimelineDTO) {
-    const laundryTimeline = await safeFindOne<LaundryTimeline>(this.laundryTimelineRepository, {
-      where: { id: data.id },
-      relations: { times: true },
-    });
-    laundryTimeline.name = data.name;
-    laundryTimeline.scheduler = data.scheduler;
+    await findOrThrow(
+      this.db.query.laundryTimeline.findFirst({
+        where: { RAW: (t, { eq }) => eq(t.id, data.id) },
+        with: { times: true },
+      }),
+    );
 
-    await this.laundryTimeRepository.remove(laundryTimeline.times);
-    laundryTimeline.times = [];
-    const allAssignIds = data.times.flatMap((time) => time.assigns);
-    const machines = await this.laundryMachineRepository.find({
-      where: { id: In(allAssignIds) },
-    });
+    await this.db
+      .update(laundryTimeline)
+      .set({ name: data.name, scheduler: data.scheduler })
+      .where(eq(laundryTimeline.id, data.id));
 
-    const machineMap = new Map(machines.map((m) => [m.id, m]));
+    // Remove old times (cascade will remove join table entries)
+    await this.db.delete(laundryTime).where(eq(laundryTime.timelineId, data.id));
 
     for (const time of data.times) {
-      const laundryTime = new LaundryTime();
-      laundryTime.time = time.time;
-      laundryTime.grade = time.grade;
-      laundryTime.assigns = time.assigns
-        .map((id) => machineMap.get(id) as LaundryMachine)
-        .filter(Boolean);
-      laundryTime.timeline = laundryTimeline;
+      const [savedTime] = await this.db
+        .insert(laundryTime)
+        .values({
+          time: time.time,
+          grade: time.grade,
+          timelineId: data.id,
+        })
+        .returning();
 
-      laundryTimeline.times.push(laundryTime);
+      if (!savedTime) {
+        throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
+      }
+
+      // Insert ManyToMany join records
+      if (time.assigns && time.assigns.length > 0) {
+        const joinValues = time.assigns.map((machineId: string) => ({
+          laundryTimeId: savedTime.id,
+          laundryMachineId: machineId,
+        }));
+        await this.db.insert(laundryTimeToMachine).values(joinValues);
+      }
     }
 
-    const saved = await this.laundryTimelineRepository.save(laundryTimeline);
-    return await safeFindOne<LaundryTimeline>(this.laundryTimelineRepository, saved.id);
+    return await findOrThrow(
+      this.db.query.laundryTimeline.findFirst({
+        where: { RAW: (t, { eq }) => eq(t.id, data.id) },
+      }),
+    );
   }
 
   async deleteLaundryTimeline(data: LaundryTimelineIdDTO) {
-    const laundryTimeline = await safeFindOne<LaundryTimeline>(
-      this.laundryTimelineRepository,
-      data.id,
+    await findOrThrow(
+      this.db.query.laundryTimeline.findFirst({
+        where: { RAW: (t, { eq }) => eq(t.id, data.id) },
+      }),
     );
-    return await this.laundryTimelineRepository.remove(laundryTimeline);
+    const [deleted] = await this.db
+      .delete(laundryTimeline)
+      .where(eq(laundryTimeline.id, data.id))
+      .returning();
+    return deleted;
   }
 
   async enableLaundryTimeline(data: LaundryTimelineIdDTO) {
-    const modified = (await this.laundryTimelineRepository.find()).map((timeline) => {
-      timeline.enabled = timeline.id === data.id;
-      return timeline;
-    });
-    return await this.laundryTimelineRepository.save(modified);
+    // Disable all timelines
+    await this.db.update(laundryTimeline).set({ enabled: false });
+
+    // Enable the target
+    await this.db
+      .update(laundryTimeline)
+      .set({ enabled: true })
+      .where(eq(laundryTimeline.id, data.id));
+
+    return await this.db.query.laundryTimeline.findMany();
   }
 
   async getLaundryMachineList() {
-    return await this.laundryMachineRepository.find();
+    return await this.db.query.laundryMachine.findMany();
   }
 
   async createLaundryMachine(data: CreateLaundryMachineDTO) {
-    const laundryMachine = new LaundryMachine();
-    laundryMachine.type = data.type;
-    laundryMachine.name = data.name;
-    laundryMachine.gender = data.gender;
-    laundryMachine.enabled = data.enabled;
+    const [saved] = await this.db
+      .insert(laundryMachine)
+      .values({
+        type: data.type,
+        name: data.name,
+        gender: data.gender,
+        enabled: data.enabled,
+      })
+      .returning();
 
-    const saved = await this.laundryMachineRepository.save(laundryMachine);
-    return await safeFindOne<LaundryMachine>(this.laundryMachineRepository, saved.id);
+    if (!saved) {
+      throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
+    }
+
+    return await findOrThrow(
+      this.db.query.laundryMachine.findFirst({
+        where: { RAW: (t, { eq }) => eq(t.id, saved.id) },
+      }),
+    );
   }
 
   async updateLaundryMachine(data: UpdateLaundryMachineDTO) {
-    const laundryMachine = await safeFindOne<LaundryMachine>(
-      this.laundryMachineRepository,
-      data.id,
+    await findOrThrow(
+      this.db.query.laundryMachine.findFirst({
+        where: { RAW: (t, { eq }) => eq(t.id, data.id) },
+      }),
     );
-    laundryMachine.type = data.type;
-    laundryMachine.name = data.name;
-    laundryMachine.gender = data.gender;
-    laundryMachine.enabled = data.enabled;
 
-    const saved = await this.laundryMachineRepository.save(laundryMachine);
-    return await safeFindOne<LaundryMachine>(this.laundryMachineRepository, saved.id);
+    await this.db
+      .update(laundryMachine)
+      .set({
+        type: data.type,
+        name: data.name,
+        gender: data.gender,
+        enabled: data.enabled,
+      })
+      .where(eq(laundryMachine.id, data.id));
+
+    return await findOrThrow(
+      this.db.query.laundryMachine.findFirst({
+        where: { RAW: (t, { eq }) => eq(t.id, data.id) },
+      }),
+    );
   }
 
   async deleteLaundryMachine(data: LaundryMachineIdDTO) {
-    const laundryMachine = await safeFindOne<LaundryMachine>(
-      this.laundryMachineRepository,
-      data.id,
+    await findOrThrow(
+      this.db.query.laundryMachine.findFirst({
+        where: { RAW: (t, { eq }) => eq(t.id, data.id) },
+      }),
     );
-    return await this.laundryMachineRepository.remove(laundryMachine);
+    const [deleted] = await this.db
+      .delete(laundryMachine)
+      .where(eq(laundryMachine.id, data.id))
+      .returning();
+    return deleted;
   }
 
   async getLaundryApplyList() {
-    return await this.laundryApplyRepository.find({
-      where: { laundryTimeline: { enabled: true }, date: format(new Date(), "yyyy-MM-dd") },
-      relations: { user: true, laundryMachine: true, laundryTime: true, laundryTimeline: true },
+    return await this.db.query.laundryApply.findMany({
+      where: { RAW: (t, { eq }) => eq(t.date, format(new Date(), "yyyy-MM-dd")) },
+      with: {
+        user: true,
+        laundryMachine: true,
+        laundryTime: true,
+        laundryTimeline: true,
+      },
     });
   }
 
   async createLaundryApply(data: CreateLaundryApplyDTO) {
-    const laundryTimeline = await safeFindOne<LaundryTimeline>(this.laundryTimelineRepository, {
-      where: { times: { id: data.laundryTime } },
-    });
-    const laundryTime = await safeFindOne<LaundryTime>(
-      this.laundryTimeRepository,
-      data.laundryTime,
+    const timeline = await findOrThrow(
+      this.db.query.laundryTimeline.findFirst({
+        where: { RAW: (t, { eq }) => eq(t.id, data.laundryTime) },
+      }),
     );
-    const laundryMachine = await safeFindOne<LaundryMachine>(
-      this.laundryMachineRepository,
-      data.machine,
-    );
-    const user = await safeFindOne<User>(this.userRepository, data.user);
 
-    const applyExists = await this.laundryApplyRepository.findOne({ where: { user: user } });
+    // Find the timeline that contains this time
+    const timeRow = await this.db.query.laundryTime.findFirst({
+      where: { RAW: (t, { eq }) => eq(t.id, data.laundryTime) },
+      with: { timeline: true },
+    });
+    const actualTimeline = timeRow?.timeline ?? timeline;
+
+    await findOrThrow(
+      this.db.query.laundryTime.findFirst({
+        where: { RAW: (t, { eq }) => eq(t.id, data.laundryTime) },
+      }),
+    );
+    const machineRow = await findOrThrow(
+      this.db.query.laundryMachine.findFirst({
+        where: { RAW: (t, { eq }) => eq(t.id, data.machine) },
+      }),
+    );
+    await findOrThrow(
+      this.db.query.user.findFirst({ where: { RAW: (t, { eq }) => eq(t.id, data.user) } }),
+    );
+
+    const applyExists = await this.db.query.laundryApply.findFirst({
+      where: { RAW: (t, { eq }) => eq(t.userId, data.user) },
+    });
     if (applyExists) {
       throw new HttpException(
-        ErrorMsg.LaundryApply_AlreadyExists(laundryMachine.type === "washer" ? "세탁" : "건조"),
+        ErrorMsg.LaundryApply_AlreadyExists(machineRow.type === "washer" ? "세탁" : "건조"),
         HttpStatus.BAD_REQUEST,
       );
     }
 
-    const machineTaken = await this.laundryApplyRepository.findOne({
-      where: { laundryMachine: laundryMachine },
+    const machineTaken = await this.db.query.laundryApply.findFirst({
+      where: { RAW: (t, { eq }) => eq(t.laundryMachineId, data.machine) },
     });
     if (machineTaken) {
       throw new HttpException(ErrorMsg.LaundryMachine_AlreadyTaken(), HttpStatus.BAD_REQUEST);
@@ -202,45 +295,64 @@ export class LaundryManageService {
 
     const date = format(new Date(), "yyyy-MM-dd");
 
-    const laundryApply = new LaundryApply();
-    laundryApply.date = date;
-    laundryApply.laundryTimeline = laundryTimeline;
-    laundryApply.laundryTime = laundryTime;
-    laundryApply.laundryMachine = laundryMachine;
-    laundryApply.user = user;
+    const [saved] = await this.db
+      .insert(laundryApply)
+      .values({
+        date,
+        laundryTimelineId: actualTimeline.id,
+        laundryTimeId: data.laundryTime,
+        laundryMachineId: data.machine,
+        userId: data.user,
+      })
+      .returning();
 
-    const saved = await this.laundryApplyRepository.save(laundryApply);
-    return await safeFindOne<LaundryApply>(this.laundryApplyRepository, saved.id);
+    if (!saved) {
+      throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
+    }
+
+    return await findOrThrow(
+      this.db.query.laundryApply.findFirst({
+        where: { RAW: (t, { eq }) => eq(t.id, saved.id) },
+      }),
+    );
   }
 
   async updateLaundryApply(data: UpdateLaundryApplyDTO) {
-    const laundryApply = await safeFindOne<LaundryApply>(this.laundryApplyRepository, data.id);
-    const user = await safeFindOne<User>(this.userRepository, data.user);
+    await findOrThrow(
+      this.db.query.laundryApply.findFirst({ where: { RAW: (t, { eq }) => eq(t.id, data.id) } }),
+    );
+    await findOrThrow(
+      this.db.query.user.findFirst({ where: { RAW: (t, { eq }) => eq(t.id, data.user) } }),
+    );
 
-    laundryApply.user = user;
+    await this.db
+      .update(laundryApply)
+      .set({ userId: data.user })
+      .where(eq(laundryApply.id, data.id));
 
-    const saved = await this.laundryApplyRepository.save(laundryApply);
-    return await safeFindOne<LaundryApply>(this.laundryApplyRepository, saved.id);
+    return await findOrThrow(
+      this.db.query.laundryApply.findFirst({ where: { RAW: (t, { eq }) => eq(t.id, data.id) } }),
+    );
   }
 
   async deleteLaundryApply(data: LaundryApplyIdDTO) {
-    const laundryApply = await safeFindOne<LaundryApply>(this.laundryApplyRepository, data.id);
-
-    return await this.laundryApplyRepository.remove(laundryApply);
+    await findOrThrow(
+      this.db.query.laundryApply.findFirst({ where: { RAW: (t, { eq }) => eq(t.id, data.id) } }),
+    );
+    const [deleted] = await this.db
+      .delete(laundryApply)
+      .where(eq(laundryApply.id, data.id))
+      .returning();
+    return deleted;
   }
 
   @Cron(CronExpression.EVERY_HOUR)
   // @Cron(CronExpression.EVERY_SECOND)
   private async laundryTimelineScheduler() {
-    const timelines = await this.laundryTimelineRepository.find();
+    const timelines = await this.db.query.laundryTimeline.findMany();
 
     const disable = async () => {
-      await this.laundryTimelineRepository.save(
-        timelines.map((x) => {
-          x.enabled = false;
-          return x;
-        }),
-      );
+      await this.db.update(laundryTimeline).set({ enabled: false });
     };
 
     for (const schedulerItem of LaundrySchedulePriority) {
@@ -258,8 +370,10 @@ export class LaundryManageService {
             break; // keep it.
           } else {
             await disable();
-            target[0].enabled = true;
-            await this.laundryTimelineRepository.save(target[0]); // enable it
+            await this.db
+              .update(laundryTimeline)
+              .set({ enabled: true })
+              .where(eq(laundryTimeline.id, target[0].id));
             break;
           }
         } else {
@@ -274,27 +388,36 @@ export class LaundryManageService {
   private async laundryNotificationScheduler() {
     const now = new Date();
     const inFifteenMinutes = format(addMinutes(new TZDate(now, "Asia/Seoul"), 15), "HH:mm");
-    const applies = await this.laundryApplyRepository.find({
-      where: {
-        date: format(new TZDate(now, "Asia/Seoul"), "yyyy-MM-dd"),
-        laundryTime: { time: inFifteenMinutes },
+    const todayDate = format(new TZDate(now, "Asia/Seoul"), "yyyy-MM-dd");
+
+    const applies = await this.db.query.laundryApply.findMany({
+      where: { RAW: (t, { eq }) => eq(t.date, todayDate) },
+      with: {
+        user: true,
+        laundryMachine: true,
+        laundryTime: true,
       },
-      relations: { user: true, laundryMachine: true, laundryTime: true },
     });
 
-    for (const apply of applies) {
+    // Filter by time in application code since we loaded the relation
+    const filteredApplies = applies.filter((a) => a.laundryTime?.time === inFifteenMinutes);
+
+    for (const apply of filteredApplies) {
       if (await this.cacheService.isNotificationAlreadySent(apply.id)) {
         continue;
       }
 
-      const user = apply.user;
+      if (!apply.user || !apply.laundryMachine || !apply.laundryTime) {
+        continue;
+      }
 
+      const applyUser = apply.user;
       const machineType = apply.laundryMachine.type === "washer" ? "세탁" : "건조";
       const title = `${machineType} 알림`;
       const body = `15분뒤 ${apply.laundryTime.time}에 ${machineType}이 예약되어 있습니다. (${apply.laundryMachine.name})`;
 
       const dto: PushNotificationToSpecificDTO = {
-        to: [user.id],
+        to: [applyUser.id],
         title: title,
         body: body,
         category: "Laundry",

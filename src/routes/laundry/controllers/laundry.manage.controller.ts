@@ -1,6 +1,5 @@
 import { Body, Controller, Delete, Get, HttpStatus, Patch, Post, Query } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
-import { LaundryApply, LaundryMachine, LaundryTimeline } from "#/schemas";
 import { CustomJwtAuthGuard } from "#auth/guards";
 import { PermissionGuard } from "#auth/guards/permission.guard";
 import { UseGuardsWithSwagger } from "#auth/guards/useGuards";
@@ -45,7 +44,6 @@ export class LaundryManageController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: LaundryTimeline,
   })
   @Get("/timeline")
   async getLaundryTimeline(@Query() data: LaundryTimelineIdDTO) {
@@ -58,7 +56,6 @@ export class LaundryManageController {
   })
   @ApiResponseFormat({
     status: HttpStatus.CREATED,
-    type: LaundryTimeline,
   })
   @Post("/timeline")
   async createLaundryTimeline(@Body() data: CreateLaundryTimelineDTO) {
@@ -71,7 +68,6 @@ export class LaundryManageController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: LaundryTimeline,
   })
   @Patch("/timeline")
   async updateLaundryTimeline(@Body() data: UpdateLaundryTimelineDTO) {
@@ -84,7 +80,6 @@ export class LaundryManageController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: LaundryTimeline,
   })
   @Delete("/timeline")
   async deleteLaundryTimeline(@Query() data: LaundryTimelineIdDTO) {
@@ -97,7 +92,6 @@ export class LaundryManageController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: [LaundryTimeline],
   })
   @Patch("/timeline/enable")
   async enableLaundryTimeline(@Body() data: LaundryTimelineIdDTO) {
@@ -110,7 +104,6 @@ export class LaundryManageController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: [LaundryMachine],
   })
   @Get("/machine/list")
   async getLaundryMachineList() {
@@ -123,7 +116,6 @@ export class LaundryManageController {
   })
   @ApiResponseFormat({
     status: HttpStatus.CREATED,
-    type: LaundryMachine,
   })
   @Post("/machine")
   async createLaundryMachine(@Body() data: CreateLaundryMachineDTO) {
@@ -136,7 +128,6 @@ export class LaundryManageController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: LaundryMachine,
   })
   @Patch("/machine")
   async updateLaundryMachine(@Body() data: UpdateLaundryMachineDTO) {
@@ -149,7 +140,6 @@ export class LaundryManageController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: LaundryMachine,
   })
   @Delete("/machine")
   async deleteLaundryMachine(@Query() data: LaundryMachineIdDTO) {
@@ -162,7 +152,6 @@ export class LaundryManageController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: [LaundryApply],
   })
   @Get("/apply/list")
   async getLaundryApply() {
@@ -175,7 +164,6 @@ export class LaundryManageController {
   })
   @ApiResponseFormat({
     status: HttpStatus.CREATED,
-    type: LaundryApply,
   })
   @Post("/apply")
   async createLaundryApply(@Body() data: CreateLaundryApplyDTO) {
@@ -188,7 +176,6 @@ export class LaundryManageController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: LaundryApply,
   })
   @Patch("/apply")
   async updateLaundryApply(@Body() data: UpdateLaundryApplyDTO) {
@@ -201,7 +188,6 @@ export class LaundryManageController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: LaundryApply,
   })
   @Delete("/apply")
   async deleteLaundryApply(@Query() data: LaundryApplyIdDTO) {

@@ -12,7 +12,7 @@ import {
 } from "@nestjs/common";
 import { ApiBody, ApiConsumes, ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 import type { FastifyReply } from "fastify";
-import { FacilityReport, FacilityReportComment, User } from "#/schemas";
+import type { User } from "#/db/schema";
 import { CustomJwtAuthGuard } from "#auth/guards";
 import { PermissionGuard } from "#auth/guards/permission.guard";
 import { UseGuardsWithSwagger } from "#auth/guards/useGuards";
@@ -71,7 +71,6 @@ export class FacilityStudentController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: FacilityReport,
   })
   @Get("/")
   async getReport(@Query() data: FacilityReportIdDTO) {
@@ -84,7 +83,6 @@ export class FacilityStudentController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: FacilityReport,
   })
   @ApiConsumes("multipart/form-data")
   @ApiBody({ type: ReportFacilityDTO })
@@ -113,7 +111,6 @@ export class FacilityStudentController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: FacilityReportComment,
   })
   @Post("/comment")
   async postComment(@CurrentUser() user: User, @Body() data: PostCommentDTO) {

@@ -1,7 +1,6 @@
 import { TZDate } from "@date-fns/tz";
-import { HttpException, HttpStatus, Injectable, Logger } from "@nestjs/common";
+import { HttpException, HttpStatus, Inject, Injectable, Logger } from "@nestjs/common";
 import { Cron, CronExpression } from "@nestjs/schedule";
-import { InjectRepository } from "@nestjs/typeorm";
 import {
   addDays,
   addWeeks,
@@ -17,20 +16,21 @@ import {
   startOfDay,
   subSeconds,
 } from "date-fns";
-import { In, IsNull, LessThan, MoreThan, MoreThanOrEqual, Not, Repository } from "typeorm";
+import { eq, inArray } from "drizzle-orm";
 import {
-  Stay,
-  StayApply,
-  StayApplyPeriod_Stay,
-  StayApplyPeriod_StaySchedule,
-  StayOuting,
-  StaySchedule,
-  StaySeatPreset,
-  StaySeatPresetRange,
-  User,
-} from "#/schemas";
+  stay,
+  stayApply,
+  stayApplyPeriodStay,
+  stayApplyPeriodStaySchedule,
+  stayOuting,
+  staySchedule,
+  staySeatPreset,
+  staySeatPresetRange,
+} from "#/db/schema";
 import { ErrorMsg } from "$mapper/error";
-import { safeFindOne } from "$utils/safeFindOne.util";
+import { DRIZZLE, type DrizzleDB } from "$modules/drizzle.module";
+import { findOrThrow } from "$utils/findOrThrow.util";
+import { softDelete } from "$utils/softDelete.util";
 import { isInValidRange } from "$utils/staySeat.util";
 import {
   AuditOutingDTO,
@@ -54,377 +54,525 @@ import {
 @Injectable()
 export class StayManageService {
   private logger = new Logger(StayManageService.name);
-  constructor(
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
-    @InjectRepository(Stay)
-    private readonly stayRepository: Repository<Stay>,
-    @InjectRepository(StayApply)
-    private readonly stayApplyRepository: Repository<StayApply>,
-    @InjectRepository(StayOuting)
-    private readonly stayOutingRepository: Repository<StayOuting>,
-    @InjectRepository(StaySchedule)
-    private readonly stayScheduleRepository: Repository<StaySchedule>,
-    @InjectRepository(StaySeatPreset)
-    private readonly staySeatPresetRepository: Repository<StaySeatPreset>,
-    @InjectRepository(StaySeatPresetRange)
-    private readonly staySeatPresetRangeRepository: Repository<StaySeatPresetRange>,
-    @InjectRepository(StayApplyPeriod_Stay)
-    private readonly stayApplyPeriod_Stay_Repository: Repository<StayApplyPeriod_Stay>,
-    @InjectRepository(StayApplyPeriod_StaySchedule)
-    private readonly stayApplyPeriod_StaySchedule_Repository: Repository<StayApplyPeriod_StaySchedule>,
-  ) {}
+  constructor(@Inject(DRIZZLE) private readonly db: DrizzleDB) {}
 
   async getStaySeatPresetList() {
-    const staySeatPresets = await this.staySeatPresetRepository.find();
-
-    return staySeatPresets.map((staySeatPresets) => {
-      return { id: staySeatPresets.id, name: staySeatPresets.name };
+    const presets = await this.db.query.staySeatPreset.findMany();
+    return presets.map((p) => {
+      return { id: p.id, name: p.name };
     });
   }
 
-  // TODO: stay seat merging
   async getStaySeatPreset(data: StaySeatPresetIdDTO) {
-    const staySeatPreset = await safeFindOne<StaySeatPreset>(
-      this.staySeatPresetRepository,
-      data.id,
+    return await findOrThrow(
+      this.db.query.staySeatPreset.findFirst({
+        where: { RAW: (t, { eq }) => eq(t.id, data.id) },
+      }),
     );
-
-    return staySeatPreset;
   }
 
   async createStaySeatPreset(data: CreateStaySeatPresetDTO) {
-    const staySeatPreset = new StaySeatPreset();
-    staySeatPreset.name = data.name;
-    staySeatPreset.only_readingRoom = data.only_readingRoom;
+    const [saved] = await this.db
+      .insert(staySeatPreset)
+      .values({
+        name: data.name,
+        only_readingRoom: data.only_readingRoom,
+      })
+      .returning();
 
-    const staySeatPresetRanges: StaySeatPresetRange[] = [];
-    for (const ranges of data.mappings) {
-      for (const range of ranges.ranges) {
-        const staySeatPresetRange = new StaySeatPresetRange();
-        staySeatPresetRange.target = ranges.target;
-        staySeatPresetRange.range = range;
-        staySeatPresetRange.stay_seat_preset = staySeatPreset;
-        staySeatPresetRange.stay_seat_preset = staySeatPreset;
+    if (!saved) {
+      throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
+    }
 
-        staySeatPresetRanges.push(staySeatPresetRange);
+    const rangeValues: (typeof staySeatPresetRange.$inferInsert)[] = [];
+    for (const mappings of data.mappings) {
+      for (const range of mappings.ranges) {
+        rangeValues.push({
+          target: mappings.target,
+          range: range,
+          staySeatPresetId: saved.id,
+        });
       }
     }
-    const saved = await this.staySeatPresetRepository.save(staySeatPreset);
-    return await safeFindOne<StaySeatPreset>(this.staySeatPresetRepository, saved.id);
+
+    if (rangeValues.length > 0) {
+      await this.db.insert(staySeatPresetRange).values(rangeValues);
+    }
+
+    return await findOrThrow(
+      this.db.query.staySeatPreset.findFirst({
+        where: { RAW: (t, { eq }) => eq(t.id, saved.id) },
+      }),
+    );
   }
 
   async updateStaySeatPreset(data: UpdateStaySeatPresetDTO) {
-    const staySeatPreset = await safeFindOne<StaySeatPreset>(
-      this.staySeatPresetRepository,
-      data.id,
+    await findOrThrow(
+      this.db.query.staySeatPreset.findFirst({
+        where: { RAW: (t, { eq }) => eq(t.id, data.id) },
+      }),
     );
-    staySeatPreset.name = data.name;
-    staySeatPreset.only_readingRoom = data.only_readingRoom;
 
-    await this.staySeatPresetRangeRepository.remove(staySeatPreset.stay_seat);
+    await this.db
+      .update(staySeatPreset)
+      .set({ name: data.name, only_readingRoom: data.only_readingRoom })
+      .where(eq(staySeatPreset.id, data.id));
 
-    const staySeatPresetRanges: StaySeatPresetRange[] = [];
-    for (const ranges of data.mappings) {
-      for (const range of ranges.ranges) {
-        const staySeatPresetRange = new StaySeatPresetRange();
-        staySeatPresetRange.target = ranges.target;
-        staySeatPresetRange.range = range;
-        staySeatPresetRange.stay_seat_preset = staySeatPreset;
-        staySeatPresetRanges.push(staySeatPresetRange);
+    // Remove old ranges and insert new ones
+    await this.db
+      .delete(staySeatPresetRange)
+      .where(eq(staySeatPresetRange.staySeatPresetId, data.id));
+
+    const rangeValues: (typeof staySeatPresetRange.$inferInsert)[] = [];
+    for (const mappings of data.mappings) {
+      for (const range of mappings.ranges) {
+        rangeValues.push({
+          target: mappings.target,
+          range: range,
+          staySeatPresetId: data.id,
+        });
       }
     }
 
-    await this.staySeatPresetRangeRepository.save(staySeatPresetRanges);
-    return await safeFindOne<StaySeatPreset>(this.staySeatPresetRepository, data.id);
+    if (rangeValues.length > 0) {
+      await this.db.insert(staySeatPresetRange).values(rangeValues);
+    }
+
+    return await findOrThrow(
+      this.db.query.staySeatPreset.findFirst({
+        where: { RAW: (t, { eq }) => eq(t.id, data.id) },
+      }),
+    );
   }
 
   async deleteStaySeatPreset(data: StaySeatPresetIdDTO) {
-    const staySeatPreset = await safeFindOne<StaySeatPreset>(
-      this.staySeatPresetRepository,
-      data.id,
+    await findOrThrow(
+      this.db.query.staySeatPreset.findFirst({
+        where: { RAW: (t, { eq }) => eq(t.id, data.id) },
+      }),
     );
-
-    return await this.staySeatPresetRepository.remove(staySeatPreset);
+    const [deleted] = await this.db
+      .delete(staySeatPreset)
+      .where(eq(staySeatPreset.id, data.id))
+      .returning();
+    return deleted;
   }
 
   async getStayScheduleList() {
-    const staySchedules = await this.stayScheduleRepository.find();
-
-    return staySchedules.map((e) => {
+    const schedules = await this.db.query.staySchedule.findMany();
+    return schedules.map((e) => {
       return { id: e.id, name: e.name };
     });
   }
 
   async getStaySchedule(data: StayScheduleIdDTO) {
-    return await this.stayScheduleRepository.findOne({ where: { id: data.id } });
+    return await this.db.query.staySchedule.findFirst({
+      where: { RAW: (t, { eq }) => eq(t.id, data.id) },
+    });
   }
 
   async createStaySchedule(data: CreateStayScheduleDTO) {
-    const staySeatPreset = await this.staySeatPresetRepository.findOne({
-      where: { id: data.staySeatPreset },
+    const preset = await this.db.query.staySeatPreset.findFirst({
+      where: { RAW: (t, { eq }) => eq(t.id, data.staySeatPreset) },
     });
-    if (!staySeatPreset) {
+    if (!preset) {
       throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
     }
 
-    const staySchedule = new StaySchedule();
-    staySchedule.name = data.name;
-    staySchedule.stay_from = data.stay_from;
-    staySchedule.stay_to = data.stay_to;
-    staySchedule.outing_day = data.outing_day;
-    staySchedule.stay_seat_preset = staySeatPreset;
+    const [saved] = await this.db
+      .insert(staySchedule)
+      .values({
+        name: data.name,
+        stay_from: data.stay_from,
+        stay_to: data.stay_to,
+        outing_day: data.outing_day,
+        staySeatPresetId: preset.id,
+      })
+      .returning();
 
-    staySchedule.stay_apply_period = [];
-    for (const period of data.stayApplyPeriod) {
-      const stayApplyPeriod = new StayApplyPeriod_StaySchedule();
-      stayApplyPeriod.grade = period.grade;
-      stayApplyPeriod.apply_start_day = period.apply_start_day;
-      stayApplyPeriod.apply_start_hour = period.apply_start_hour;
-      stayApplyPeriod.apply_end_day = period.apply_end_day;
-      stayApplyPeriod.apply_end_hour = period.apply_end_hour;
-      stayApplyPeriod.stay_schedule = staySchedule;
-
-      staySchedule.stay_apply_period.push(stayApplyPeriod);
+    if (!saved) {
+      throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
     }
 
-    const saved = await this.stayScheduleRepository.save(staySchedule);
-    return await safeFindOne<StaySchedule>(this.stayScheduleRepository, saved.id);
+    const periodValues: (typeof stayApplyPeriodStaySchedule.$inferInsert)[] = [];
+    for (const period of data.stayApplyPeriod) {
+      periodValues.push({
+        grade: period.grade,
+        apply_start_day: period.apply_start_day,
+        apply_start_hour: period.apply_start_hour,
+        apply_end_day: period.apply_end_day,
+        apply_end_hour: period.apply_end_hour,
+        stayScheduleId: saved.id,
+      });
+    }
+
+    if (periodValues.length > 0) {
+      await this.db.insert(stayApplyPeriodStaySchedule).values(periodValues);
+    }
+
+    return await findOrThrow(
+      this.db.query.staySchedule.findFirst({
+        where: { RAW: (t, { eq }) => eq(t.id, saved.id) },
+      }),
+    );
   }
 
-  // i know. quite duplicated. but.. looks better and safe!
   async updateStaySchedule(data: UpdateStayScheduleDTO) {
-    const staySeatPreset = await this.staySeatPresetRepository.findOne({
-      where: { id: data.staySeatPreset },
+    const preset = await this.db.query.staySeatPreset.findFirst({
+      where: { RAW: (t, { eq }) => eq(t.id, data.staySeatPreset) },
     });
-    if (!staySeatPreset) {
+    if (!preset) {
       throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
     }
 
-    const staySchedule = await safeFindOne<StaySchedule>(this.stayScheduleRepository, data.id);
+    await findOrThrow(
+      this.db.query.staySchedule.findFirst({
+        where: { RAW: (t, { eq }) => eq(t.id, data.id) },
+      }),
+    );
 
-    // update period
-    staySchedule.name = data.name;
-    staySchedule.stay_from = data.stay_from;
-    staySchedule.stay_to = data.stay_to;
-    staySchedule.outing_day = data.outing_day;
-    staySchedule.stay_seat_preset = staySeatPreset;
+    await this.db
+      .update(staySchedule)
+      .set({
+        name: data.name,
+        stay_from: data.stay_from,
+        stay_to: data.stay_to,
+        outing_day: data.outing_day,
+        staySeatPresetId: preset.id,
+      })
+      .where(eq(staySchedule.id, data.id));
 
-    await this.stayApplyPeriod_StaySchedule_Repository.remove(staySchedule.stay_apply_period);
-    staySchedule.stay_apply_period = [];
+    // Remove old periods and insert new ones
+    await this.db
+      .delete(stayApplyPeriodStaySchedule)
+      .where(eq(stayApplyPeriodStaySchedule.stayScheduleId, data.id));
+
+    const periodValues: (typeof stayApplyPeriodStaySchedule.$inferInsert)[] = [];
     for (const period of data.stayApplyPeriod) {
-      const stayApplyPeriod = new StayApplyPeriod_StaySchedule();
-      stayApplyPeriod.grade = period.grade;
-      stayApplyPeriod.apply_start_day = period.apply_start_day;
-      stayApplyPeriod.apply_start_hour = period.apply_start_hour;
-      stayApplyPeriod.apply_end_day = period.apply_end_day;
-      stayApplyPeriod.apply_end_hour = period.apply_end_hour;
-      stayApplyPeriod.stay_schedule = staySchedule;
-
-      staySchedule.stay_apply_period.push(stayApplyPeriod);
+      periodValues.push({
+        grade: period.grade,
+        apply_start_day: period.apply_start_day,
+        apply_start_hour: period.apply_start_hour,
+        apply_end_day: period.apply_end_day,
+        apply_end_hour: period.apply_end_hour,
+        stayScheduleId: data.id,
+      });
     }
-    const saved = await this.stayScheduleRepository.save(staySchedule);
-    return await safeFindOne<StaySchedule>(this.stayScheduleRepository, saved.id);
+
+    if (periodValues.length > 0) {
+      await this.db.insert(stayApplyPeriodStaySchedule).values(periodValues);
+    }
+
+    return await findOrThrow(
+      this.db.query.staySchedule.findFirst({
+        where: { RAW: (t, { eq }) => eq(t.id, data.id) },
+      }),
+    );
   }
 
   async deleteStaySchedule(data: StayScheduleIdDTO) {
-    const staySchedule = await safeFindOne<StaySchedule>(this.stayScheduleRepository, data.id);
-
-    return await this.stayScheduleRepository.remove(staySchedule);
+    await findOrThrow(
+      this.db.query.staySchedule.findFirst({
+        where: { RAW: (t, { eq }) => eq(t.id, data.id) },
+      }),
+    );
+    const [deleted] = await this.db
+      .delete(staySchedule)
+      .where(eq(staySchedule.id, data.id))
+      .returning();
+    return deleted;
   }
 
   async getStayList() {
-    return (await this.stayRepository.find()).map((e) => {
+    const stays = await this.db.query.stay.findMany();
+    return stays.map((e) => {
       return { id: e.id, name: e.name, stay_from: e.stay_from, stay_to: e.stay_to };
     });
   }
 
   async getStay(data: StayIdDTO) {
-    return await this.stayRepository.findOne({ where: { id: data.id } });
+    return await this.db.query.stay.findFirst({
+      where: { RAW: (t, { eq }) => eq(t.id, data.id) },
+    });
   }
 
   async createStay(data: CreateStayDTO) {
-    const staySeatPreset = await this.staySeatPresetRepository.findOne({
-      where: { id: data.seat_preset },
+    const preset = await this.db.query.staySeatPreset.findFirst({
+      where: { RAW: (t, { eq }) => eq(t.id, data.seat_preset) },
     });
-    if (!staySeatPreset) {
+    if (!preset) {
       throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
     }
 
-    const stay = new Stay();
-    stay.name = data.name;
-    stay.stay_from = data.from;
-    stay.stay_to = data.to;
-    stay.stay_seat_preset = staySeatPreset;
-    stay.outing_day = data.outing_day;
+    const [saved] = await this.db
+      .insert(stay)
+      .values({
+        name: data.name,
+        stay_from: data.from,
+        stay_to: data.to,
+        outing_day: data.outing_day,
+        staySeatPresetId: preset.id,
+      })
+      .returning();
 
-    stay.stay_apply_period = [];
-    for (const period of data.period) {
-      const stayApplyPeriod = new StayApplyPeriod_Stay();
-      stayApplyPeriod.grade = period.grade;
-      stayApplyPeriod.apply_start = new Date(period.start);
-      stayApplyPeriod.apply_end = new Date(period.end);
-      stayApplyPeriod.stay = stay;
-
-      stay.stay_apply_period.push(stayApplyPeriod);
+    if (!saved) {
+      throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
     }
-    const saved = await this.stayRepository.save(stay);
-    return await safeFindOne<Stay>(this.stayRepository, saved.id);
+
+    const periodValues: (typeof stayApplyPeriodStay.$inferInsert)[] = [];
+    for (const period of data.period) {
+      periodValues.push({
+        grade: period.grade,
+        apply_start: new Date(period.start),
+        apply_end: new Date(period.end),
+        stayId: saved.id,
+      });
+    }
+
+    if (periodValues.length > 0) {
+      await this.db.insert(stayApplyPeriodStay).values(periodValues);
+    }
+
+    return await findOrThrow(
+      this.db.query.stay.findFirst({ where: { RAW: (t, { eq }) => eq(t.id, saved.id) } }),
+    );
   }
 
   async updateStay(data: UpdateStayDTO) {
-    const stay = await safeFindOne<Stay>(this.stayRepository, data.id);
+    await findOrThrow(
+      this.db.query.stay.findFirst({ where: { RAW: (t, { eq }) => eq(t.id, data.id) } }),
+    );
 
-    const staySeatPreset = await this.staySeatPresetRepository.findOne({
-      where: { id: data.seat_preset },
+    const preset = await this.db.query.staySeatPreset.findFirst({
+      where: { RAW: (t, { eq }) => eq(t.id, data.seat_preset) },
     });
-    if (!staySeatPreset) {
+    if (!preset) {
       throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
     }
 
-    stay.name = data.name;
-    stay.stay_from = data.from;
-    stay.stay_to = data.to;
-    stay.stay_seat_preset = staySeatPreset;
+    await this.db
+      .update(stay)
+      .set({
+        name: data.name,
+        stay_from: data.from,
+        stay_to: data.to,
+        staySeatPresetId: preset.id,
+      })
+      .where(eq(stay.id, data.id));
 
-    await this.stayApplyPeriod_Stay_Repository.remove(stay.stay_apply_period);
-    stay.stay_apply_period = [];
+    // Remove old periods and insert new ones
+    await this.db.delete(stayApplyPeriodStay).where(eq(stayApplyPeriodStay.stayId, data.id));
+
+    const periodValues: (typeof stayApplyPeriodStay.$inferInsert)[] = [];
     for (const period of data.period) {
-      const stayApplyPeriod = new StayApplyPeriod_Stay();
-      stayApplyPeriod.grade = period.grade;
-      stayApplyPeriod.apply_start = new Date(period.start);
-      stayApplyPeriod.apply_end = new Date(period.end);
-      stayApplyPeriod.stay = stay;
-
-      stay.stay_apply_period.push(stayApplyPeriod);
+      periodValues.push({
+        grade: period.grade,
+        apply_start: new Date(period.start),
+        apply_end: new Date(period.end),
+        stayId: data.id,
+      });
     }
-    const saved = await this.stayRepository.save(stay);
-    return await safeFindOne<Stay>(this.stayRepository, saved.id);
+
+    if (periodValues.length > 0) {
+      await this.db.insert(stayApplyPeriodStay).values(periodValues);
+    }
+
+    return await findOrThrow(
+      this.db.query.stay.findFirst({ where: { RAW: (t, { eq }) => eq(t.id, data.id) } }),
+    );
   }
 
   async deleteStay(data: DeleteStayDTO) {
-    const stay = await safeFindOne<Stay>(this.stayRepository, data.id);
-
-    return await this.stayRepository.remove(stay);
+    await findOrThrow(
+      this.db.query.stay.findFirst({ where: { RAW: (t, { eq }) => eq(t.id, data.id) } }),
+    );
+    const [deleted] = await this.db.delete(stay).where(eq(stay.id, data.id)).returning();
+    return deleted;
   }
 
   async getStayApply(data: StayIdDTO) {
-    const stay = await this.getStay(data);
-    if (!stay) {
+    const stayRow = await this.getStay(data);
+    if (!stayRow) {
       throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
     }
 
-    const applies = await this.stayApplyRepository.find({ where: { stay: stay } });
-
-    return applies;
+    return await this.db.query.stayApply.findMany({
+      where: { RAW: (t, { eq }) => eq(t.stayId, data.id) },
+      with: {
+        user: true,
+        outing: true,
+      },
+    });
   }
 
   async createStayApply(data: CreateStayApplyDTO) {
-    const user = await safeFindOne<User>(this.userRepository, data.user);
-    const stay = await safeFindOne<Stay>(this.stayRepository, data.stay);
+    await findOrThrow(
+      this.db.query.user.findFirst({ where: { RAW: (t, { eq }) => eq(t.id, data.user) } }),
+    );
+    await findOrThrow(
+      this.db.query.stay.findFirst({ where: { RAW: (t, { eq }) => eq(t.id, data.stay) } }),
+    );
 
-    const exists = await this.stayApplyRepository.findOne({
-      where: { user: user, stay: stay },
+    const exists = await this.db.query.stayApply.findFirst({
+      where: { RAW: (t, { and, eq }) => and(eq(t.userId, data.user), eq(t.stayId, data.stay)) },
     });
     if (exists) {
       throw new HttpException(ErrorMsg.StaySeat_Duplication(), HttpStatus.BAD_REQUEST);
     }
 
-    const staySeatCheck = await this.stayApplyRepository.findOne({
-      where: { stay_seat: data.stay_seat.toUpperCase(), stay: stay },
-    }); // Allow if same as previous user's seat
+    const staySeatCheck = await this.db.query.stayApply.findFirst({
+      where: {
+        RAW: (t, { and, eq }) =>
+          and(eq(t.stay_seat, data.stay_seat.toUpperCase()), eq(t.stayId, data.stay)),
+      },
+    });
     if (staySeatCheck && isInValidRange(staySeatCheck.stay_seat)) {
       throw new HttpException(ErrorMsg.StaySeat_Duplication(), HttpStatus.BAD_REQUEST);
     }
 
-    // teacher can force stay_seat. so, stay_seat will not be filtered.
-    const stayApply = new StayApply();
-    stayApply.stay_seat = data.stay_seat.toUpperCase();
-    stayApply.user = user;
-    stayApply.stay = stay;
+    const [savedApply] = await this.db
+      .insert(stayApply)
+      .values({
+        stay_seat: data.stay_seat.toUpperCase(),
+        userId: data.user,
+        stayId: data.stay,
+      })
+      .returning();
 
-    stayApply.outing = [];
-    for (const outingData of data.outing) {
-      const outing = new StayOuting();
-      outing.reason = outingData.reason;
-      outing.breakfast_cancel = outingData.breakfast_cancel;
-      outing.lunch_cancel = outingData.lunch_cancel;
-      outing.dinner_cancel = outingData.dinner_cancel;
-      outing.from = outingData.from;
-      outing.to = outingData.to;
-      outing.approved = outingData.approved || null;
-      outing.audit_reason = outingData.audit_reason || null;
-      outing.stay_apply = stayApply;
-
-      stayApply.outing.push(outing);
+    if (!savedApply) {
+      throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
     }
-    const saved = await this.stayApplyRepository.save(stayApply);
-    return await safeFindOne<StayApply>(this.stayApplyRepository, saved.id);
+
+    const outingValues: (typeof stayOuting.$inferInsert)[] = [];
+    for (const outingData of data.outing) {
+      outingValues.push({
+        reason: outingData.reason,
+        breakfast_cancel: outingData.breakfast_cancel,
+        lunch_cancel: outingData.lunch_cancel,
+        dinner_cancel: outingData.dinner_cancel,
+        from: outingData.from,
+        to: outingData.to,
+        approved: outingData.approved || null,
+        audit_reason: outingData.audit_reason || null,
+        stayApplyId: savedApply.id,
+      });
+    }
+
+    if (outingValues.length > 0) {
+      await this.db.insert(stayOuting).values(outingValues);
+    }
+
+    return await findOrThrow(
+      this.db.query.stayApply.findFirst({ where: { RAW: (t, { eq }) => eq(t.id, savedApply.id) } }),
+    );
   }
 
   async updateStayApply(data: UpdateStayApplyDTO) {
-    const stayApply = await safeFindOne<StayApply>(this.stayApplyRepository, data.id);
-    const user = await safeFindOne<User>(this.userRepository, data.user);
-    const stay = await safeFindOne<Stay>(this.stayRepository, data.stay);
+    const existing = await findOrThrow(
+      this.db.query.stayApply.findFirst({ where: { RAW: (t, { eq }) => eq(t.id, data.id) } }),
+    );
+    await findOrThrow(
+      this.db.query.user.findFirst({ where: { RAW: (t, { eq }) => eq(t.id, data.user) } }),
+    );
+    await findOrThrow(
+      this.db.query.stay.findFirst({ where: { RAW: (t, { eq }) => eq(t.id, data.stay) } }),
+    );
 
-    const staySeatCheck = await this.stayApplyRepository.findOne({
-      where: { stay_seat: data.stay_seat.toUpperCase(), stay: stay },
-    }); // Allow if same as previous user's seat
+    const staySeatCheck = await this.db.query.stayApply.findFirst({
+      where: {
+        RAW: (t, { and, eq }) =>
+          and(eq(t.stay_seat, data.stay_seat.toUpperCase()), eq(t.stayId, data.stay)),
+      },
+    });
     if (
       staySeatCheck &&
-      stayApply.stay_seat.toUpperCase() !== data.stay_seat.toUpperCase() &&
+      existing.stay_seat.toUpperCase() !== data.stay_seat.toUpperCase() &&
       isInValidRange(staySeatCheck.stay_seat)
     ) {
       throw new HttpException(ErrorMsg.StaySeat_Duplication(), HttpStatus.BAD_REQUEST);
     }
 
-    stayApply.stay_seat = data.stay_seat.toUpperCase();
-    stayApply.user = user;
-    stayApply.stay = stay;
+    await this.db
+      .update(stayApply)
+      .set({
+        stay_seat: data.stay_seat.toUpperCase(),
+        userId: data.user,
+        stayId: data.stay,
+      })
+      .where(eq(stayApply.id, data.id));
 
-    await this.stayOutingRepository.remove(stayApply.outing);
-    stayApply.outing = [];
+    // Remove old outings and insert new ones
+    await this.db.delete(stayOuting).where(eq(stayOuting.stayApplyId, data.id));
+
+    const outingValues: (typeof stayOuting.$inferInsert)[] = [];
     for (const outingData of data.outing) {
-      const outing = new StayOuting();
-      outing.reason = outingData.reason;
-      outing.breakfast_cancel = outingData.breakfast_cancel;
-      outing.lunch_cancel = outingData.lunch_cancel;
-      outing.dinner_cancel = outingData.dinner_cancel;
-      outing.from = outingData.from;
-      outing.to = outingData.to;
-      outing.approved = outingData.approved || null;
-      outing.audit_reason = outingData.audit_reason || null;
-      outing.stay_apply = stayApply;
-
-      stayApply.outing.push(outing);
+      outingValues.push({
+        reason: outingData.reason,
+        breakfast_cancel: outingData.breakfast_cancel,
+        lunch_cancel: outingData.lunch_cancel,
+        dinner_cancel: outingData.dinner_cancel,
+        from: outingData.from,
+        to: outingData.to,
+        approved: outingData.approved || null,
+        audit_reason: outingData.audit_reason || null,
+        stayApplyId: data.id,
+      });
     }
-    const saved = await this.stayApplyRepository.save(stayApply);
-    return await safeFindOne<StayApply>(this.stayApplyRepository, saved.id);
+
+    if (outingValues.length > 0) {
+      await this.db.insert(stayOuting).values(outingValues);
+    }
+
+    return await findOrThrow(
+      this.db.query.stayApply.findFirst({ where: { RAW: (t, { eq }) => eq(t.id, data.id) } }),
+    );
   }
 
   async deleteStayApply(data: StayApplyIdDTO) {
-    const stayApply = await safeFindOne<StayApply>(this.stayApplyRepository, data.id);
-
-    return await this.stayApplyRepository.remove(stayApply);
+    await findOrThrow(
+      this.db.query.stayApply.findFirst({ where: { RAW: (t, { eq }) => eq(t.id, data.id) } }),
+    );
+    const [deleted] = await this.db.delete(stayApply).where(eq(stayApply.id, data.id)).returning();
+    return deleted;
   }
 
   async auditOuting(data: AuditOutingDTO) {
-    const outing = await safeFindOne<StayOuting>(this.stayOutingRepository, data.id);
+    await findOrThrow(
+      this.db.query.stayOuting.findFirst({
+        where: { RAW: (t, { eq }) => eq(t.id, data.id) },
+      }),
+    );
 
-    outing.approved = data.approved;
-    outing.audit_reason = data.reason;
+    const [updated] = await this.db
+      .update(stayOuting)
+      .set({
+        approved: data.approved,
+        audit_reason: data.reason,
+      })
+      .where(eq(stayOuting.id, data.id))
+      .returning();
 
-    return await this.stayOutingRepository.save(outing);
+    return updated;
   }
 
   async updateOutingMealCancel(data: UpdateOutingMealCancelDTO) {
-    const outing = await safeFindOne<StayOuting>(this.stayOutingRepository, data.id);
+    await findOrThrow(
+      this.db.query.stayOuting.findFirst({
+        where: { RAW: (t, { eq }) => eq(t.id, data.id) },
+      }),
+    );
 
-    outing.breakfast_cancel = data.breakfast_cancel;
-    outing.lunch_cancel = data.lunch_cancel;
-    outing.dinner_cancel = data.dinner_cancel;
+    const [updated] = await this.db
+      .update(stayOuting)
+      .set({
+        breakfast_cancel: data.breakfast_cancel,
+        lunch_cancel: data.lunch_cancel,
+        dinner_cancel: data.dinner_cancel,
+      })
+      .where(eq(stayOuting.id, data.id))
+      .returning();
 
-    return await this.stayOutingRepository.save(outing);
+    return updated;
   }
 
   private weekday2date(base: Date, weekday: number) {
@@ -440,68 +588,83 @@ export class StayManageService {
       throw new HttpException(ErrorMsg.ItIsStaySeat_ShouldNotBeAllowed(), HttpStatus.BAD_REQUEST);
     }
 
-    const applies = (await this.stayApplyRepository.find({ where: { id: In(data.targets) } })).map(
-      (a) => {
-        return { ...a, stay_seat: data.to };
-      },
-    );
+    const updated = await this.db
+      .update(stayApply)
+      .set({ stay_seat: data.to })
+      .where(inArray(stayApply.id, data.targets))
+      .returning();
 
-    return await this.stayApplyRepository.save(applies);
+    return updated;
   }
 
   // @Cron(CronExpression.EVERY_10_SECONDS)
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async syncStay() {
     // register stay
-    const schedules = await this.stayScheduleRepository.find({
-      where: {
-        stay_apply_period: {
-          apply_end_day: MoreThan(getDay(new Date())),
-        },
+    const schedules = await this.db.query.staySchedule.findMany({
+      with: {
+        staySeatPreset: true,
+        stayApplyPeriodStaySchedule: true,
       },
     });
 
-    const existingStay = (
-      await this.stayRepository.find({
-        where: {
-          parent: Not(IsNull()),
-          stay_apply_period: {
-            apply_end: MoreThanOrEqual(new Date()),
-          },
-        },
-        relations: ["parent"],
-      })
-    ).map((x) => x.parent.id);
+    // Filter schedules that have at least one period with apply_end_day > current day of week
+    const currentDayOfWeek = getDay(new Date());
+    const filteredSchedules = schedules.filter((s) =>
+      s.stayApplyPeriodStaySchedule?.some(
+        (p: { apply_end_day: number }) => p.apply_end_day > currentDayOfWeek,
+      ),
+    );
 
-    const targetSchedules = schedules.filter((x) => !existingStay.find((y) => y === x.id));
+    // Find existing stays that have a parent (generated from schedule) and are still active
+    const existingStays = await this.db.query.stay.findMany({
+      where: { RAW: (t, { isNotNull }) => isNotNull(t.parentId) },
+      with: {
+        parent: true,
+        stayApplyPeriodStay: true,
+      },
+    });
+
+    const activeExistingParentIds = existingStays
+      .filter((s) =>
+        s.stayApplyPeriodStay?.some((p: { apply_end: Date }) => p.apply_end >= new Date()),
+      )
+      .map((s) => s.parentId);
+
+    const targetSchedules = filteredSchedules.filter(
+      (x) => !activeExistingParentIds.includes(x.id),
+    );
+
     for (const target of targetSchedules) {
-      if (existingStay.includes(target.id)) {
+      if (activeExistingParentIds.includes(target.id)) {
         continue;
       }
 
-      const stay = new Stay();
-      stay.name = target.name;
-      stay.stay_seat_preset = target.stay_seat_preset;
-      stay.parent = target;
-
       const now = startOfDay(new TZDate(new Date(), "Asia/Seoul"));
-      stay.stay_apply_period = target.stay_apply_period.map((period) => {
-        const p = new StayApplyPeriod_Stay();
-        p.grade = period.grade;
 
-        p.apply_start = setSeconds(
-          setMinutes(setHours(setDay(now, period.apply_start_day), period.apply_start_hour), 0),
-          0,
-        );
-        p.apply_end = setSeconds(
-          setMinutes(setHours(setDay(now, period.apply_end_day), period.apply_end_hour), 0),
-          0,
-        );
-        p.stay = stay;
-        return p;
-      });
+      const periods = target.stayApplyPeriodStaySchedule.map(
+        (period: {
+          grade: number;
+          apply_start_day: number;
+          apply_start_hour: number;
+          apply_end_day: number;
+          apply_end_hour: number;
+        }) => {
+          return {
+            grade: period.grade,
+            apply_start: setSeconds(
+              setMinutes(setHours(setDay(now, period.apply_start_day), period.apply_start_hour), 0),
+              0,
+            ),
+            apply_end: setSeconds(
+              setMinutes(setHours(setDay(now, period.apply_end_day), period.apply_end_hour), 0),
+              0,
+            ),
+          };
+        },
+      );
 
-      const applyEnd = max(stay.stay_apply_period.map((p) => p.apply_end));
+      const applyEnd = max(periods.map((p: { apply_end: Date }) => p.apply_end));
       let from = this.weekday2date(now, target.stay_from);
       let to = subSeconds(addDays(this.weekday2date(now, target.stay_to), 1), 1);
       if (isBefore(from, applyEnd)) {
@@ -514,11 +677,8 @@ export class StayManageService {
         to = addWeeks(to, 1);
       }
 
-      stay.stay_from = format(from, "yyyy-MM-dd");
-      stay.stay_to = format(to, "yyyy-MM-dd");
-
       let success = true;
-      stay.outing_day = target.outing_day.map((day) => {
+      const outingDays = target.outing_day.map((day) => {
         let out = this.weekday2date(now, day);
         if (!isWithinInterval(out, { start: from, end: to })) {
           out = addWeeks(out, 1);
@@ -533,16 +693,80 @@ export class StayManageService {
         continue;
       }
 
-      await this.stayRepository.save(stay);
-      this.logger.log(`Successfully added ${stay.id}(${stay.name})`);
+      const [savedStay] = await this.db
+        .insert(stay)
+        .values({
+          name: target.name,
+          stay_from: format(from, "yyyy-MM-dd"),
+          stay_to: format(to, "yyyy-MM-dd"),
+          outing_day: outingDays,
+          staySeatPresetId: target.staySeatPresetId,
+          parentId: target.id,
+        })
+        .returning();
+
+      if (!savedStay) {
+        throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
+      }
+
+      const periodValues: (typeof stayApplyPeriodStay.$inferInsert)[] = periods.map(
+        (p: { grade: number; apply_start: Date; apply_end: Date }) => ({
+          grade: p.grade,
+          apply_start: p.apply_start,
+          apply_end: p.apply_end,
+          stayId: savedStay.id,
+        }),
+      );
+
+      if (periodValues.length > 0) {
+        await this.db.insert(stayApplyPeriodStay).values(periodValues);
+      }
+
+      this.logger.log(`Successfully added ${savedStay.id}(${savedStay.name})`);
     }
 
-    // remove previous stay
-    await this.stayRepository.softRemove(
-      await this.stayRepository.find({
-        where: { stay_to: LessThan(format(new Date(), "yyyy-MM-dd")) },
-        relations: { stay_apply: { outing: true } },
-      }),
-    );
+    // remove previous stay (soft delete)
+    const expiredStays = await this.db.query.stay.findMany({
+      where: {
+        RAW: (t, { and, lt, isNull }) =>
+          and(lt(t.stay_to, format(new Date(), "yyyy-MM-dd")), isNull(t.deletedAt)),
+      },
+      with: {
+        stayApply: {
+          with: {
+            outing: true,
+          },
+        },
+      },
+    });
+
+    for (const expired of expiredStays) {
+      // Soft delete outings for each apply
+      for (const apply of expired.stayApply ?? []) {
+        if (apply.outing && apply.outing.length > 0) {
+          await softDelete(
+            this.db,
+            stayOuting,
+            inArray(
+              stayOuting.id,
+              apply.outing.map((o: { id: string }) => o.id),
+            ),
+          );
+        }
+      }
+      // Soft delete applies
+      if ((expired.stayApply ?? []).length > 0) {
+        await softDelete(
+          this.db,
+          stayApply,
+          inArray(
+            stayApply.id,
+            (expired.stayApply ?? []).map((a: { id: string }) => a.id),
+          ),
+        );
+      }
+      // Soft delete stay
+      await softDelete(this.db, stay, eq(stay.id, expired.id));
+    }
   }
 }

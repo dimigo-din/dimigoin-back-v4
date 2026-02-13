@@ -2,7 +2,7 @@ import { Body, Controller, Get, HttpStatus, Post, Query, Req, Res } from "@nestj
 import { ConfigService } from "@nestjs/config";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
 import type { FastifyReply, FastifyRequest } from "fastify";
-import { User } from "#/schemas";
+import type { User } from "#/db/schema";
 import {
   GoogleAppLoginDTO,
   GoogleWebLoginDTO,

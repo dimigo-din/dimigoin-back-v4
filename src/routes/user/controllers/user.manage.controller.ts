@@ -1,6 +1,6 @@
 import { Body, Controller, Get, HttpStatus, Post, Query } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
-import { User } from "#/schemas";
+import type { User } from "#/db/schema";
 import { CustomJwtAuthGuard } from "#auth/guards";
 import { PermissionGuard } from "#auth/guards/permission.guard";
 import { UseGuardsWithSwagger } from "#auth/guards/useGuards";
@@ -41,7 +41,6 @@ export class UserManageController {
   @ApiResponseFormat({
     status: HttpStatus.OK,
     description: "성공",
-    type: User,
   })
   @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.MANAGE_PERMISSION]))
   @Post("/permission/set")
@@ -56,7 +55,6 @@ export class UserManageController {
   @ApiResponseFormat({
     status: HttpStatus.OK,
     description: "성공",
-    type: User,
   })
   @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.MANAGE_PERMISSION]))
   @Post("/permission/add")
@@ -71,7 +69,6 @@ export class UserManageController {
   @ApiResponseFormat({
     status: HttpStatus.OK,
     description: "성공",
-    type: User,
   })
   @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.MANAGE_PERMISSION]))
   @Post("/permission/remove")
@@ -85,7 +82,6 @@ export class UserManageController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: [User],
   })
   @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.TEACHER]))
   @Get("/search")

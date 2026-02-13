@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, HttpStatus, Post, Query } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
-import { User, WakeupSongApplication, WakeupSongVote } from "#/schemas";
+import type { User } from "#/db/schema";
 import { CustomJwtAuthGuard } from "#auth/guards";
 import { PermissionGuard } from "#auth/guards/permission.guard";
 import { UseGuardsWithSwagger } from "#auth/guards/useGuards";
@@ -54,7 +54,6 @@ export class WakeupStudentController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: WakeupSongApplication,
   })
   @Post("/")
   async registerVideo(@CurrentUser() user: User, @Body() data: RegisterVideoDTO) {
@@ -67,7 +66,6 @@ export class WakeupStudentController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: [WakeupSongVote],
   })
   @Get("/vote")
   async getMyVotes(@CurrentUser() user: User) {
@@ -80,7 +78,6 @@ export class WakeupStudentController {
   })
   @ApiResponseFormat({
     status: HttpStatus.CREATED,
-    type: WakeupSongVote,
   })
   @Post("/vote")
   async vote(@CurrentUser() user: User, @Body() data: VoteVideoDTO) {
@@ -93,7 +90,6 @@ export class WakeupStudentController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: WakeupSongVote,
   })
   @Delete("/vote")
   async unVote(@CurrentUser() user: User, @Query() data: VoteIdDTO) {

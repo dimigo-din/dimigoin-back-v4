@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsIn } from "class-validator";
-import { LaundryApply, StayApply } from "#/schemas";
+import type { LaundryApply, StayApply } from "#/db/schema";
 
 export class ApplyResponseDTO {
   @ApiProperty()

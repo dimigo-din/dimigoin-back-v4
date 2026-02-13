@@ -1,6 +1,6 @@
 import { Controller, Get, HttpStatus, Query } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
-import { User } from "#/schemas";
+import type { User } from "#/db/schema";
 import { CustomJwtAuthGuard } from "#auth/guards";
 import { PermissionGuard } from "#auth/guards/permission.guard";
 import { UseGuardsWithSwagger } from "#auth/guards/useGuards";

@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, HttpStatus, Patch, Post, Query } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
-import { Stay, StayApply, StayOuting, User } from "#/schemas";
+import type { User } from "#/db/schema";
 import { CustomJwtAuthGuard } from "#auth/guards";
 import { PermissionGuard } from "#auth/guards/permission.guard";
 import { UseGuardsWithSwagger } from "#auth/guards/useGuards";
@@ -29,7 +29,6 @@ export class StayStudentController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: [Stay],
   })
   @Get("")
   async getStayList(@CurrentUser() user: User, @Query() data: GetStayListDTO) {
@@ -42,7 +41,6 @@ export class StayStudentController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: [StayApply],
   })
   @Get("/apply")
   async getStayApplies(@CurrentUser() user: User) {
@@ -55,7 +53,6 @@ export class StayStudentController {
   })
   @ApiResponseFormat({
     status: HttpStatus.CREATED,
-    type: StayApply,
   })
   @Post("/apply")
   async createStayApply(@CurrentUser() user: User, @Body() data: CreateUserStayApplyDTO) {
@@ -68,7 +65,6 @@ export class StayStudentController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: StayApply,
   })
   @Patch("/apply")
   async updateStayApply(@CurrentUser() user: User, @Body() data: CreateUserStayApplyDTO) {
@@ -81,7 +77,6 @@ export class StayStudentController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: StayApply,
   })
   @Delete("/apply")
   async deleteStayApply(@CurrentUser() user: User, @Query() data: StayIdDTO) {
@@ -94,7 +89,6 @@ export class StayStudentController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: [StayOuting],
   })
   @Get("/outing")
   async getStayOuting(@CurrentUser() user: User, @Query() data: StayIdDTO) {
@@ -107,7 +101,6 @@ export class StayStudentController {
   })
   @ApiResponseFormat({
     status: HttpStatus.CREATED,
-    type: StayOuting,
   })
   @Post("/outing")
   async addStayOuting(@CurrentUser() user: User, @Body() data: AddStayOutingDTO) {
@@ -120,7 +113,6 @@ export class StayStudentController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: StayOuting,
   })
   @Patch("/outing")
   async editStayOuting(@CurrentUser() user: User, @Body() data: EditStayOutingDTO) {
@@ -133,7 +125,6 @@ export class StayStudentController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: StayOuting,
   })
   @Delete("/outing")
   async deleteStayOuting(@CurrentUser() user: User, @Query() data: StayOutingIdDTO) {
