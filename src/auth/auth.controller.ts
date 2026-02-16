@@ -13,13 +13,11 @@ import {
 } from "#auth/auth.dto";
 import { AuthService } from "#auth/auth.service";
 import { CustomJwtAuthGuard } from "#auth/guards";
-import { PermissionGuard } from "#auth/guards/permission.guard";
 import { PersonalInformationVerifyTokenAuthGuard } from "#auth/guards/personalInformationVerifyToken.guard";
 import { UseGuardsWithSwagger } from "#auth/guards/useGuards";
 import { CurrentUser } from "$decorators/user.decorator";
 import { ApiResponseFormat } from "$dto/response_format.dto";
 import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE } from "$mapper/constants";
-import { PermissionEnum } from "$mapper/permissions";
 
 @ApiTags("Auth")
 @Controller("/auth")
@@ -180,7 +178,7 @@ export class AuthController {
   @ApiResponseFormat({
     status: HttpStatus.OK,
   })
-  @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.STUDENT]))
+  @UseGuardsWithSwagger(CustomJwtAuthGuard)
   @Get("/personalInformationVerifyToken")
   async getPersonalInformationVerifyToken(@CurrentUser() user: User) {
     return await this.authService.generatePersonalInformationVerifyToken(user);

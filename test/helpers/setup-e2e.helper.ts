@@ -8,7 +8,7 @@ import { JWTResponse } from "#auth/auth.dto";
 import { AuthService } from "#auth/auth.service";
 import { TestApp } from "#test/helpers/app.helper";
 import { RequestHelper } from "#test/helpers/request.helper";
-import { PermissionEnum, StudentUserPermission } from "$mapper/permissions";
+import { PermissionEnum } from "$mapper/permissions";
 import { numberPermission } from "$utils/permission.util";
 import { FacilityManageService, FacilityStudentService } from "~facility/providers";
 import { FrigoManageService, FrigoStudentService } from "~frigo/providers";
@@ -50,7 +50,7 @@ const createUsers = () => {
     email: "student$test.com",
     name: "Student User",
     picture: "pic",
-    permission: numberPermission(...StudentUserPermission).toString(),
+    permission: "0",
   } as User;
 
   const teacherUser: User = {

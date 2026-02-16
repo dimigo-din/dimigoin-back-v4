@@ -89,7 +89,7 @@ export class ValidationService {
           return;
         }
         if (!PermissionEnum[permission]) {
-          exceptions.push(u);
+          this.logger.warn(`Deprecated permission "${permission}" dropped for user ${u.id}`);
           return;
         }
         newPermissions.push(PermissionEnum[permission]);

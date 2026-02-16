@@ -2,11 +2,9 @@ import { Body, Controller, Delete, Get, HttpStatus, Post, Query } from "@nestjs/
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
 import type { User } from "#/db/schema";
 import { CustomJwtAuthGuard } from "#auth/guards";
-import { PermissionGuard } from "#auth/guards/permission.guard";
 import { UseGuardsWithSwagger } from "#auth/guards/useGuards";
 import { CurrentUser } from "$decorators/user.decorator";
 import { ApiResponseFormat } from "$dto/response_format.dto";
-import { PermissionEnum } from "$mapper/permissions";
 import {
   ApplicationsResponseDTO,
   RegisterVideoDTO,
@@ -18,7 +16,7 @@ import { WakeupStudentService } from "~wakeup/providers";
 
 @ApiTags("Wakeup Student")
 @Controller("/student/wakeup")
-@UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.STUDENT]))
+@UseGuardsWithSwagger(CustomJwtAuthGuard)
 export class WakeupStudentController {
   constructor(private readonly wakeupService: WakeupStudentService) {}
 

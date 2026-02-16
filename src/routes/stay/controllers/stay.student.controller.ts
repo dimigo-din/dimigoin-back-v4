@@ -2,11 +2,9 @@ import { Body, Controller, Delete, Get, HttpStatus, Patch, Post, Query } from "@
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
 import type { User } from "#/db/schema";
 import { CustomJwtAuthGuard } from "#auth/guards";
-import { PermissionGuard } from "#auth/guards/permission.guard";
 import { UseGuardsWithSwagger } from "#auth/guards/useGuards";
 import { CurrentUser } from "$decorators/user.decorator";
 import { ApiResponseFormat } from "$dto/response_format.dto";
-import { PermissionEnum } from "$mapper/permissions";
 import {
   AddStayOutingDTO,
   CreateUserStayApplyDTO,
@@ -19,7 +17,7 @@ import { StayStudentService } from "~stay/providers";
 
 @ApiTags("Stay Student")
 @Controller("/student/stay")
-@UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.STUDENT]))
+@UseGuardsWithSwagger(CustomJwtAuthGuard)
 export class StayStudentController {
   constructor(private readonly stayService: StayStudentService) {}
 

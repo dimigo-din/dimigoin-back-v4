@@ -14,11 +14,9 @@ import { ApiBody, ApiConsumes, ApiOperation, ApiResponse, ApiTags } from "@nestj
 import type { FastifyReply } from "fastify";
 import type { User } from "#/db/schema";
 import { CustomJwtAuthGuard } from "#auth/guards";
-import { PermissionGuard } from "#auth/guards/permission.guard";
 import { UseGuardsWithSwagger } from "#auth/guards/useGuards";
 import { CurrentUser } from "$decorators/user.decorator";
 import { ApiResponseFormat } from "$dto/response_format.dto";
-import { PermissionEnum } from "$mapper/permissions";
 import {
   FacilityImgIdDTO,
   FacilityReportIdDTO,
@@ -32,7 +30,7 @@ import { FacilityStudentService } from "~facility/providers";
 
 @ApiTags("Facility Student")
 @Controller("/student/facility")
-@UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.STUDENT]))
+@UseGuardsWithSwagger(CustomJwtAuthGuard)
 export class FacilityStudentController {
   constructor(private readonly facilityService: FacilityStudentService) {}
 
