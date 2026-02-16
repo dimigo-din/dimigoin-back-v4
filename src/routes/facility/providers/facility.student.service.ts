@@ -107,10 +107,11 @@ export class FacilityStudentService {
       }),
     );
 
-    if (data.parent_comment) {
+    if (data.parent_comment != null) {
+      const parentCommentId = data.parent_comment;
       const parentCommentRow = await findOrThrow(
         this.db.query.facilityReportComment.findFirst({
-          where: { RAW: (t, { eq }) => eq(t.id, data.parent_comment) },
+          where: { RAW: (t, { eq }) => eq(t.id, parentCommentId) },
         }),
       );
       if (parentCommentRow.parentId !== data.post) {

@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { frigoApply, frigoApplyPeriod } from "#/db/schema";
 import { DRIZZLE, type DrizzleDB } from "$modules/drizzle.module";
 import { findOrThrow } from "$utils/findOrThrow.util";
+import { andWhere } from "$utils/where.util";
 import {
   AuditFrigoApply,
   FrigoApplyDTO,
@@ -80,7 +81,7 @@ export class FrigoManageService {
 
     const week = format(startOfWeek(new Date()), "yyyy-MM-dd");
     const exists = await this.db.query.frigoApply.findFirst({
-      where: { RAW: (t, { and, eq }) => and(eq(t.week, week), eq(t.userId, dbUser.id)) },
+      where: { RAW: (t, { and, eq }) => andWhere(and, eq(t.week, week), eq(t.userId, dbUser.id)) },
     });
 
     if (exists) {

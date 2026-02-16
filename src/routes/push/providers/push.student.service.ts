@@ -8,6 +8,7 @@ import {
 } from "$mapper/types";
 import { DRIZZLE, type DrizzleDB } from "$modules/drizzle.module";
 import { findOrThrow } from "$utils/findOrThrow.util";
+import { andWhere } from "$utils/where.util";
 import {
   CreateFCMTokenDTO,
   DeleteFCMTokenDTO,
@@ -26,7 +27,8 @@ export class PushStudentService {
 
     const existing = await this.db.query.pushSubscription.findFirst({
       where: {
-        RAW: (t, { and, eq }) => and(eq(t.userId, target.id), eq(t.deviceId, data.deviceId)),
+        RAW: (t, { and, eq }) =>
+          andWhere(and, eq(t.userId, target.id), eq(t.deviceId, data.deviceId)),
       },
     });
 
@@ -76,7 +78,7 @@ export class PushStudentService {
     const subscription = await findOrThrow(
       this.db.query.pushSubscription.findFirst({
         where: {
-          RAW: (t, { and, eq }) => and(eq(t.userId, userJwt.id), eq(t.token, data.token)),
+          RAW: (t, { and, eq }) => andWhere(and, eq(t.userId, userJwt.id), eq(t.token, data.token)),
         },
       }),
     );
@@ -106,7 +108,8 @@ export class PushStudentService {
     const subscription = await findOrThrow(
       this.db.query.pushSubscription.findFirst({
         where: {
-          RAW: (t, { and, eq }) => and(eq(t.userId, userJwt.id), eq(t.deviceId, data.deviceId)),
+          RAW: (t, { and, eq }) =>
+            andWhere(and, eq(t.userId, userJwt.id), eq(t.deviceId, data.deviceId)),
         },
         with: { subjects: true },
       }),
@@ -123,7 +126,8 @@ export class PushStudentService {
     const subscription = await findOrThrow(
       this.db.query.pushSubscription.findFirst({
         where: {
-          RAW: (t, { and, eq }) => and(eq(t.userId, target.id), eq(t.deviceId, data.deviceId)),
+          RAW: (t, { and, eq }) =>
+            andWhere(and, eq(t.userId, target.id), eq(t.deviceId, data.deviceId)),
         },
         with: { subjects: true },
       }),

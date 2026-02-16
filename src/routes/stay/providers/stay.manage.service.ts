@@ -32,6 +32,7 @@ import { DRIZZLE, type DrizzleDB } from "$modules/drizzle.module";
 import { findOrThrow } from "$utils/findOrThrow.util";
 import { softDelete } from "$utils/softDelete.util";
 import { isInValidRange } from "$utils/staySeat.util";
+import { andWhere } from "$utils/where.util";
 import {
   AuditOutingDTO,
   CreateStayApplyDTO,
@@ -414,7 +415,9 @@ export class StayManageService {
     );
 
     const exists = await this.db.query.stayApply.findFirst({
-      where: { RAW: (t, { and, eq }) => and(eq(t.userId, data.user), eq(t.stayId, data.stay)) },
+      where: {
+        RAW: (t, { and, eq }) => andWhere(and, eq(t.userId, data.user), eq(t.stayId, data.stay)),
+      },
     });
     if (exists) {
       throw new HttpException(ErrorMsg.StaySeat_Duplication(), HttpStatus.BAD_REQUEST);
@@ -423,7 +426,7 @@ export class StayManageService {
     const staySeatCheck = await this.db.query.stayApply.findFirst({
       where: {
         RAW: (t, { and, eq }) =>
-          and(eq(t.stay_seat, data.stay_seat.toUpperCase()), eq(t.stayId, data.stay)),
+          andWhere(and, eq(t.stay_seat, data.stay_seat.toUpperCase()), eq(t.stayId, data.stay)),
       },
     });
     if (staySeatCheck && isInValidRange(staySeatCheck.stay_seat)) {
@@ -481,7 +484,7 @@ export class StayManageService {
     const staySeatCheck = await this.db.query.stayApply.findFirst({
       where: {
         RAW: (t, { and, eq }) =>
-          and(eq(t.stay_seat, data.stay_seat.toUpperCase()), eq(t.stayId, data.stay)),
+          andWhere(and, eq(t.stay_seat, data.stay_seat.toUpperCase()), eq(t.stayId, data.stay)),
       },
     });
     if (
@@ -729,7 +732,7 @@ export class StayManageService {
     const expiredStays = await this.db.query.stay.findMany({
       where: {
         RAW: (t, { and, lt, isNull }) =>
-          and(lt(t.stay_to, format(new Date(), "yyyy-MM-dd")), isNull(t.deletedAt)),
+          andWhere(and, lt(t.stay_to, format(new Date(), "yyyy-MM-dd")), isNull(t.deletedAt)),
       },
       with: {
         stayApply: {

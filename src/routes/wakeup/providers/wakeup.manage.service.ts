@@ -5,6 +5,7 @@ import { wakeupSongApplication, wakeupSongHistory, wakeupSongVote } from "#/db/s
 import { DRIZZLE, type DrizzleDB } from "$modules/drizzle.module";
 import { findOrThrow } from "$utils/findOrThrow.util";
 import { softDelete } from "$utils/softDelete.util";
+import { andWhere } from "$utils/where.util";
 import { WakeupSongDeleteDTO, WakeupSongSelectDTO } from "~wakeup/dto/wakeup.manage.dto";
 
 @Injectable()
@@ -15,7 +16,9 @@ export class WakeupManageService {
     const week = format(startOfWeek(new Date()), "yyyy-MM-dd");
 
     return await this.db.query.wakeupSongApplication.findMany({
-      where: { RAW: (t, { and, eq, isNull }) => and(eq(t.week, week), isNull(t.deletedAt)) },
+      where: {
+        RAW: (t, { and, eq, isNull }) => andWhere(and, eq(t.week, week), isNull(t.deletedAt)),
+      },
       with: { wakeupSongVote: true, user: true },
     });
   }
@@ -24,7 +27,7 @@ export class WakeupManageService {
     const apply = await findOrThrow(
       this.db.query.wakeupSongApplication.findFirst({
         where: {
-          RAW: (t, { and, eq, isNull }) => and(eq(t.id, data.id), isNull(t.deletedAt)),
+          RAW: (t, { and, eq, isNull }) => andWhere(and, eq(t.id, data.id), isNull(t.deletedAt)),
         },
         with: { wakeupSongVote: true },
       }),
@@ -51,7 +54,7 @@ export class WakeupManageService {
     const apply = await findOrThrow(
       this.db.query.wakeupSongApplication.findFirst({
         where: {
-          RAW: (t, { and, eq, isNull }) => and(eq(t.id, data.id), isNull(t.deletedAt)),
+          RAW: (t, { and, eq, isNull }) => andWhere(and, eq(t.id, data.id), isNull(t.deletedAt)),
         },
         with: { wakeupSongVote: true },
       }),

@@ -21,6 +21,7 @@ import { UserJWT } from "$mapper/types";
 import { CacheService } from "$modules/cache.module";
 import { DRIZZLE, type DrizzleDB } from "$modules/drizzle.module";
 import { hasPermission } from "$utils/permission.util";
+import { andWhere } from "$utils/where.util";
 import { UserManageService } from "~user/providers";
 
 @Injectable()
@@ -47,7 +48,9 @@ export class AuthService {
 
   async loginByIdPassword(id: string, password: string) {
     const loginRecord = await this.db.query.login.findFirst({
-      where: { RAW: (t, { and, eq }) => and(eq(t.identifier1, id || ""), eq(t.type, "password")) },
+      where: {
+        RAW: (t, { and, eq }) => andWhere(and, eq(t.identifier1, id || ""), eq(t.type, "password")),
+      },
       with: { user: true },
     });
     if (!loginRecord) {
@@ -124,7 +127,8 @@ export class AuthService {
     let loginUser: typeof user.$inferSelect;
     const loginRecord = await this.db.query.login.findFirst({
       where: {
-        RAW: (t, { and, eq }) => and(eq(t.identifier1, ticketPayload.sub), eq(t.type, "google")),
+        RAW: (t, { and, eq }) =>
+          andWhere(and, eq(t.identifier1, ticketPayload.sub), eq(t.type, "google")),
       },
       with: { user: true },
     });

@@ -10,6 +10,7 @@ import { CacheService } from "$modules/cache.module";
 import { DRIZZLE, type DrizzleDB } from "$modules/drizzle.module";
 import { findOrThrow } from "$utils/findOrThrow.util";
 import { notDeleted } from "$utils/softDelete.util";
+import { andWhere } from "$utils/where.util";
 import { UserManageService } from "~user/providers";
 import {
   RegisterVideoDTO,
@@ -93,7 +94,8 @@ export class WakeupStudentService {
     const exists = await this.db.query.wakeupSongApplication.findFirst({
       where: {
         RAW: (t, { and, eq, isNull }) =>
-          and(
+          andWhere(
+            and,
             eq(t.video_id, data.videoId),
             eq(t.week, week),
             eq(t.gender, gender),
@@ -156,7 +158,8 @@ export class WakeupStudentService {
     return await this.db.query.wakeupSongVote
       .findMany({
         where: {
-          RAW: (t, { and, eq, isNull }) => and(eq(t.userId, userJwt.id), isNull(t.deletedAt)),
+          RAW: (t, { and, eq, isNull }) =>
+            andWhere(and, eq(t.userId, userJwt.id), isNull(t.deletedAt)),
         },
         with: {
           wakeupSongApplication: true,
@@ -177,7 +180,7 @@ export class WakeupStudentService {
       this.db.query.wakeupSongApplication.findFirst({
         where: {
           RAW: (t, { and, eq, isNull }) =>
-            and(eq(t.id, data.songId), eq(t.gender, gender), isNull(t.deletedAt)),
+            andWhere(and, eq(t.id, data.songId), eq(t.gender, gender), isNull(t.deletedAt)),
         },
       }),
     );
@@ -185,7 +188,8 @@ export class WakeupStudentService {
     const exists = await this.db.query.wakeupSongVote.findFirst({
       where: {
         RAW: (t, { and, eq, isNull }) =>
-          and(
+          andWhere(
+            and,
             eq(t.userId, dbUser.id),
             eq(t.wakeupSongApplicationId, application.id),
             isNull(t.deletedAt),
@@ -216,7 +220,7 @@ export class WakeupStudentService {
       this.db.query.wakeupSongVote.findFirst({
         where: {
           RAW: (t, { and, eq, isNull }) =>
-            and(eq(t.userId, dbUser.id), eq(t.id, data.id), isNull(t.deletedAt)),
+            andWhere(and, eq(t.userId, dbUser.id), eq(t.id, data.id), isNull(t.deletedAt)),
         },
       }),
     );

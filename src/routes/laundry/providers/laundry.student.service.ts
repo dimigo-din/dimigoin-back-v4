@@ -7,6 +7,7 @@ import { ErrorMsg } from "$mapper/error";
 import type { Grade, UserJWT } from "$mapper/types";
 import { DRIZZLE, type DrizzleDB } from "$modules/drizzle.module";
 import { findOrThrow } from "$utils/findOrThrow.util";
+import { andWhere } from "$utils/where.util";
 import { LaundryApplyDTO, LaundryApplyIdDTO } from "~laundry/dto/laundry.student.dto";
 import { UserManageService } from "~user/providers";
 
@@ -80,7 +81,8 @@ export class LaundryStudentService {
     const applyExists = await this.db.query.laundryApply.findFirst({
       where: {
         RAW: (t, { and, eq }) =>
-          and(
+          andWhere(
+            and,
             eq(t.userId, userJwt.id),
             eq(t.date, todayDate),
             eq(t.laundryMachineId, data.machine),
@@ -129,7 +131,8 @@ export class LaundryStudentService {
     const machineTaken = await this.db.query.laundryApply.findFirst({
       where: {
         RAW: (t, { and, eq }) =>
-          and(
+          andWhere(
+            and,
             eq(t.laundryMachineId, data.machine),
             eq(t.date, todayDate),
             eq(t.laundryTimeId, data.time),
@@ -157,7 +160,9 @@ export class LaundryStudentService {
   async deleteApply(userJwt: UserJWT, data: LaundryApplyIdDTO) {
     await findOrThrow(
       this.db.query.laundryApply.findFirst({
-        where: { RAW: (t, { and, eq }) => and(eq(t.userId, userJwt.id), eq(t.id, data.id)) },
+        where: {
+          RAW: (t, { and, eq }) => andWhere(and, eq(t.userId, userJwt.id), eq(t.id, data.id)),
+        },
       }),
     );
 

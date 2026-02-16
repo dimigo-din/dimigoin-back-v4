@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import type { UserJWT } from "$mapper/types";
 import { CacheService } from "$modules/cache.module";
 import { DRIZZLE, type DrizzleDB } from "$modules/drizzle.module";
+import { andWhere } from "$utils/where.util";
 import { ComciData } from "~user/dto";
 
 @Injectable()
@@ -21,7 +22,8 @@ export class UserStudentService {
       this.db.query.laundryApply.findFirst({
         where: {
           RAW: (t, { and, eq }) =>
-            and(
+            andWhere(
+              and,
               eq(t.userId, user.id),
               eq(t.date, format(new TZDate(new Date(), "Asia/Seoul"), "yyyy-MM-dd")),
             ),

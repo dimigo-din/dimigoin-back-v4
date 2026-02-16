@@ -15,6 +15,7 @@ import { UserJWT } from "$mapper/types";
 import { DRIZZLE, type DrizzleDB } from "$modules/drizzle.module";
 import { DayNumber2String } from "$utils/date.util";
 import { findOrThrow } from "$utils/findOrThrow.util";
+import { andWhere } from "$utils/where.util";
 import { ClientFrigoApplyDTO } from "~frigo/dto/frigo.dto";
 import { UserManageService } from "~user/providers";
 
@@ -30,7 +31,9 @@ export class FrigoStudentService {
 
     return (
       (await this.db.query.frigoApply.findFirst({
-        where: { RAW: (t, { and, eq }) => and(eq(t.userId, userJwt.id), eq(t.week, week)) },
+        where: {
+          RAW: (t, { and, eq }) => andWhere(and, eq(t.userId, userJwt.id), eq(t.week, week)),
+        },
       })) ?? null
     );
   }
@@ -73,7 +76,7 @@ export class FrigoStudentService {
     );
     const week = format(startOfWeek(new Date()), "yyyy-MM-dd");
     const exists = await this.db.query.frigoApply.findFirst({
-      where: { RAW: (t, { and, eq }) => and(eq(t.week, week), eq(t.userId, dbUser.id)) },
+      where: { RAW: (t, { and, eq }) => andWhere(and, eq(t.week, week), eq(t.userId, dbUser.id)) },
     });
     if (exists) {
       throw new HttpException(ErrorMsg.Frigo_AlreadyApplied(), HttpStatus.BAD_REQUEST);
@@ -96,7 +99,9 @@ export class FrigoStudentService {
     const week = format(startOfWeek(new Date()), "yyyy-MM-dd");
     const apply = await findOrThrow(
       this.db.query.frigoApply.findFirst({
-        where: { RAW: (t, { and, eq }) => and(eq(t.userId, userJwt.id), eq(t.week, week)) },
+        where: {
+          RAW: (t, { and, eq }) => andWhere(and, eq(t.userId, userJwt.id), eq(t.week, week)),
+        },
       }),
     );
 

@@ -1,6 +1,7 @@
 import { HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { ErrorMsg } from "$mapper/error";
 import { DRIZZLE, type DrizzleDB } from "$modules/drizzle.module";
+import { andWhere } from "$utils/where.util";
 import { GetDateSongDTO } from "~wakeup/dto/wakeup.dto";
 
 @Injectable()
@@ -10,7 +11,7 @@ export class WakeupService {
   async getDateSong(data: GetDateSongDTO) {
     const songs = await this.db.query.wakeupSongHistory.findMany({
       where: {
-        RAW: (t, { and, eq }) => and(eq(t.date, data.date), eq(t.gender, data.gender)),
+        RAW: (t, { and, eq }) => andWhere(and, eq(t.date, data.date), eq(t.gender, data.gender)),
       },
     });
     if (!songs || songs.length === 0) {

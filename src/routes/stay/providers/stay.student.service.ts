@@ -8,6 +8,7 @@ import type { Gender, Grade, UserJWT } from "$mapper/types";
 import { DRIZZLE, type DrizzleDB } from "$modules/drizzle.module";
 import { findOrThrow } from "$utils/findOrThrow.util";
 import { isInRange, isInValidRange } from "$utils/staySeat.util";
+import { andWhere } from "$utils/where.util";
 import {
   AddStayOutingDTO,
   CreateUserStayApplyDTO,
@@ -110,7 +111,9 @@ export class StayStudentService {
     }
 
     const exists = await this.db.query.stayApply.findFirst({
-      where: { RAW: (t, { and, eq }) => and(eq(t.userId, userJwt.id), eq(t.stayId, data.stay)) },
+      where: {
+        RAW: (t, { and, eq }) => andWhere(and, eq(t.userId, userJwt.id), eq(t.stayId, data.stay)),
+      },
     });
     if (exists) {
       throw new HttpException(ErrorMsg.Stay_AlreadyApplied(), HttpStatus.BAD_REQUEST);
@@ -119,7 +122,7 @@ export class StayStudentService {
     const staySeatCheck = await this.db.query.stayApply.findFirst({
       where: {
         RAW: (t, { and, eq }) =>
-          and(eq(t.stay_seat, data.stay_seat.toUpperCase()), eq(t.stayId, data.stay)),
+          andWhere(and, eq(t.stay_seat, data.stay_seat.toUpperCase()), eq(t.stayId, data.stay)),
       },
     });
     if (staySeatCheck && isInValidRange(staySeatCheck.stay_seat)) {
@@ -194,7 +197,9 @@ export class StayStudentService {
 
     const existing = await findOrThrow(
       this.db.query.stayApply.findFirst({
-        where: { RAW: (t, { and, eq }) => and(eq(t.userId, userJwt.id), eq(t.stayId, data.stay)) },
+        where: {
+          RAW: (t, { and, eq }) => andWhere(and, eq(t.userId, userJwt.id), eq(t.stayId, data.stay)),
+        },
         with: {
           stay: {
             with: {
@@ -215,19 +220,20 @@ export class StayStudentService {
     if (!existing.stay) {
       throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
     }
+    const stay = existing.stay;
 
     if (existing?.user?.id !== userJwt.id) {
       throw new HttpException(ErrorMsg.PermissionDenied_Resource(), HttpStatus.FORBIDDEN);
     }
 
-    if (!(await this.validateStayPeriod(userJwt, data.grade, existing.stay.stayApplyPeriodStay))) {
+    if (!(await this.validateStayPeriod(userJwt, data.grade, stay.stayApplyPeriodStay))) {
       throw new HttpException(ErrorMsg.Stay_NotInApplyPeriod(), HttpStatus.FORBIDDEN);
     }
 
     const staySeatCheck = await this.db.query.stayApply.findFirst({
       where: {
         RAW: (t, { and, eq }) =>
-          and(eq(t.stay_seat, data.stay_seat.toUpperCase()), eq(t.stayId, existing.stay.id)),
+          andWhere(and, eq(t.stay_seat, data.stay_seat.toUpperCase()), eq(t.stayId, stay.id)),
       },
     });
     if (
@@ -238,10 +244,10 @@ export class StayStudentService {
       throw new HttpException(ErrorMsg.StaySeat_Duplication(), HttpStatus.BAD_REQUEST);
     }
 
-    const presetForSeat = existing.stay.staySeatPreset
+    const presetForSeat = stay.staySeatPreset
       ? {
-          ...existing.stay.staySeatPreset,
-          stay_seat: existing.stay.staySeatPreset.staySeatPresetRange,
+          ...stay.staySeatPreset,
+          stay_seat: stay.staySeatPreset.staySeatPresetRange,
         }
       : null;
 

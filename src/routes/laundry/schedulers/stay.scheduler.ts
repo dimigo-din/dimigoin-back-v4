@@ -3,6 +3,7 @@ import { Inject, Injectable } from "@nestjs/common";
 import { format } from "date-fns";
 import type { laundryTimeline } from "#/db/schema";
 import { DRIZZLE, type DrizzleDB } from "$modules/drizzle.module";
+import { andWhere } from "$utils/where.util";
 import { LaundryTimelineScheduler } from "./scheduler.interface";
 
 type LaundryTimelineRow = typeof laundryTimeline.$inferSelect;
@@ -19,7 +20,8 @@ export class StayScheduler extends LaundryTimelineScheduler {
       const today = format(new TZDate(new Date(), "Asia/Seoul"), "yyyy-MM-dd");
       const stayRow = await this.db.query.stay.findFirst({
         where: {
-          RAW: (t, { and, lte, gte }) => and(lte(t.stay_from, today), gte(t.stay_to, today)),
+          RAW: (t, { and, lte, gte }) =>
+            andWhere(and, lte(t.stay_from, today), gte(t.stay_to, today)),
         },
       });
 
