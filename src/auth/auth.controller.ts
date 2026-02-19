@@ -18,6 +18,7 @@ import { UseGuardsWithSwagger } from "#auth/guards/useGuards";
 import { CurrentUser } from "$decorators/user.decorator";
 import { ApiResponseFormat } from "$dto/response_format.dto";
 import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE } from "$mapper/constants";
+import { parsePermission } from "$utils/permission.util";
 
 @ApiTags("Auth")
 @Controller("/auth")
@@ -27,14 +28,20 @@ export class AuthController {
     private readonly authService: AuthService,
   ) {}
 
-  @ApiOperation({
-    summary: "핑",
-    description: "세션이 살아있는지 테스트합니다.",
-  })
+  @ApiOperation({ summary: "핑" })
   @Get("/ping")
   @UseGuardsWithSwagger(CustomJwtAuthGuard)
   async ping() {
     return "퐁";
+  }
+
+  @ApiOperation({ summary: "권한 확인" })
+  @ApiResponseFormat({ status: HttpStatus.OK })
+  @Get("/permission")
+  @UseGuardsWithSwagger(CustomJwtAuthGuard)
+  async getPermission(@CurrentUser() user: User) {
+    const permissions = parsePermission(user.permission).map((p) => p.toLowerCase());
+    return { permissions };
   }
 
   @ApiOperation({

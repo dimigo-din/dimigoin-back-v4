@@ -39,6 +39,7 @@
       "~push/*": ["routes/push/*"],
       "~stay/*": ["routes/stay/*"],
       "~user/*": ["routes/user/*"],
+      "~meal/*": ["routes/meal/*"],
       "~wakeup/*": ["routes/wakeup/*"]
     },
 

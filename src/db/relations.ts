@@ -196,6 +196,24 @@ export const relations = defineRelations(schema, (r) => ({
     }),
   },
 
+  // Meal relations
+  mealTimeline: {
+    slots: r.many.mealTimelineSlot(),
+    delays: r.many.mealTimelineDelay(),
+  },
+  mealTimelineSlot: {
+    timeline: r.one.mealTimeline({
+      from: r.mealTimelineSlot.timelineId,
+      to: r.mealTimeline.id,
+    }),
+  },
+  mealTimelineDelay: {
+    timeline: r.one.mealTimeline({
+      from: r.mealTimelineDelay.timelineId,
+      to: r.mealTimeline.id,
+    }),
+  },
+
   // Push relations
   pushSubscription: {
     subjects: r.many.pushSubject(),

@@ -1,8 +1,8 @@
 {
   "version": "8",
   "dialect": "postgres",
-  "id": "2bdc180c-61a9-446f-9ec6-d9871a8c49f4",
-  "prevIds": ["cdb56b3a-7164-4e6e-973e-a01cc7800a0b"],
+  "id": "935bd07a-2785-4e13-b044-c0d4b8166342",
+  "prevIds": ["2bdc180c-61a9-446f-9ec6-d9871a8c49f4"],
   "ddl": [
     {
       "values": ["password", "google"],
@@ -31,6 +31,12 @@
     {
       "values": ["washer", "dryer"],
       "name": "laundry_machine_type_enum",
+      "entityType": "enums",
+      "schema": "public"
+    },
+    {
+      "values": ["breakfast", "lunch", "dinner"],
+      "name": "meal_type_enum",
       "entityType": "enums",
       "schema": "public"
     },
@@ -121,6 +127,30 @@
     {
       "isRlsEnabled": false,
       "name": "laundry_timeline",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "meal",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "meal_timeline",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "meal_timeline_delay",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "meal_timeline_slot",
       "entityType": "tables",
       "schema": "public"
     },
@@ -1045,6 +1075,305 @@
       "entityType": "columns",
       "schema": "public",
       "table": "laundry_timeline"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "gen_random_uuid()",
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "meal"
+    },
+    {
+      "type": "date",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "date",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "meal"
+    },
+    {
+      "type": "meal_type_enum",
+      "typeSchema": "public",
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "type",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "meal"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 1,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "regular",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "meal"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 1,
+      "default": "'{}'",
+      "generated": null,
+      "identity": null,
+      "name": "simple",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "meal"
+    },
+    {
+      "type": "varchar",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "image",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "meal"
+    },
+    {
+      "type": "timestamp(6)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "meal"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "gen_random_uuid()",
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "meal_timeline"
+    },
+    {
+      "type": "date",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "start",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "meal_timeline"
+    },
+    {
+      "type": "date",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "end",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "meal_timeline"
+    },
+    {
+      "type": "timestamp(6)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "meal_timeline"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "gen_random_uuid()",
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "meal_timeline_delay"
+    },
+    {
+      "type": "date",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "date",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "meal_timeline_delay"
+    },
+    {
+      "type": "varchar",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "source",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "meal_timeline_delay"
+    },
+    {
+      "type": "varchar",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "dest",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "meal_timeline_delay"
+    },
+    {
+      "type": "varchar",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "description",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "meal_timeline_delay"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "timelineId",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "meal_timeline_delay"
+    },
+    {
+      "type": "timestamp(6)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "meal_timeline_delay"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "gen_random_uuid()",
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "meal_timeline_slot"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "grade",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "meal_timeline_slot"
+    },
+    {
+      "type": "varchar",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "time",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "meal_timeline_slot"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 1,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "classes",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "meal_timeline_slot"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "timelineId",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "meal_timeline_slot"
     },
     {
       "type": "uuid",
@@ -2373,6 +2702,90 @@
       "nameExplicit": true,
       "columns": [
         {
+          "value": "date",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "type",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "UQ_meal_date_type",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "meal"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "start",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "end",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "IDX_meal_timeline_start_end",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "meal_timeline"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "timelineId",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "grade",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "IDX_meal_slot_timeline_grade",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "meal_timeline_slot"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
           "value": "stay_from",
           "isExpression": false,
           "asc": true,
@@ -2818,6 +3231,32 @@
     },
     {
       "nameExplicit": false,
+      "columns": ["timelineId"],
+      "schemaTo": "public",
+      "tableTo": "meal_timeline",
+      "columnsTo": ["id"],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "meal_timeline_delay_timelineId_meal_timeline_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "meal_timeline_delay"
+    },
+    {
+      "nameExplicit": false,
+      "columns": ["timelineId"],
+      "schemaTo": "public",
+      "tableTo": "meal_timeline",
+      "columnsTo": ["id"],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "meal_timeline_slot_timelineId_meal_timeline_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "meal_timeline_slot"
+    },
+    {
+      "nameExplicit": false,
       "columns": ["subscriptionId"],
       "schemaTo": "public",
       "tableTo": "push_subscription",
@@ -3102,6 +3541,38 @@
     {
       "columns": ["id"],
       "nameExplicit": false,
+      "name": "meal_pkey",
+      "schema": "public",
+      "table": "meal",
+      "entityType": "pks"
+    },
+    {
+      "columns": ["id"],
+      "nameExplicit": false,
+      "name": "meal_timeline_pkey",
+      "schema": "public",
+      "table": "meal_timeline",
+      "entityType": "pks"
+    },
+    {
+      "columns": ["id"],
+      "nameExplicit": false,
+      "name": "meal_timeline_delay_pkey",
+      "schema": "public",
+      "table": "meal_timeline_delay",
+      "entityType": "pks"
+    },
+    {
+      "columns": ["id"],
+      "nameExplicit": false,
+      "name": "meal_timeline_slot_pkey",
+      "schema": "public",
+      "table": "meal_timeline_slot",
+      "entityType": "pks"
+    },
+    {
+      "columns": ["id"],
+      "nameExplicit": false,
       "name": "push_subject_pkey",
       "schema": "public",
       "table": "push_subject",
@@ -3256,7 +3727,5 @@
       "entityType": "uniques"
     }
   ],
-  "renames": [
-    "public.facility_report_comment.facility_report_comment_commentParentId_facility_report_comment->public.facility_report_comment.facility_report_comment_tSSaKfrSMFg6_fkey"
-  ]
+  "renames": []
 }

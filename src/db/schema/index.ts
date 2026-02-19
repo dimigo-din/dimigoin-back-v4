@@ -2,6 +2,7 @@ export * from "./auth.schema";
 export * from "./facility.schema";
 export * from "./frigo.schema";
 export * from "./laundry.schema";
+export * from "./meal.schema";
 export * from "./push.schema";
 export * from "./stay.schema";
 export * from "./user.schema";
@@ -12,6 +13,7 @@ import type { login, session } from "./auth.schema";
 import type { facilityImg, facilityReport, facilityReportComment } from "./facility.schema";
 import type { frigoApply, frigoApplyPeriod } from "./frigo.schema";
 import type { laundryApply, laundryMachine, laundryTime, laundryTimeline } from "./laundry.schema";
+import type { meal, mealTimeline, mealTimelineDelay, mealTimelineSlot } from "./meal.schema";
 import type { pushSubject, pushSubscription } from "./push.schema";
 import type {
   stay,
@@ -23,7 +25,6 @@ import type {
   staySeatPreset,
   staySeatPresetRange,
 } from "./stay.schema";
-// Inferred select types (matching old TypeORM entity class names)
 import type { user } from "./user.schema";
 import type { permissionValidator } from "./validation.schema";
 import type { wakeupSongApplication, wakeupSongHistory, wakeupSongVote } from "./wakeup.schema";
@@ -54,3 +55,7 @@ export type FrigoApply = typeof frigoApply.$inferSelect;
 export type PushSubscription = typeof pushSubscription.$inferSelect;
 export type PushSubject = typeof pushSubject.$inferSelect;
 export type PermissionValidator = typeof permissionValidator.$inferSelect;
+export type MealTimeline = typeof mealTimeline.$inferSelect;
+export type MealTimelineSlot = typeof mealTimelineSlot.$inferSelect;
+export type MealTimelineDelay = typeof mealTimelineDelay.$inferSelect;
+export type Meal = typeof meal.$inferSelect;
