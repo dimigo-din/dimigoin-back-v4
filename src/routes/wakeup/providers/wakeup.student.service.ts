@@ -50,9 +50,7 @@ export class WakeupStudentService {
 
   async getApplications(userJwt: UserJWT) {
     const week = format(startOfWeek(new Date()), "yyyy-MM-dd");
-    const gender = (await this.userManageService.checkUserDetail(userJwt.email, { gender: "male" }))
-      ? "male"
-      : "female";
+    const { gender } = await this.userManageService.getRequiredUserDetail(userJwt.id);
 
     const results = await this.db
       .select({
@@ -87,9 +85,7 @@ export class WakeupStudentService {
 
   async registerVideo(userJwt: UserJWT, data: RegisterVideoDTO) {
     const week = format(startOfWeek(new Date()), "yyyy-MM-dd");
-    const gender = (await this.userManageService.checkUserDetail(userJwt.email, { gender: "male" }))
-      ? "male"
-      : "female";
+    const { gender } = await this.userManageService.getRequiredUserDetail(userJwt.id);
 
     const exists = await this.db.query.wakeupSongApplication.findFirst({
       where: {
@@ -172,9 +168,7 @@ export class WakeupStudentService {
     const dbUser = await findOrThrow(
       this.db.query.user.findFirst({ where: { RAW: (t, { eq }) => eq(t.id, userJwt.id) } }),
     );
-    const gender = (await this.userManageService.checkUserDetail(userJwt.email, { gender: "male" }))
-      ? "male"
-      : "female";
+    const { gender } = await this.userManageService.getRequiredUserDetail(userJwt.id);
 
     const application = await findOrThrow(
       this.db.query.wakeupSongApplication.findFirst({

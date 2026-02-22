@@ -732,8 +732,21 @@ const stubDomainServices = (app: NestFastifyApplication) => {
   );
   stubProtoMethod(
     userManageService,
-    "checkUserDetail",
-    mock(async () => null) as unknown as (typeof userManageService)["checkUserDetail"],
+    "getUserDetail",
+    mock(async () => ({
+      grade: 1,
+      class: 1,
+      gender: "male",
+    })) as unknown as (typeof userManageService)["getUserDetail"],
+  );
+  stubProtoMethod(
+    userManageService,
+    "getRequiredUserDetail",
+    mock(async () => ({
+      grade: 1,
+      class: 1,
+      gender: "male",
+    })) as unknown as (typeof userManageService)["getRequiredUserDetail"],
   );
   stubProtoMethod(
     userStudentService,

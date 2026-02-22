@@ -9,7 +9,6 @@ import {
   AddStayOutingDTO,
   CreateUserStayApplyDTO,
   EditStayOutingDTO,
-  GetStayListDTO,
   StayIdDTO,
   StayOutingIdDTO,
 } from "~stay/dto/stay.student.dto";
@@ -29,8 +28,8 @@ export class StayStudentController {
     status: HttpStatus.OK,
   })
   @Get("")
-  async getStayList(@CurrentUser() user: User, @Query() data: GetStayListDTO) {
-    return this.stayService.getStayList(user, data);
+  async getStayList(@CurrentUser() user: User) {
+    return this.stayService.getStayList(user);
   }
 
   @ApiOperation({

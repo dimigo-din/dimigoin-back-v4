@@ -40,17 +40,15 @@ export class FrigoStudentService {
 
   // fuck you consistency
   async frigoApply(userJwt: UserJWT, data: ClientFrigoApplyDTO) {
+    const userDetail = await this.userManageService.getRequiredUserDetail(userJwt.id);
+
     // validation
     const period = await findOrThrow(
       this.db.query.frigoApplyPeriod.findFirst({
-        where: { RAW: (t, { eq }) => eq(t.grade, data.grade) },
+        where: { RAW: (t, { eq }) => eq(t.grade, userDetail.grade) },
       }),
       new HttpException(ErrorMsg.FrigoPeriod_NotExistsForGrade(), HttpStatus.FORBIDDEN),
     );
-
-    if (!(await this.userManageService.checkUserDetail(userJwt.email, { grade: data.grade }))) {
-      throw new HttpException(ErrorMsg.FrigoPeriod_NotExistsForGrade(), HttpStatus.FORBIDDEN);
-    }
 
     const now = new Date();
     let start = setHours(setDay(now, period.apply_start_day), period.apply_start_hour);

@@ -1,9 +1,10 @@
-import { Inject, Injectable, NotFoundException } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
+import { HttpException, HttpStatus, Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { eq, like } from "drizzle-orm";
 import { login, user } from "#/db/schema";
+import { ErrorMsg } from "$mapper/error";
 import { PermissionType } from "$mapper/permissions";
-import type { Grade } from "$mapper/types";
+import type { Class, Gender, Grade } from "$mapper/types";
+import { ClassValues, GenderValues, GradeValues } from "$mapper/types";
 import { DRIZZLE, type DrizzleDB } from "$modules/drizzle.module";
 import { numberPermission, parsePermission } from "$utils/permission.util";
 import {
@@ -14,12 +15,15 @@ import {
   SetPermissionDTO,
 } from "~user/dto";
 
+type UserDetail = {
+  grade: Grade;
+  class: Class;
+  gender: Gender;
+};
+
 @Injectable()
 export class UserManageService {
-  constructor(
-    @Inject(DRIZZLE) private readonly db: DrizzleDB,
-    private readonly configService: ConfigService,
-  ) {}
+  constructor(@Inject(DRIZZLE) private readonly db: DrizzleDB) {}
 
   async searchUser(data: SearchUserDTO) {
     return await this.db
@@ -28,36 +32,52 @@ export class UserManageService {
       .where(like(user.name, `%${data.name}%`));
   }
 
-  async checkUserDetail(
-    email: string,
-    config: { gender?: "male" | "female"; grade?: Grade | string },
-  ): Promise<boolean | null> {
-    if (config.grade) {
-      config.grade = config.grade.toString();
-    }
-    const baseURL = this.configService.get<string>("PERSONAL_INFORMATION_SERVER");
-    const token = this.configService.get<string>("PERSONAL_INFORMATION_TOKEN");
-    const res = await Bun.fetch(`${baseURL}/personalInformation/check`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        mail: email,
-        ...config,
-      }),
-    });
-
-    if (res.status === 200) {
-      return (await res.json()) as boolean;
-    }
-
-    if (res.status >= 400 && res.status < 500) {
+  private toUserDetail(value: typeof user.$inferSelect): UserDetail | null {
+    if (
+      value.grade === null ||
+      value.class === null ||
+      value.gender === null ||
+      !GradeValues.includes(value.grade) ||
+      !ClassValues.includes(value.class) ||
+      !GenderValues.includes(value.gender)
+    ) {
       return null;
     }
 
-    throw new Error(`Request failed with status ${res.status}`);
+    return {
+      grade: value.grade,
+      class: value.class,
+      gender: value.gender,
+    };
+  }
+
+  async getUserDetail(userId: string): Promise<UserDetail | null> {
+    const dbUser = await this.db.query.user.findFirst({
+      where: { RAW: (t, { eq }) => eq(t.id, userId) },
+    });
+
+    if (!dbUser) {
+      return null;
+    }
+
+    return this.toUserDetail(dbUser);
+  }
+
+  async getRequiredUserDetail(userId: string): Promise<UserDetail> {
+    const dbUser = await this.db.query.user.findFirst({
+      where: { RAW: (t, { eq }) => eq(t.id, userId) },
+    });
+
+    if (!dbUser) {
+      throw new NotFoundException("User not found");
+    }
+
+    const detail = this.toUserDetail(dbUser);
+    if (!detail) {
+      throw new HttpException(ErrorMsg.PersonalInformation_NotRegistered(), HttpStatus.NOT_FOUND);
+    }
+
+    return detail;
   }
 
   async createUser(data: CreateUserDTO): Promise<typeof user.$inferSelect> {

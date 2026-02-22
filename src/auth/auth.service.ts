@@ -158,11 +158,7 @@ export class AuthService {
     }
 
     if (!hasPermission(loginUser.permission, [PermissionEnum.TEACHER])) {
-      const detail = await this.userManageService.checkUserDetail(loginUser.email, {
-        gender: "male",
-      });
-
-      if (detail === null) {
+      if (loginUser.grade === null || loginUser.class === null || loginUser.gender === null) {
         throw new HttpException(ErrorMsg.PersonalInformation_NotRegistered(), HttpStatus.NOT_FOUND);
       }
     }

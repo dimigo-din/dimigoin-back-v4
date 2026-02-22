@@ -13,7 +13,6 @@ import {
   AddStayOutingDTO,
   CreateUserStayApplyDTO,
   EditStayOutingDTO,
-  GetStayListDTO,
   StayIdDTO,
   StayOutingIdDTO,
 } from "~stay/dto/stay.student.dto";
@@ -26,7 +25,7 @@ export class StayStudentService {
     private readonly userManageService: UserManageService,
   ) {}
 
-  async getStayList(userJwt: UserJWT, _data: GetStayListDTO) {
+  async getStayList(userJwt: UserJWT) {
     const stays = await this.db.query.stay.findMany({
       with: {
         stayApplyPeriodStay: true,
@@ -80,9 +79,7 @@ export class StayStudentService {
   }
 
   async createStayApply(userJwt: UserJWT, data: CreateUserStayApplyDTO) {
-    await findOrThrow(
-      this.db.query.user.findFirst({ where: { RAW: (t, { eq }) => eq(t.id, userJwt.id) } }),
-    );
+    const userDetail = await this.userManageService.getRequiredUserDetail(userJwt.id);
 
     const now = new Date();
     const stayRow = await findOrThrow(
@@ -102,7 +99,7 @@ export class StayStudentService {
     // Validate apply period
     const validPeriod = stayRow.stayApplyPeriodStay?.find(
       (p: { grade: number; apply_start: Date; apply_end: Date }) =>
-        p.grade === Number(data.grade) &&
+        p.grade === Number(userDetail.grade) &&
         new Date(p.apply_start) <= now &&
         new Date(p.apply_end) >= now,
     );
@@ -136,9 +133,7 @@ export class StayStudentService {
         }
       : null;
 
-    if (
-      !(await this.isAvailableSeat(userJwt, presetForSeat, data.stay_seat, data.grade, data.gender))
-    ) {
+    if (!this.isAvailableSeat(presetForSeat, data.stay_seat, userDetail.grade, userDetail.gender)) {
       throw new HttpException(ErrorMsg.StaySeat_NotAllowed(), HttpStatus.BAD_REQUEST);
     }
 
@@ -191,9 +186,7 @@ export class StayStudentService {
   }
 
   async updateStayApply(userJwt: UserJWT, data: CreateUserStayApplyDTO) {
-    await findOrThrow(
-      this.db.query.user.findFirst({ where: { RAW: (t, { eq }) => eq(t.id, userJwt.id) } }),
-    );
+    const userDetail = await this.userManageService.getRequiredUserDetail(userJwt.id);
 
     const existing = await findOrThrow(
       this.db.query.stayApply.findFirst({
@@ -226,7 +219,7 @@ export class StayStudentService {
       throw new HttpException(ErrorMsg.PermissionDenied_Resource(), HttpStatus.FORBIDDEN);
     }
 
-    if (!(await this.validateStayPeriod(userJwt, data.grade, stay.stayApplyPeriodStay))) {
+    if (!this.validateStayPeriod(userDetail.grade, stay.stayApplyPeriodStay)) {
       throw new HttpException(ErrorMsg.Stay_NotInApplyPeriod(), HttpStatus.FORBIDDEN);
     }
 
@@ -251,9 +244,7 @@ export class StayStudentService {
         }
       : null;
 
-    if (
-      !(await this.isAvailableSeat(userJwt, presetForSeat, data.stay_seat, data.grade, data.gender))
-    ) {
+    if (!this.isAvailableSeat(presetForSeat, data.stay_seat, userDetail.grade, userDetail.gender)) {
       throw new HttpException(ErrorMsg.StaySeat_NotAllowed(), HttpStatus.BAD_REQUEST);
     }
 
@@ -305,6 +296,8 @@ export class StayStudentService {
   }
 
   async deleteStayApply(userJwt: UserJWT, data: StayIdDTO) {
+    const userDetail = await this.userManageService.getRequiredUserDetail(userJwt.id);
+
     const existing = await this.db.query.stayApply.findFirst({
       where: { RAW: (t, { eq }) => eq(t.id, data.id) },
       with: {
@@ -328,11 +321,7 @@ export class StayStudentService {
       throw new HttpException(ErrorMsg.PermissionDenied_Resource(), HttpStatus.FORBIDDEN);
     }
 
-    if (!(await this.userManageService.checkUserDetail(userJwt.email, { grade: data.grade }))) {
-      throw new HttpException(ErrorMsg.PermissionDenied_Resource(), HttpStatus.FORBIDDEN);
-    }
-
-    if (!(await this.validateStayPeriod(userJwt, data.grade, existing.stay.stayApplyPeriodStay))) {
+    if (!this.validateStayPeriod(userDetail.grade, existing.stay.stayApplyPeriodStay)) {
       throw new HttpException(ErrorMsg.Stay_NotInApplyPeriod(), HttpStatus.FORBIDDEN);
     }
 
@@ -351,9 +340,7 @@ export class StayStudentService {
   }
 
   async addStayOuting(userJwt: UserJWT, data: AddStayOutingDTO) {
-    await findOrThrow(
-      this.db.query.user.findFirst({ where: { RAW: (t, { eq }) => eq(t.id, userJwt.id) } }),
-    );
+    const userDetail = await this.userManageService.getRequiredUserDetail(userJwt.id);
 
     const apply = await findOrThrow(
       this.db.query.stayApply.findFirst({
@@ -374,7 +361,7 @@ export class StayStudentService {
     }
 
     // verification period
-    if (!(await this.validateStayPeriod(userJwt, data.grade, apply.stay.stayApplyPeriodStay))) {
+    if (!this.validateStayPeriod(userDetail.grade, apply.stay.stayApplyPeriodStay)) {
       throw new HttpException(ErrorMsg.Stay_NotInApplyPeriod(), HttpStatus.FORBIDDEN);
     }
     if (apply.user.id !== userJwt.id) {
@@ -422,9 +409,7 @@ export class StayStudentService {
   }
 
   async editStayOuting(userJwt: UserJWT, data: EditStayOutingDTO) {
-    await findOrThrow(
-      this.db.query.user.findFirst({ where: { RAW: (t, { eq }) => eq(t.id, userJwt.id) } }),
-    );
+    const userDetail = await this.userManageService.getRequiredUserDetail(userJwt.id);
 
     const outing = await findOrThrow(
       this.db.query.stayOuting.findFirst({
@@ -451,13 +436,7 @@ export class StayStudentService {
     }
 
     // verification period
-    if (
-      !(await this.validateStayPeriod(
-        userJwt,
-        data.grade,
-        outing.stayApply.stay.stayApplyPeriodStay,
-      ))
-    ) {
+    if (!this.validateStayPeriod(userDetail.grade, outing.stayApply.stay.stayApplyPeriodStay)) {
       throw new HttpException(ErrorMsg.Stay_NotInApplyPeriod(), HttpStatus.FORBIDDEN);
     }
 
@@ -502,9 +481,7 @@ export class StayStudentService {
   }
 
   async removeStayOuting(userJwt: UserJWT, data: StayOutingIdDTO) {
-    await findOrThrow(
-      this.db.query.user.findFirst({ where: { RAW: (t, { eq }) => eq(t.id, userJwt.id) } }),
-    );
+    const userDetail = await this.userManageService.getRequiredUserDetail(userJwt.id);
 
     const outing = await findOrThrow(
       this.db.query.stayOuting.findFirst({
@@ -530,13 +507,7 @@ export class StayStudentService {
       throw new HttpException(ErrorMsg.PermissionDenied_Resource(), HttpStatus.FORBIDDEN);
     }
 
-    if (
-      !(await this.validateStayPeriod(
-        userJwt,
-        data.grade,
-        outing.stayApply.stay.stayApplyPeriodStay,
-      ))
-    ) {
+    if (!this.validateStayPeriod(userDetail.grade, outing.stayApply.stay.stayApplyPeriodStay)) {
       throw new HttpException(ErrorMsg.Stay_NotInApplyPeriod(), HttpStatus.FORBIDDEN);
     }
 
@@ -548,8 +519,7 @@ export class StayStudentService {
   }
 
   // pass if only_readingRoom false, pass if it's true and seat is in available range
-  async isAvailableSeat(
-    userJwt: UserJWT,
+  isAvailableSeat(
     preset: {
       only_readingRoom: boolean;
       stay_seat: { target: string; range: string }[];
@@ -559,49 +529,21 @@ export class StayStudentService {
     gender: Gender,
   ) {
     if (!preset || !preset.stay_seat || preset.stay_seat.length === 0) {
-      return await this.userManageService.checkUserDetail(userJwt.email, { gender, grade });
+      return true;
     }
-    return (
-      preset.stay_seat
-        .filter((seat: { target: string }) => seat.target === `${grade}_${gender}`)
-        .some(
-          (range: { range: string }) =>
-            (preset.only_readingRoom && isInRange(range.range.split(":"), target)) ||
-            !preset.only_readingRoom,
-        ) && (await this.userManageService.checkUserDetail(userJwt.email, { gender, grade }))
-    );
+    return preset.stay_seat
+      .filter((seat: { target: string }) => seat.target === `${grade}_${gender}`)
+      .some(
+        (range: { range: string }) =>
+          (preset.only_readingRoom && isInRange(range.range.split(":"), target)) ||
+          !preset.only_readingRoom,
+      );
   }
 
-  private async validateStayPeriod(
-    userJwt: UserJWT,
+  private validateStayPeriod(
     grade: Grade,
     stay_apply_period: { grade: number; apply_start: Date; apply_end: Date }[],
   ) {
-    let isSame = true;
-    let last = "";
-    for (const period of stay_apply_period) {
-      const startTime = new Date(period.apply_start).getTime().toString();
-      const endTime = new Date(period.apply_end).getTime().toString();
-      if (last === "") {
-        last = startTime + endTime;
-        continue;
-      }
-      if (last !== startTime + endTime) {
-        isSame = false;
-        break;
-      }
-      last = startTime + endTime;
-    }
-
-    if (!isSame) {
-      const success = await this.userManageService.checkUserDetail(userJwt.email, {
-        grade: grade,
-      });
-      if (!success) {
-        throw new HttpException(ErrorMsg.PermissionDenied_Resource_Grade(), HttpStatus.FORBIDDEN);
-      }
-    }
-
     const now = new Date();
     const validPeriod = stay_apply_period.find(
       (p: { grade: number; apply_start: Date; apply_end: Date }) =>

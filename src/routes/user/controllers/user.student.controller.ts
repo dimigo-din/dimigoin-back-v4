@@ -1,11 +1,11 @@
-import { Controller, Get, HttpStatus, Query } from "@nestjs/common";
+import { Controller, Get, HttpStatus } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
 import type { User } from "#/db/schema";
 import { CustomJwtAuthGuard } from "#auth/guards";
 import { UseGuardsWithSwagger } from "#auth/guards/useGuards";
 import { CurrentUser } from "$decorators/user.decorator";
 import { ApiResponseFormat } from "$dto/response_format.dto";
-import { ApplyResponseDTO, GetTimelineDTO } from "~user/dto/user.student.dto";
+import { ApplyResponseDTO } from "~user/dto/user.student.dto";
 import { UserStudentService } from "~user/providers";
 
 @ApiTags("User Student")
@@ -22,8 +22,8 @@ export class UserStudentController {
     status: HttpStatus.OK,
   })
   @Get("/timeline")
-  async getTimeline(@Query() data: GetTimelineDTO) {
-    return this.userService.getTimeTable(data.grade, data.class);
+  async getTimeline(@CurrentUser() user: User) {
+    return this.userService.getTimeTable(user);
   }
 
   @ApiOperation({

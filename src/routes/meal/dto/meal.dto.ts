@@ -82,14 +82,4 @@ export class GetStudentMealQueryDTO {
   @IsOptional()
   @Matches(/^\d{4}-\d{2}-\d{2}$/)
   date?: string;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @Matches(/^[123]$/)
-  grade?: string;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @Matches(/^[123456]$/)
-  class?: string;
 }

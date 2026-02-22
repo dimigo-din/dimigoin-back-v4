@@ -1,22 +1,26 @@
 import { TZDate } from "@date-fns/tz";
 import { Inject, Injectable } from "@nestjs/common";
 import { format } from "date-fns";
+import type { UserJWT } from "$mapper/types";
 import { DRIZZLE, type DrizzleDB } from "$modules/drizzle.module";
 import { andWhere } from "$utils/where.util";
 import { GetStudentMealQueryDTO } from "~meal/dto/meal.dto";
+import { UserManageService } from "~user/providers";
 
 @Injectable()
 export class MealStudentService {
-  constructor(@Inject(DRIZZLE) private readonly db: DrizzleDB) {}
+  constructor(
+    @Inject(DRIZZLE) private readonly db: DrizzleDB,
+    private readonly userManageService: UserManageService,
+  ) {}
 
   private today() {
     return format(new TZDate(new Date(), "Asia/Seoul"), "yyyy-MM-dd");
   }
 
-  async getMeal(data: GetStudentMealQueryDTO) {
+  async getMeal(userJwt: UserJWT, data: GetStudentMealQueryDTO) {
     const date = data.date ?? this.today();
-    const grade = data.grade ? Number(data.grade) : null;
-    const klass = data.class ? Number(data.class) : null;
+    const userDetail = await this.userManageService.getUserDetail(userJwt.id);
 
     const [meals, timeline] = await Promise.all([
       this.db.query.meal.findMany({
@@ -50,7 +54,7 @@ export class MealStudentService {
     const lunch = byType.lunch;
     const dinner = byType.dinner;
 
-    const classTime = grade !== null && klass !== null ? getClassTime(grade, klass) : undefined;
+    const classTime = userDetail ? getClassTime(userDetail.grade, userDetail.class) : undefined;
 
     return {
       breakfast: {

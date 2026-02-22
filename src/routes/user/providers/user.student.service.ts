@@ -6,12 +6,14 @@ import { CacheService } from "$modules/cache.module";
 import { DRIZZLE, type DrizzleDB } from "$modules/drizzle.module";
 import { andWhere } from "$utils/where.util";
 import { ComciData } from "~user/dto";
+import { UserManageService } from "./user.manage.service";
 
 @Injectable()
 export class UserStudentService {
   constructor(
     @Inject(DRIZZLE) private readonly db: DrizzleDB,
     private readonly cacheService: CacheService,
+    private readonly userManageService: UserManageService,
   ) {}
 
   async getMyApplies(user: UserJWT) {
@@ -37,7 +39,11 @@ export class UserStudentService {
     };
   }
 
-  async getTimeTable(grade: number, klass: number) {
+  async getTimeTable(userJwt: UserJWT) {
+    const userDetail = await this.userManageService.getRequiredUserDetail(userJwt.id);
+    const grade = userDetail.grade;
+    const klass = userDetail.class;
+
     let data: ComciData;
     const cached = await this.cacheService.getCachedTimetable(grade, klass);
     if (cached) {

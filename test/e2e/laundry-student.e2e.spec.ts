@@ -4,7 +4,7 @@ import { E2EContext, setupE2EContext } from "#test/helpers";
 
 describe("Laundry Student E2E", () => {
   let ctx: E2EContext;
-  const validPayload = { grade: 1, time: "09:00", machine: "machine-1" };
+  const validPayload = { time: "09:00", machine: "machine-1" };
 
   beforeAll(async () => {
     ctx = await setupE2EContext();
@@ -76,7 +76,7 @@ describe("Laundry Student E2E", () => {
     test("should validate apply payload", async () => {
       const response = await ctx.request.post(
         "/student/laundry",
-        { grade: 5, time: "25:99", machine: "" },
+        {},
         ctx.tokens.student.accessToken,
       );
 

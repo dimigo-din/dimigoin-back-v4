@@ -16,7 +16,7 @@ describe("User Student E2E", () => {
   describe("GET /student/user/timeline", () => {
     test("should return timeline", async () => {
       const response = await ctx.request.get(
-        "/student/user/timeline?grade=1&class=1",
+        "/student/user/timeline",
         ctx.tokens.student.accessToken,
       );
 
@@ -27,21 +27,17 @@ describe("User Student E2E", () => {
       expect(body.data).toHaveLength(0);
     });
 
-    test("should validate query params", async () => {
+    test("should ignore deprecated grade/class query params", async () => {
       const response = await ctx.request.get(
         "/student/user/timeline?grade=5&class=a",
         ctx.tokens.student.accessToken,
       );
 
-      expect(response.statusCode).toBe(HttpStatus.BAD_REQUEST);
-      const body = ctx.request.parseBody(response);
-      const status = body.status ?? body.statusCode ?? response.statusCode;
-      expect(status).toBe(HttpStatus.BAD_REQUEST);
-      expect(body.message ?? body.error).toBeDefined();
+      expect(response.statusCode).toBe(HttpStatus.OK);
     });
 
     test("should reject unauthenticated requests", async () => {
-      const response = await ctx.request.get("/student/user/timeline?grade=1&class=1");
+      const response = await ctx.request.get("/student/user/timeline");
 
       expect(response.statusCode).toBe(HttpStatus.UNAUTHORIZED);
       const body = ctx.request.parseBody<{ statusCode: number; message: unknown }>(response);

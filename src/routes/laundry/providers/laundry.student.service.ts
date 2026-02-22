@@ -4,7 +4,7 @@ import { addHours, format, isAfter, startOfDay } from "date-fns";
 import { eq } from "drizzle-orm";
 import { laundryApply } from "#/db/schema";
 import { ErrorMsg } from "$mapper/error";
-import type { Grade, UserJWT } from "$mapper/types";
+import type { UserJWT } from "$mapper/types";
 import { DRIZZLE, type DrizzleDB } from "$modules/drizzle.module";
 import { findOrThrow } from "$utils/findOrThrow.util";
 import { andWhere } from "$utils/where.util";
@@ -67,9 +67,7 @@ export class LaundryStudentService {
       throw new HttpException(ErrorMsg.LaundryApplyIsAfterEightAM(), HttpStatus.BAD_REQUEST);
     }
 
-    await findOrThrow(
-      this.db.query.user.findFirst({ where: { RAW: (t, { eq }) => eq(t.id, userJwt.id) } }),
-    );
+    const userDetail = await this.userManageService.getRequiredUserDetail(userJwt.id);
 
     const machineRow = await findOrThrow(
       this.db.query.laundryMachine.findFirst({
@@ -119,11 +117,8 @@ export class LaundryStudentService {
     );
 
     if (
-      timeResult.grade.indexOf(data.grade as Grade) === -1 ||
-      !(await this.userManageService.checkUserDetail(userJwt.email, {
-        grade: data.grade,
-        gender: machineRow.gender,
-      }))
+      timeResult.grade.indexOf(userDetail.grade) === -1 ||
+      machineRow.gender !== userDetail.gender
     ) {
       throw new HttpException(ErrorMsg.PermissionDenied_Resource_Grade(), HttpStatus.FORBIDDEN);
     }
