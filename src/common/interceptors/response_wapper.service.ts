@@ -59,7 +59,7 @@ export class ResponseWrapperInterceptor implements NestInterceptor {
     if (typeof url !== "string") {
       return false;
     }
-    const path = url.split("?")[0];
+    const path = url.split("?")[0] ?? "";
     return path === "/auth" || path.startsWith("/auth/");
   }
 

@@ -1,7 +1,9 @@
 import { TZDate } from "@date-fns/tz";
 import { HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { format } from "date-fns";
+import { type SQL } from "drizzle-orm";
 import { mealTimeline, mealTimelineDelay, mealTimelineSlot } from "#/db/schema";
+import { type Class, type Grade } from "$mapper/types";
 import { DRIZZLE, type DrizzleDB } from "$modules/drizzle.module";
 import { andWhere } from "$utils/where.util";
 import {
@@ -9,10 +11,14 @@ import {
   PatchMealTimelineDTO,
   PostMealTimelineDTO,
 } from "~meal/dto/meal.dto";
+import { PushManageService } from "~push/providers";
 
 @Injectable()
 export class MealDienenService {
-  constructor(@Inject(DRIZZLE) private readonly db: DrizzleDB) {}
+  constructor(
+    @Inject(DRIZZLE) private readonly db: DrizzleDB,
+    private readonly pushService: PushManageService,
+  ) {}
 
   private today() {
     return format(new TZDate(new Date(), "Asia/Seoul"), "yyyy-MM-dd");
@@ -83,6 +89,7 @@ export class MealDienenService {
 
     const timeline = await this.db.query.mealTimeline.findFirst({
       where: { RAW: (t, { and, lte, gte }) => andWhere(and, lte(t.start, date), gte(t.end, date)) },
+      with: { slots: true },
     });
 
     if (!timeline) {
@@ -96,5 +103,39 @@ export class MealDienenService {
       description: data.description,
       timelineId: timeline.id,
     });
+
+    const affectedSlots = timeline.slots.filter((s) => s.time === data.source);
+    if (affectedSlots.length > 0) {
+      const gradeClassPairs = affectedSlots.flatMap((s) =>
+        s.classes.map((cls) => ({ grade: s.grade, class: cls })),
+      );
+
+      const users = await this.db.query.user.findMany({
+        where: {
+          RAW: (t, { or, and, eq }) =>
+            or(
+              ...gradeClassPairs.map((p) =>
+                and(eq(t.grade, p.grade as Grade), eq(t.class, p.class as Class)),
+              ),
+            ) as SQL,
+        },
+        columns: { id: true },
+      });
+
+      const userIds = users.map((u) => u.id);
+      if (userIds.length > 0) {
+        await this.pushService.sendToSpecificUsers({
+          to: userIds,
+          title: "급식 시간 변경",
+          body: `${data.source} → ${data.dest}: ${data.description}`,
+          category: "SchoolInformation",
+          url: "",
+          data: {},
+          actions: [],
+          icon: "",
+          badge: "",
+        });
+      }
+    }
   }
 }
