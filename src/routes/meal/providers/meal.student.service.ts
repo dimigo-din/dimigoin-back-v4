@@ -34,18 +34,27 @@ export class MealStudentService {
       }),
     ]);
 
-    const getClassTime = (mealGrade: number, mealClass: number): string | undefined => {
+    const getClassTimes = (
+      mealGrade: number,
+      mealClass: number,
+    ): { lunch?: string; dinner?: string } => {
       if (!timeline) {
-        return undefined;
+        return {};
       }
-      const slot = timeline.slots.find(
-        (s) => s.grade === mealGrade && s.classes.includes(mealClass),
-      );
-      if (!slot) {
-        return undefined;
-      }
-      const delay = timeline.delays.find((d) => d.date === date && d.source === slot.time);
-      return delay ? delay.dest : slot.time;
+
+      const matchedSlots = timeline.slots
+        .filter((s) => s.grade === mealGrade && s.classes.includes(mealClass))
+        .sort((a, b) => a.time.localeCompare(b.time));
+
+      const resolve = (slotTime: string) => {
+        const delay = timeline.delays.find((d) => d.date === date && d.source === slotTime);
+        return delay ? delay.dest : slotTime;
+      };
+
+      return {
+        ...(matchedSlots[0] ? { lunch: resolve(matchedSlots[0].time) } : {}),
+        ...(matchedSlots[1] ? { dinner: resolve(matchedSlots[1].time) } : {}),
+      };
     };
 
     const byType = Object.fromEntries(meals.map((m) => [m.type, m]));
@@ -54,7 +63,7 @@ export class MealStudentService {
     const lunch = byType.lunch;
     const dinner = byType.dinner;
 
-    const classTime = userDetail ? getClassTime(userDetail.grade, userDetail.class) : undefined;
+    const classTimes = userDetail ? getClassTimes(userDetail.grade, userDetail.class) : {};
 
     return {
       breakfast: {
@@ -66,13 +75,13 @@ export class MealStudentService {
         regular: lunch?.regular ?? [],
         simple: lunch?.simple ?? [],
         image: lunch?.image ?? null,
-        ...(classTime !== undefined ? { time: classTime } : {}),
+        ...(classTimes.lunch !== undefined ? { time: classTimes.lunch } : {}),
       },
       dinner: {
         regular: dinner?.regular ?? [],
         simple: dinner?.simple ?? [],
         image: dinner?.image ?? null,
-        ...(classTime !== undefined ? { time: classTime } : {}),
+        ...(classTimes.dinner !== undefined ? { time: classTimes.dinner } : {}),
       },
     };
   }
