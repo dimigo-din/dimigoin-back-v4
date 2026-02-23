@@ -1,36 +1,28 @@
-import { TZDate } from "@date-fns/tz";
 import { HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
-import { format } from "date-fns";
 import { type SQL } from "drizzle-orm";
 import { mealTimeline, mealTimelineDelay, mealTimelineSlot } from "#/db/schema";
 import { type Class, type Grade } from "$mapper/types";
 import { DRIZZLE, type DrizzleDB } from "$modules/drizzle.module";
-import { andWhere } from "$utils/where.util";
 import {
   GetMealTimelineQueryDTO,
   PatchMealTimelineDTO,
   PostMealTimelineDTO,
 } from "~meal/dto/meal.dto";
 import { PushManageService } from "~push/providers";
+import { MealCommonService } from "./meal.common.service";
 
 @Injectable()
 export class MealDienenService {
   constructor(
     @Inject(DRIZZLE) private readonly db: DrizzleDB,
     private readonly pushService: PushManageService,
+    private readonly commonService: MealCommonService,
   ) {}
 
-  private today() {
-    return format(new TZDate(new Date(), "Asia/Seoul"), "yyyy-MM-dd");
-  }
-
   async getTimeline(data: GetMealTimelineQueryDTO) {
-    const date = data.date ?? this.today();
+    const date = data.date ?? this.commonService.today();
 
-    const timeline = await this.db.query.mealTimeline.findFirst({
-      where: { RAW: (t, { and, lte, gte }) => andWhere(and, lte(t.start, date), gte(t.end, date)) },
-      with: { slots: true },
-    });
+    const timeline = await this.commonService.findTimeline(date);
 
     if (!timeline) {
       return { "1": [], "2": [], "3": [] };
@@ -45,7 +37,10 @@ export class MealDienenService {
     for (const slot of timeline.slots) {
       const gradeKey = String(slot.grade);
       if (gradeKey in result) {
-        result[gradeKey]?.push({ time: slot.time, class: slot.classes });
+        result[gradeKey]?.push({
+          time: this.commonService.resolveTime(timeline.delays, date, slot.time),
+          class: slot.classes,
+        });
       }
     }
 
@@ -85,12 +80,9 @@ export class MealDienenService {
   }
 
   async delayTimeline(data: PatchMealTimelineDTO) {
-    const date = data.date ?? this.today();
+    const date = data.date ?? this.commonService.today();
 
-    const timeline = await this.db.query.mealTimeline.findFirst({
-      where: { RAW: (t, { and, lte, gte }) => andWhere(and, lte(t.start, date), gte(t.end, date)) },
-      with: { slots: true },
-    });
+    const timeline = await this.commonService.findTimeline(date);
 
     if (!timeline) {
       throw new HttpException("No active timeline found for the given date", HttpStatus.NOT_FOUND);
