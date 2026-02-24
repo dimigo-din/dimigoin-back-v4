@@ -16,11 +16,9 @@ import { StringValue } from "ms";
 import { session, user } from "#/db/schema";
 import { JWTResponse, RedirectUriDTO } from "#auth/auth.dto";
 import { ErrorMsg } from "$mapper/error";
-import { PermissionEnum } from "$mapper/permissions";
+import type { Class, Gender, Grade } from "$mapper/types";
 import { UserJWT } from "$mapper/types";
-import { CacheService } from "$modules/cache.module";
 import { DRIZZLE, type DrizzleDB } from "$modules/drizzle.module";
-import { hasPermission } from "$utils/permission.util";
 import { andWhere } from "$utils/where.util";
 import { UserManageService } from "~user/providers";
 
@@ -31,7 +29,6 @@ export class AuthService {
 
   constructor(
     private readonly jwtService: JwtService,
-    private readonly cacheService: CacheService,
     private readonly configService: ConfigService,
     @Inject(forwardRef(() => UserManageService))
     private readonly userManageService: UserManageService,
@@ -56,7 +53,7 @@ export class AuthService {
     if (!loginRecord) {
       throw new HttpException(ErrorMsg.UserIdentifier_NotFound(), HttpStatus.UNAUTHORIZED);
     }
-    if (!Bun.password.verify(password, loginRecord.identifier2 ?? "")) {
+    if (!(await Bun.password.verify(password, loginRecord.identifier2 ?? ""))) {
       throw new HttpException(ErrorMsg.UserIdentifier_NotMatched(), HttpStatus.UNAUTHORIZED);
     }
 
@@ -157,12 +154,6 @@ export class AuthService {
       loginUser = existingUser;
     }
 
-    if (!hasPermission(loginUser.permission, [PermissionEnum.TEACHER])) {
-      if (loginUser.grade === null || loginUser.class === null || loginUser.gender === null) {
-        throw new HttpException(ErrorMsg.PersonalInformation_NotRegistered(), HttpStatus.NOT_FOUND);
-      }
-    }
-
     return await this.generateJWTKeyPair(loginUser, "30m");
   }
 
@@ -191,6 +182,24 @@ export class AuthService {
     return await this.generateJWTKeyPair(userRecord, "30m", sessionRecord);
   }
 
+  async signup(userRecord: typeof user.$inferSelect, grade: Grade, cls: Class, gender: Gender) {
+    if (userRecord.grade !== null && userRecord.class !== null && userRecord.gender !== null) {
+      throw new HttpException(ErrorMsg.ResourceAlreadyExists(), HttpStatus.CONFLICT);
+    }
+
+    const [updated] = await this.db
+      .update(user)
+      .set({ grade, class: cls, gender })
+      .where(eq(user.id, userRecord.id))
+      .returning();
+
+    if (!updated) {
+      throw new NotFoundException("User not found");
+    }
+
+    return await this.generateJWTKeyPair(updated, "30m");
+  }
+
   async logout(userJwt: UserJWT) {
     const sessionRecord = await this.db.query.session.findFirst({
       where: { RAW: (t, { eq }) => eq(t.sessionIdentifier, userJwt.sessionIdentifier || "") },
@@ -202,17 +211,6 @@ export class AuthService {
     await this.db.delete(session).where(eq(session.id, sessionRecord.id));
 
     return sessionRecord;
-  }
-
-  async generatePersonalInformationVerifyToken(userJwt: UserJWT) {
-    return this.jwtService.signAsync(
-      { email: userJwt.email },
-      {
-        expiresIn: "1m",
-        algorithm: "HS512",
-        secret: await this.cacheService.getPersonalInformationVerifyTokenSecret(),
-      },
-    );
   }
 
   async generateJWTKeyPair(

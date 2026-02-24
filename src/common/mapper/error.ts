@@ -84,7 +84,7 @@ export const ErrorMsg = {
 
   PersonalInformation_NotRegistered: () => [
     "PersonalInformation_NotRegistered",
-    "먼저 dimiauth에서 개인정보 등록을 진행하여주세요.",
+    "먼저 가입을 진행하여주세요.",
   ],
 
   NoWakeupInDate: () => ["NoWakeupInDate", "해당 날짜에 확정된 기상송이 없습니다."],

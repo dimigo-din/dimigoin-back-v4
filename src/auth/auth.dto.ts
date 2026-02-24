@@ -1,6 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsOptional } from "class-validator";
+import { IsIn, IsInt, IsOptional, Max, Min } from "class-validator";
 import { IsString } from "nestjs-swagger-dto";
+import { GenderValues } from "$mapper/types";
 
 export class PasswordLoginDTO {
   @ApiProperty()
@@ -51,8 +52,20 @@ export class JWTResponse {
   refreshToken: string;
 }
 
-export class RunPersonalInformationVerifyTokenDTO {
-  @ApiProperty()
-  @IsString()
-  token: string;
+export class SignupDTO {
+  @ApiProperty({ minimum: 1, maximum: 3 })
+  @IsInt()
+  @Min(1)
+  @Max(3)
+  grade: number;
+
+  @ApiProperty({ minimum: 1, maximum: 6 })
+  @IsInt()
+  @Min(1)
+  @Max(6)
+  class: number;
+
+  @ApiProperty({ enum: GenderValues })
+  @IsIn(GenderValues)
+  gender: (typeof GenderValues)[number];
 }
