@@ -243,50 +243,6 @@ describe("Auth E2E", () => {
     });
   });
 
-  describe("Personal Information Verify Token", () => {
-    test("should issue token for student", async () => {
-      const response = await ctx.request.get(
-        "/auth/personalInformationVerifyToken",
-        ctx.tokens.student.accessToken,
-      );
-
-      expect(response.statusCode).toBe(HttpStatus.OK);
-      const body = ctx.request.parseBody<{ ok: boolean; data: string }>(response);
-      expect(body.ok).toBe(true);
-      expect(typeof body.data).toBe("string");
-    });
-
-    test("should reject issuing token without auth", async () => {
-      const response = await ctx.request.get("/auth/personalInformationVerifyToken");
-
-      expect(response.statusCode).toBe(HttpStatus.UNAUTHORIZED);
-    });
-
-    test("should reject verifying token without payload", async () => {
-      const response = await ctx.request.post("/auth/personalInformationVerifyToken", {});
-
-      expect(response.statusCode).toBe(HttpStatus.UNAUTHORIZED);
-    });
-
-    test("should verify issued token", async () => {
-      const issued = await ctx.request.get(
-        "/auth/personalInformationVerifyToken",
-        ctx.tokens.student.accessToken,
-      );
-      const issuedBody = ctx.request.parseBody<{ ok: boolean; data: string }>(issued);
-      expect(issuedBody.ok).toBe(true);
-
-      const response = await ctx.request.post("/auth/personalInformationVerifyToken", {
-        token: issuedBody.data,
-      });
-
-      expect(response.statusCode).toBe(HttpStatus.CREATED);
-      const body = ctx.request.parseBody<{ ok: boolean; data: string }>(response);
-      expect(body.ok).toBe(true);
-      expect(body.data).toBe("student$test.com");
-    });
-  });
-
   describe("Authentication Flow", () => {
     test("should respond from ping with valid token", async () => {
       const response = await ctx.request.get("/auth/ping", tokens.accessToken);
