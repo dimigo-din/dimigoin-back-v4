@@ -68,6 +68,7 @@ export class StayManageService {
     return await findOrThrow(
       this.db.query.staySeatPreset.findFirst({
         where: { RAW: (t, { eq }) => eq(t.id, data.id) },
+        with: { staySeatPresetRange: true },
       }),
     );
   }
@@ -103,6 +104,7 @@ export class StayManageService {
     return await findOrThrow(
       this.db.query.staySeatPreset.findFirst({
         where: { RAW: (t, { eq }) => eq(t.id, saved.id) },
+        with: { staySeatPresetRange: true },
       }),
     );
   }
@@ -142,21 +144,20 @@ export class StayManageService {
     return await findOrThrow(
       this.db.query.staySeatPreset.findFirst({
         where: { RAW: (t, { eq }) => eq(t.id, data.id) },
+        with: { staySeatPresetRange: true },
       }),
     );
   }
 
   async deleteStaySeatPreset(data: StaySeatPresetIdDTO) {
-    await findOrThrow(
+    const target = await findOrThrow(
       this.db.query.staySeatPreset.findFirst({
         where: { RAW: (t, { eq }) => eq(t.id, data.id) },
+        with: { staySeatPresetRange: true },
       }),
     );
-    const [deleted] = await this.db
-      .delete(staySeatPreset)
-      .where(eq(staySeatPreset.id, data.id))
-      .returning();
-    return deleted;
+    await this.db.delete(staySeatPreset).where(eq(staySeatPreset.id, data.id));
+    return target;
   }
 
   async getStayScheduleList() {
@@ -169,6 +170,10 @@ export class StayManageService {
   async getStaySchedule(data: StayScheduleIdDTO) {
     return await this.db.query.staySchedule.findFirst({
       where: { RAW: (t, { eq }) => eq(t.id, data.id) },
+      with: {
+        staySeatPreset: { with: { staySeatPresetRange: true } },
+        stayApplyPeriodStaySchedule: true,
+      },
     });
   }
 
@@ -214,6 +219,10 @@ export class StayManageService {
     return await findOrThrow(
       this.db.query.staySchedule.findFirst({
         where: { RAW: (t, { eq }) => eq(t.id, saved.id) },
+        with: {
+          staySeatPreset: { with: { staySeatPresetRange: true } },
+          stayApplyPeriodStaySchedule: true,
+        },
       }),
     );
   }
@@ -267,21 +276,26 @@ export class StayManageService {
     return await findOrThrow(
       this.db.query.staySchedule.findFirst({
         where: { RAW: (t, { eq }) => eq(t.id, data.id) },
+        with: {
+          staySeatPreset: { with: { staySeatPresetRange: true } },
+          stayApplyPeriodStaySchedule: true,
+        },
       }),
     );
   }
 
   async deleteStaySchedule(data: StayScheduleIdDTO) {
-    await findOrThrow(
+    const target = await findOrThrow(
       this.db.query.staySchedule.findFirst({
         where: { RAW: (t, { eq }) => eq(t.id, data.id) },
+        with: {
+          staySeatPreset: { with: { staySeatPresetRange: true } },
+          stayApplyPeriodStaySchedule: true,
+        },
       }),
     );
-    const [deleted] = await this.db
-      .delete(staySchedule)
-      .where(eq(staySchedule.id, data.id))
-      .returning();
-    return deleted;
+    await this.db.delete(staySchedule).where(eq(staySchedule.id, data.id));
+    return target;
   }
 
   async getStayList() {
@@ -294,6 +308,7 @@ export class StayManageService {
   async getStay(data: StayIdDTO) {
     return await this.db.query.stay.findFirst({
       where: { RAW: (t, { eq }) => eq(t.id, data.id) },
+      with: { staySeatPreset: { with: { staySeatPresetRange: true } }, stayApplyPeriodStay: true },
     });
   }
 
@@ -335,7 +350,13 @@ export class StayManageService {
     }
 
     return await findOrThrow(
-      this.db.query.stay.findFirst({ where: { RAW: (t, { eq }) => eq(t.id, saved.id) } }),
+      this.db.query.stay.findFirst({
+        where: { RAW: (t, { eq }) => eq(t.id, saved.id) },
+        with: {
+          staySeatPreset: { with: { staySeatPresetRange: true } },
+          stayApplyPeriodStay: true,
+        },
+      }),
     );
   }
 
@@ -379,16 +400,28 @@ export class StayManageService {
     }
 
     return await findOrThrow(
-      this.db.query.stay.findFirst({ where: { RAW: (t, { eq }) => eq(t.id, data.id) } }),
+      this.db.query.stay.findFirst({
+        where: { RAW: (t, { eq }) => eq(t.id, data.id) },
+        with: {
+          staySeatPreset: { with: { staySeatPresetRange: true } },
+          stayApplyPeriodStay: true,
+        },
+      }),
     );
   }
 
   async deleteStay(data: DeleteStayDTO) {
-    await findOrThrow(
-      this.db.query.stay.findFirst({ where: { RAW: (t, { eq }) => eq(t.id, data.id) } }),
+    const target = await findOrThrow(
+      this.db.query.stay.findFirst({
+        where: { RAW: (t, { eq }) => eq(t.id, data.id) },
+        with: {
+          staySeatPreset: { with: { staySeatPresetRange: true } },
+          stayApplyPeriodStay: true,
+        },
+      }),
     );
-    const [deleted] = await this.db.delete(stay).where(eq(stay.id, data.id)).returning();
-    return deleted;
+    await this.db.delete(stay).where(eq(stay.id, data.id));
+    return target;
   }
 
   async getStayApply(data: StayIdDTO) {
@@ -399,10 +432,7 @@ export class StayManageService {
 
     return await this.db.query.stayApply.findMany({
       where: { RAW: (t, { eq }) => eq(t.stayId, data.id) },
-      with: {
-        user: true,
-        outing: true,
-      },
+      with: { user: true, outing: true },
     });
   }
 
@@ -466,7 +496,10 @@ export class StayManageService {
     }
 
     return await findOrThrow(
-      this.db.query.stayApply.findFirst({ where: { RAW: (t, { eq }) => eq(t.id, savedApply.id) } }),
+      this.db.query.stayApply.findFirst({
+        where: { RAW: (t, { eq }) => eq(t.id, savedApply.id) },
+        with: { user: true, outing: true },
+      }),
     );
   }
 
@@ -527,16 +560,22 @@ export class StayManageService {
     }
 
     return await findOrThrow(
-      this.db.query.stayApply.findFirst({ where: { RAW: (t, { eq }) => eq(t.id, data.id) } }),
+      this.db.query.stayApply.findFirst({
+        where: { RAW: (t, { eq }) => eq(t.id, data.id) },
+        with: { user: true, outing: true },
+      }),
     );
   }
 
   async deleteStayApply(data: StayApplyIdDTO) {
-    await findOrThrow(
-      this.db.query.stayApply.findFirst({ where: { RAW: (t, { eq }) => eq(t.id, data.id) } }),
+    const target = await findOrThrow(
+      this.db.query.stayApply.findFirst({
+        where: { RAW: (t, { eq }) => eq(t.id, data.id) },
+        with: { user: true, outing: true },
+      }),
     );
-    const [deleted] = await this.db.delete(stayApply).where(eq(stayApply.id, data.id)).returning();
-    return deleted;
+    await this.db.delete(stayApply).where(eq(stayApply.id, data.id));
+    return target;
   }
 
   async auditOuting(data: AuditOutingDTO) {

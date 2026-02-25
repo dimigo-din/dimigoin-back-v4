@@ -1,7 +1,8 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { format, startOfWeek } from "date-fns";
 import { eq } from "drizzle-orm";
 import { frigoApply, frigoApplyPeriod } from "#/db/schema";
+import { ErrorMsg } from "$mapper/error";
 import { DRIZZLE, type DrizzleDB } from "$modules/drizzle.module";
 import { findOrThrow } from "$utils/findOrThrow.util";
 import { andWhere } from "$utils/where.util";
@@ -70,6 +71,7 @@ export class FrigoManageService {
     const week = format(startOfWeek(new Date()), "yyyy-MM-dd");
     return await this.db.query.frigoApply.findMany({
       where: { RAW: (t, { eq }) => eq(t.week, week) },
+      with: { user: true },
     });
   }
 
@@ -94,7 +96,15 @@ export class FrigoManageService {
         })
         .where(eq(frigoApply.id, exists.id))
         .returning();
-      return updated;
+      if (!updated) {
+        throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
+      }
+      return await findOrThrow(
+        this.db.query.frigoApply.findFirst({
+          where: { RAW: (t, { eq }) => eq(t.id, updated.id) },
+          with: { user: true },
+        }),
+      );
     }
 
     const [created] = await this.db
@@ -107,12 +117,23 @@ export class FrigoManageService {
         approved: true,
       })
       .returning();
-    return created;
+    if (!created) {
+      throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
+    }
+    return await findOrThrow(
+      this.db.query.frigoApply.findFirst({
+        where: { RAW: (t, { eq }) => eq(t.id, created.id) },
+        with: { user: true },
+      }),
+    );
   }
 
   async removeApply(data: FrigoApplyIdDTO) {
     const apply = await findOrThrow(
-      this.db.query.frigoApply.findFirst({ where: { RAW: (t, { eq }) => eq(t.id, data.id) } }),
+      this.db.query.frigoApply.findFirst({
+        where: { RAW: (t, { eq }) => eq(t.id, data.id) },
+        with: { user: true },
+      }),
     );
 
     await this.db.delete(frigoApply).where(eq(frigoApply.id, apply.id));
@@ -122,7 +143,10 @@ export class FrigoManageService {
 
   async auditApply(data: AuditFrigoApply) {
     const apply = await findOrThrow(
-      this.db.query.frigoApply.findFirst({ where: { RAW: (t, { eq }) => eq(t.id, data.id) } }),
+      this.db.query.frigoApply.findFirst({
+        where: { RAW: (t, { eq }) => eq(t.id, data.id) },
+        with: { user: true },
+      }),
     );
 
     const [updated] = await this.db
@@ -134,6 +158,14 @@ export class FrigoManageService {
       .where(eq(frigoApply.id, apply.id))
       .returning();
 
-    return updated;
+    if (!updated) {
+      throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
+    }
+    return await findOrThrow(
+      this.db.query.frigoApply.findFirst({
+        where: { RAW: (t, { eq }) => eq(t.id, updated.id) },
+        with: { user: true },
+      }),
+    );
   }
 }

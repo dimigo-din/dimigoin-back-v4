@@ -73,7 +73,18 @@ export class StayStudentService {
     return await this.db.query.stayApply.findMany({
       where: { RAW: (t, { eq }) => eq(t.userId, userJwt.id) },
       with: {
-        stay: true,
+        user: true,
+        outing: true,
+        stay: {
+          with: {
+            stayApplyPeriodStay: true,
+            staySeatPreset: {
+              with: {
+                staySeatPresetRange: true,
+              },
+            },
+          },
+        },
       },
     });
   }
@@ -181,7 +192,23 @@ export class StayStudentService {
     }
 
     return await findOrThrow(
-      this.db.query.stayApply.findFirst({ where: { RAW: (t, { eq }) => eq(t.id, savedApply.id) } }),
+      this.db.query.stayApply.findFirst({
+        where: { RAW: (t, { eq }) => eq(t.id, savedApply.id) },
+        with: {
+          user: true,
+          outing: true,
+          stay: {
+            with: {
+              stayApplyPeriodStay: true,
+              staySeatPreset: {
+                with: {
+                  staySeatPresetRange: true,
+                },
+              },
+            },
+          },
+        },
+      }),
     );
   }
 
@@ -194,6 +221,8 @@ export class StayStudentService {
           RAW: (t, { and, eq }) => andWhere(and, eq(t.userId, userJwt.id), eq(t.stayId, data.stay)),
         },
         with: {
+          user: true,
+          outing: true,
           stay: {
             with: {
               stayApplyPeriodStay: true,
@@ -204,8 +233,6 @@ export class StayStudentService {
               },
             },
           },
-          user: true,
-          outing: true,
         },
       }),
     );
@@ -291,7 +318,23 @@ export class StayStudentService {
     }
 
     return await findOrThrow(
-      this.db.query.stayApply.findFirst({ where: { RAW: (t, { eq }) => eq(t.id, existing.id) } }),
+      this.db.query.stayApply.findFirst({
+        where: { RAW: (t, { eq }) => eq(t.id, existing.id) },
+        with: {
+          user: true,
+          outing: true,
+          stay: {
+            with: {
+              stayApplyPeriodStay: true,
+              staySeatPreset: {
+                with: {
+                  staySeatPresetRange: true,
+                },
+              },
+            },
+          },
+        },
+      }),
     );
   }
 
@@ -301,12 +344,18 @@ export class StayStudentService {
     const existing = await this.db.query.stayApply.findFirst({
       where: { RAW: (t, { eq }) => eq(t.id, data.id) },
       with: {
+        user: true,
+        outing: true,
         stay: {
           with: {
             stayApplyPeriodStay: true,
+            staySeatPreset: {
+              with: {
+                staySeatPresetRange: true,
+              },
+            },
           },
         },
-        user: true,
       },
     });
     if (!existing) {
@@ -325,8 +374,8 @@ export class StayStudentService {
       throw new HttpException(ErrorMsg.Stay_NotInApplyPeriod(), HttpStatus.FORBIDDEN);
     }
 
-    const [deleted] = await this.db.delete(stayApply).where(eq(stayApply.id, data.id)).returning();
-    return deleted;
+    await this.db.delete(stayApply).where(eq(stayApply.id, data.id));
+    return existing;
   }
 
   async getStayOuting(userJwt: UserJWT, data: StayIdDTO) {

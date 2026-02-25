@@ -20,6 +20,10 @@ export class UserStudentService {
     const [stayApplyResult, laundryApplyResult] = await Promise.all([
       this.db.query.stayApply.findFirst({
         where: { RAW: (t, { eq }) => eq(t.userId, user.id) },
+        with: {
+          user: true,
+          outing: true,
+        },
       }),
       this.db.query.laundryApply.findFirst({
         where: {

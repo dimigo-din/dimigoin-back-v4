@@ -34,6 +34,7 @@ export class FrigoStudentService {
         where: {
           RAW: (t, { and, eq }) => andWhere(and, eq(t.userId, userJwt.id), eq(t.week, week)),
         },
+        with: { user: true },
       })) ?? null
     );
   }
@@ -90,7 +91,16 @@ export class FrigoStudentService {
       })
       .returning();
 
-    return created;
+    if (!created) {
+      throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
+    }
+
+    return await findOrThrow(
+      this.db.query.frigoApply.findFirst({
+        where: { RAW: (t, { eq }) => eq(t.id, created.id) },
+        with: { user: true },
+      }),
+    );
   }
 
   async cancelApply(userJwt: UserJWT) {
@@ -100,6 +110,7 @@ export class FrigoStudentService {
         where: {
           RAW: (t, { and, eq }) => andWhere(and, eq(t.userId, userJwt.id), eq(t.week, week)),
         },
+        with: { user: true },
       }),
     );
 

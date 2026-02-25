@@ -51,7 +51,7 @@ export class LaundryManageService {
     return await findOrThrow(
       this.db.query.laundryTimeline.findFirst({
         where: { RAW: (t, { eq }) => eq(t.id, data.id) },
-        with: { times: true },
+        with: { times: { with: { assigns: true } } },
       }),
     );
   }
@@ -96,6 +96,7 @@ export class LaundryManageService {
     return await findOrThrow(
       this.db.query.laundryTimeline.findFirst({
         where: { RAW: (t, { eq }) => eq(t.id, savedTimeline.id) },
+        with: { times: { with: { assigns: true } } },
       }),
     );
   }
@@ -104,7 +105,7 @@ export class LaundryManageService {
     await findOrThrow(
       this.db.query.laundryTimeline.findFirst({
         where: { RAW: (t, { eq }) => eq(t.id, data.id) },
-        with: { times: true },
+        with: { times: { with: { assigns: true } } },
       }),
     );
 
@@ -143,6 +144,7 @@ export class LaundryManageService {
     return await findOrThrow(
       this.db.query.laundryTimeline.findFirst({
         where: { RAW: (t, { eq }) => eq(t.id, data.id) },
+        with: { times: { with: { assigns: true } } },
       }),
     );
   }
