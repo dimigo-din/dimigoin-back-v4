@@ -11,6 +11,10 @@ export class CustomLoggerInterceptor implements NestInterceptor {
     const req = ctx.getRequest<FastifyRequest>();
     const res = ctx.getResponse<FastifyReply>();
 
+    if (req.url === "/health") {
+      return next.handle();
+    }
+
     const startTimestamp = Date.now();
     const reqMethod = req.method;
     const originURL = req.url;
