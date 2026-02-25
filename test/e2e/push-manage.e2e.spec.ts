@@ -18,7 +18,7 @@ describe("Push Manage E2E", () => {
       const response = await ctx.request.post(
         "/manage/push/send",
         {
-          category: "SchoolInformation",
+          category: "school_information",
           title: "Test Notification",
           body: "Test body",
           icon: "icon.png",
@@ -119,7 +119,7 @@ describe("Push Manage E2E", () => {
       const response = await ctx.request.post(
         "/manage/push/send/user",
         {
-          category: "SchoolInformation",
+          category: "school_information",
           title: "Hello",
           body: "World",
           icon: "icon.png",
