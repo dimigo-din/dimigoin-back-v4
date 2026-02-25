@@ -165,6 +165,19 @@ export class PushManageService {
             data: {
               body: payload.body,
             },
+            android: {
+              priority: "high",
+            },
+            apns: {
+              headers: {
+                "apns-priority": "10",
+              },
+            },
+            webpush: {
+              headers: {
+                Urgency: "high",
+              },
+            },
           },
         },
       });
