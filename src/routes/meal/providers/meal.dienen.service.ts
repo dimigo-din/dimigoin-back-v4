@@ -28,7 +28,7 @@ export class MealDienenService {
       return { "1": [], "2": [], "3": [] };
     }
 
-    const result: Record<string, { time: string; class: number[] }[]> = {
+    const result: Record<string, { time: string; delayedTime: string | null; class: number[] }[]> = {
       "1": [],
       "2": [],
       "3": [],
@@ -37,8 +37,10 @@ export class MealDienenService {
     for (const slot of timeline.slots) {
       const gradeKey = String(slot.grade);
       if (gradeKey in result) {
+        const resolved = this.commonService.resolveTime(timeline.delays, date, slot.time);
         result[gradeKey]?.push({
-          time: this.commonService.resolveTime(timeline.delays, date, slot.time),
+          time: slot.time,
+          delayedTime: resolved !== slot.time ? resolved : null,
           class: slot.classes,
         });
       }
