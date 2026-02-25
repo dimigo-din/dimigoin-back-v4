@@ -2,97 +2,58 @@
   "version": "8",
   "dialect": "postgres",
   "id": "b075a93e-beef-4e5a-9afa-699099253ff8",
-  "prevIds": [
-    "817dd8e3-68a5-46bb-bf8d-b951acf494fb"
-  ],
+  "prevIds": ["817dd8e3-68a5-46bb-bf8d-b951acf494fb"],
   "ddl": [
     {
-      "values": [
-        "password",
-        "google"
-      ],
+      "values": ["password", "google"],
       "name": "login_type_enum",
       "entityType": "enums",
       "schema": "public"
     },
     {
-      "values": [
-        "suggest",
-        "broken",
-        "danger"
-      ],
+      "values": ["suggest", "broken", "danger"],
       "name": "facility_report_type_enum",
       "entityType": "enums",
       "schema": "public"
     },
     {
-      "values": [
-        "afterschool",
-        "dinner",
-        "after_1st_study",
-        "after_2nd_study"
-      ],
+      "values": ["afterschool", "dinner", "after_1st_study", "after_2nd_study"],
       "name": "frigo_timing_enum",
       "entityType": "enums",
       "schema": "public"
     },
     {
-      "values": [
-        "male",
-        "female"
-      ],
+      "values": ["male", "female"],
       "name": "gender_enum",
       "entityType": "enums",
       "schema": "public"
     },
     {
-      "values": [
-        "washer",
-        "dryer"
-      ],
+      "values": ["washer", "dryer"],
       "name": "laundry_machine_type_enum",
       "entityType": "enums",
       "schema": "public"
     },
     {
-      "values": [
-        "breakfast",
-        "lunch",
-        "dinner"
-      ],
+      "values": ["breakfast", "lunch", "dinner"],
       "name": "meal_type_enum",
       "entityType": "enums",
       "schema": "public"
     },
     {
-      "values": [
-        "school_information",
-        "laundry",
-        "stay_apply_reminder",
-        "wakeup_song"
-      ],
+      "values": ["school_information", "laundry", "stay_apply_reminder", "wakeup_song"],
       "name": "push_subject_identifier_enum",
       "entityType": "enums",
       "schema": "public"
     },
     {
-      "values": [
-        "1_male",
-        "1_female",
-        "2_male",
-        "2_female",
-        "3_male",
-        "3_female"
-      ],
+      "values": ["1_male", "1_female", "2_male", "2_female", "3_male", "3_female"],
       "name": "stay_seat_target_enum",
       "entityType": "enums",
       "schema": "public"
     },
     {
-      "values": [
-        "permission",
-        "permission_group"
-      ],
+      "values": ["permission", "permission_group"],
       "name": "permission_validation_type_enum",
       "entityType": "enums",
       "schema": "public"
@@ -3114,14 +3075,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "userId"
-      ],
+      "columns": ["userId"],
       "schemaTo": "public",
       "tableTo": "user",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "login_userId_user_id_fk",
@@ -3131,14 +3088,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "userId"
-      ],
+      "columns": ["userId"],
       "schemaTo": "public",
       "tableTo": "user",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "session_userId_user_id_fk",
@@ -3148,14 +3101,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "parentId"
-      ],
+      "columns": ["parentId"],
       "schemaTo": "public",
       "tableTo": "facility_report",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "facility_img_parentId_facility_report_id_fk",
@@ -3165,14 +3114,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "userId"
-      ],
+      "columns": ["userId"],
       "schemaTo": "public",
       "tableTo": "user",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "facility_report_userId_user_id_fk",
@@ -3182,14 +3127,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "parentId"
-      ],
+      "columns": ["parentId"],
       "schemaTo": "public",
       "tableTo": "facility_report",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "facility_report_comment_parentId_facility_report_id_fk",
@@ -3199,14 +3140,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "userId"
-      ],
+      "columns": ["userId"],
       "schemaTo": "public",
       "tableTo": "user",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "facility_report_comment_userId_user_id_fk",
@@ -3216,14 +3153,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "commentParentId"
-      ],
+      "columns": ["commentParentId"],
       "schemaTo": "public",
       "tableTo": "facility_report_comment",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "facility_report_comment_tSSaKfrSMFg6_fkey",
@@ -3233,14 +3166,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "userId"
-      ],
+      "columns": ["userId"],
       "schemaTo": "public",
       "tableTo": "user",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "frigo_apply_userId_user_id_fk",
@@ -3250,14 +3179,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "laundryTimelineId"
-      ],
+      "columns": ["laundryTimelineId"],
       "schemaTo": "public",
       "tableTo": "laundry_timeline",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "laundry_apply_laundryTimelineId_laundry_timeline_id_fk",
@@ -3267,14 +3192,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "laundryTimeId"
-      ],
+      "columns": ["laundryTimeId"],
       "schemaTo": "public",
       "tableTo": "laundry_time",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "laundry_apply_laundryTimeId_laundry_time_id_fk",
@@ -3284,14 +3205,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "laundryMachineId"
-      ],
+      "columns": ["laundryMachineId"],
       "schemaTo": "public",
       "tableTo": "laundry_machine",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "laundry_apply_laundryMachineId_laundry_machine_id_fk",
@@ -3301,14 +3218,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "userId"
-      ],
+      "columns": ["userId"],
       "schemaTo": "public",
       "tableTo": "user",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "laundry_apply_userId_user_id_fk",
@@ -3318,14 +3231,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "timelineId"
-      ],
+      "columns": ["timelineId"],
       "schemaTo": "public",
       "tableTo": "laundry_timeline",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "laundry_time_timelineId_laundry_timeline_id_fk",
@@ -3335,14 +3244,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "laundryMachineId"
-      ],
+      "columns": ["laundryMachineId"],
       "schemaTo": "public",
       "tableTo": "laundry_machine",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "laundry_machine_laundry_time_laundry_time_laundryMachineId_laun",
@@ -3352,14 +3257,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "laundryTimeId"
-      ],
+      "columns": ["laundryTimeId"],
       "schemaTo": "public",
       "tableTo": "laundry_time",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "laundry_machine_laundry_time_laundry_time_laundryTimeId_laundry",
@@ -3369,14 +3270,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "timelineId"
-      ],
+      "columns": ["timelineId"],
       "schemaTo": "public",
       "tableTo": "meal_timeline",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "meal_timeline_delay_timelineId_meal_timeline_id_fkey",
@@ -3386,14 +3283,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "timelineId"
-      ],
+      "columns": ["timelineId"],
       "schemaTo": "public",
       "tableTo": "meal_timeline",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "meal_timeline_slot_timelineId_meal_timeline_id_fkey",
@@ -3403,14 +3296,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "subscriptionId"
-      ],
+      "columns": ["subscriptionId"],
       "schemaTo": "public",
       "tableTo": "push_subscription",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "push_subject_subscriptionId_push_subscription_id_fk",
@@ -3420,14 +3309,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "userId"
-      ],
+      "columns": ["userId"],
       "schemaTo": "public",
       "tableTo": "user",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "push_subject_userId_user_id_fk",
@@ -3437,14 +3322,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "userId"
-      ],
+      "columns": ["userId"],
       "schemaTo": "public",
       "tableTo": "user",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "push_subscription_userId_user_id_fk",
@@ -3454,14 +3335,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "staySeatPresetId"
-      ],
+      "columns": ["staySeatPresetId"],
       "schemaTo": "public",
       "tableTo": "stay_seat_preset",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "NO ACTION",
       "name": "stay_staySeatPresetId_stay_seat_preset_id_fk",
@@ -3471,14 +3348,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "parentId"
-      ],
+      "columns": ["parentId"],
       "schemaTo": "public",
       "tableTo": "stay_schedule",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "stay_parentId_stay_schedule_id_fk",
@@ -3488,14 +3361,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "stayId"
-      ],
+      "columns": ["stayId"],
       "schemaTo": "public",
       "tableTo": "stay",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "stay_apply_stayId_stay_id_fk",
@@ -3505,14 +3374,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "userId"
-      ],
+      "columns": ["userId"],
       "schemaTo": "public",
       "tableTo": "user",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "stay_apply_userId_user_id_fk",
@@ -3522,14 +3387,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "stayId"
-      ],
+      "columns": ["stayId"],
       "schemaTo": "public",
       "tableTo": "stay",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "stay_apply_period_stay_stayId_stay_id_fk",
@@ -3539,14 +3400,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "stayScheduleId"
-      ],
+      "columns": ["stayScheduleId"],
       "schemaTo": "public",
       "tableTo": "stay_schedule",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "stay_apply_period_stay_schedule_stayScheduleId_stay_schedule_id",
@@ -3556,14 +3413,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "stayApplyId"
-      ],
+      "columns": ["stayApplyId"],
       "schemaTo": "public",
       "tableTo": "stay_apply",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "stay_outing_stayApplyId_stay_apply_id_fk",
@@ -3573,14 +3426,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "staySeatPresetId"
-      ],
+      "columns": ["staySeatPresetId"],
       "schemaTo": "public",
       "tableTo": "stay_seat_preset",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "stay_schedule_staySeatPresetId_stay_seat_preset_id_fk",
@@ -3590,14 +3439,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "staySeatPresetId"
-      ],
+      "columns": ["staySeatPresetId"],
       "schemaTo": "public",
       "tableTo": "stay_seat_preset",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "stay_seat_preset_range_staySeatPresetId_stay_seat_preset_id_fk",
@@ -3607,14 +3452,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "userId"
-      ],
+      "columns": ["userId"],
       "schemaTo": "public",
       "tableTo": "user",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "wakeup_song_application_userId_user_id_fk",
@@ -3624,14 +3465,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "wakeupSongApplicationId"
-      ],
+      "columns": ["wakeupSongApplicationId"],
       "schemaTo": "public",
       "tableTo": "wakeup_song_application",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "wakeup_song_vote_wakeupSongApplicationId_wakeup_song_applicatio",
@@ -3641,14 +3478,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "userId"
-      ],
+      "columns": ["userId"],
       "schemaTo": "public",
       "tableTo": "user",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "wakeup_song_vote_userId_user_id_fk",
@@ -3657,9 +3490,7 @@
       "table": "wakeup_song_vote"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "login_pkey",
       "schema": "public",
@@ -3667,9 +3498,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "session_pkey",
       "schema": "public",
@@ -3677,9 +3506,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "facility_img_pkey",
       "schema": "public",
@@ -3687,9 +3514,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "facility_report_pkey",
       "schema": "public",
@@ -3697,9 +3522,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "facility_report_comment_pkey",
       "schema": "public",
@@ -3707,9 +3530,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "frigo_apply_pkey",
       "schema": "public",
@@ -3717,9 +3538,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "frigo_apply_period_pkey",
       "schema": "public",
@@ -3727,9 +3546,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "laundry_apply_pkey",
       "schema": "public",
@@ -3737,9 +3554,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "laundry_machine_pkey",
       "schema": "public",
@@ -3747,9 +3562,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "laundry_time_pkey",
       "schema": "public",
@@ -3757,9 +3570,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "laundry_timeline_pkey",
       "schema": "public",
@@ -3767,9 +3578,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "meal_pkey",
       "schema": "public",
@@ -3777,9 +3586,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "meal_timeline_pkey",
       "schema": "public",
@@ -3787,9 +3594,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "meal_timeline_delay_pkey",
       "schema": "public",
@@ -3797,9 +3602,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "meal_timeline_slot_pkey",
       "schema": "public",
@@ -3807,9 +3610,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "push_subject_pkey",
       "schema": "public",
@@ -3817,9 +3618,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "push_subscription_pkey",
       "schema": "public",
@@ -3827,9 +3626,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "stay_pkey",
       "schema": "public",
@@ -3837,9 +3634,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "stay_apply_pkey",
       "schema": "public",
@@ -3847,9 +3642,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "stay_apply_period_stay_pkey",
       "schema": "public",
@@ -3857,9 +3650,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "stay_apply_period_stay_schedule_pkey",
       "schema": "public",
@@ -3867,9 +3658,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "stay_outing_pkey",
       "schema": "public",
@@ -3877,9 +3666,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "stay_schedule_pkey",
       "schema": "public",
@@ -3887,9 +3674,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "stay_seat_preset_pkey",
       "schema": "public",
@@ -3897,9 +3682,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "stay_seat_preset_range_pkey",
       "schema": "public",
@@ -3907,9 +3690,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "user_pkey",
       "schema": "public",
@@ -3917,9 +3698,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "permission_validator_pkey",
       "schema": "public",
@@ -3927,9 +3706,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "wakeup_song_application_pkey",
       "schema": "public",
@@ -3937,9 +3714,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "wakeup_song_history_pkey",
       "schema": "public",
@@ -3947,9 +3722,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "wakeup_song_vote_pkey",
       "schema": "public",
@@ -3958,9 +3731,7 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "grade"
-      ],
+      "columns": ["grade"],
       "nullsNotDistinct": false,
       "name": "frigo_apply_period_grade_unique",
       "schema": "public",
@@ -3969,9 +3740,7 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "name"
-      ],
+      "columns": ["name"],
       "nullsNotDistinct": false,
       "name": "laundry_timeline_name_unique",
       "schema": "public",
@@ -3980,9 +3749,7 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "name"
-      ],
+      "columns": ["name"],
       "nullsNotDistinct": false,
       "name": "stay_schedule_name_unique",
       "schema": "public",
@@ -3991,9 +3758,7 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "email"
-      ],
+      "columns": ["email"],
       "nullsNotDistinct": false,
       "name": "user_email_unique",
       "schema": "public",

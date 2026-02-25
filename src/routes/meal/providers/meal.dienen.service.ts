@@ -28,11 +28,12 @@ export class MealDienenService {
       return { "1": [], "2": [], "3": [] };
     }
 
-    const result: Record<string, { time: string; delayedTime: string | null; class: number[] }[]> = {
-      "1": [],
-      "2": [],
-      "3": [],
-    };
+    const result: Record<string, { time: string; delayedTime: string | null; class: number[] }[]> =
+      {
+        "1": [],
+        "2": [],
+        "3": [],
+      };
 
     for (const slot of timeline.slots) {
       const gradeKey = String(slot.grade);
