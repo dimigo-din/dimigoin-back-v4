@@ -33,5 +33,8 @@ COPY --chown=bun:bun --from=prod-deps /app/node_modules ./node_modules
 COPY --chown=bun:bun entrypoint.sh package.json tsconfig.json drizzle.config.ts ./
 RUN chmod 700 ./entrypoint.sh
 
+HEALTHCHECK --interval=1s --timeout=3s --start-period=60s --retries=1 \
+  CMD curl -fsS http://localhost:3000/health || exit 1
+
 USER bun
 ENTRYPOINT ["./entrypoint.sh"]
