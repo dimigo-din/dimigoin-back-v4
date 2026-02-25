@@ -32,5 +32,6 @@ COPY --chown=bun:bun --from=build /app/drizzle ./drizzle
 COPY --chown=bun:bun --from=prod-deps /app/node_modules ./node_modules
 COPY --chown=bun:bun entrypoint.sh package.json tsconfig.json drizzle.config.ts ./
 RUN chmod 700 ./entrypoint.sh
+
 USER bun
 ENTRYPOINT ["./entrypoint.sh"]
