@@ -9,18 +9,17 @@ import {
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import { Cron, CronExpression } from "@nestjs/schedule";
-import { InjectRepository } from "@nestjs/typeorm";
 import { subMonths } from "date-fns";
+import { eq, lt } from "drizzle-orm";
 import { OAuth2Client, TokenPayload } from "google-auth-library";
 import { StringValue } from "ms";
-import { LessThan, Repository } from "typeorm";
-import { Login, Session, User } from "#/schemas";
+import { session, user } from "#/db/schema";
 import { JWTResponse, RedirectUriDTO } from "#auth/auth.dto";
 import { ErrorMsg } from "$mapper/error";
-import { PermissionEnum } from "$mapper/permissions";
+import type { Class, Gender, Grade } from "$mapper/types";
 import { UserJWT } from "$mapper/types";
-import { CacheService } from "$modules/cache.module";
-import { hasPermission } from "$utils/permission.util";
+import { DRIZZLE, type DrizzleDB } from "$modules/drizzle.module";
+import { andWhere } from "$utils/where.util";
 import { UserManageService } from "~user/providers";
 
 @Injectable()
@@ -30,16 +29,10 @@ export class AuthService {
 
   constructor(
     private readonly jwtService: JwtService,
-    private readonly cacheService: CacheService,
     private readonly configService: ConfigService,
     @Inject(forwardRef(() => UserManageService))
     private readonly userManageService: UserManageService,
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
-    @InjectRepository(Login)
-    private readonly loginRepository: Repository<Login>,
-    @InjectRepository(Session)
-    private readonly sessionRepository: Repository<Session>,
+    @Inject(DRIZZLE) private readonly db: DrizzleDB,
   ) {
     this.genURLOauthClient = new OAuth2Client({
       clientId: configService.get<string>("GCP_OAUTH_ID"),
@@ -51,17 +44,30 @@ export class AuthService {
   }
 
   async loginByIdPassword(id: string, password: string) {
-    const login = await this.loginRepository.findOne({
-      where: { identifier1: id || "", type: "password" },
+    const loginRecord = await this.db.query.login.findFirst({
+      where: {
+        RAW: (t, { and, eq }) => andWhere(and, eq(t.identifier1, id || ""), eq(t.type, "password")),
+      },
+      with: { user: true },
     });
-    if (!login) {
+    if (!loginRecord) {
       throw new HttpException(ErrorMsg.UserIdentifier_NotFound(), HttpStatus.UNAUTHORIZED);
     }
-    if (!Bun.password.verify(password, login.identifier2 ?? "")) {
+    if (!(await Bun.password.verify(password, loginRecord.identifier2 ?? ""))) {
       throw new HttpException(ErrorMsg.UserIdentifier_NotMatched(), HttpStatus.UNAUTHORIZED);
     }
 
-    return await this.generateJWTKeyPair(login.user, "30m");
+    const loginUser =
+      loginRecord.user ??
+      (await this.db.query.user.findFirst({
+        where: { RAW: (t, { eq }) => eq(t.id, loginRecord.userId) },
+      }));
+
+    if (!loginUser) {
+      throw new HttpException(ErrorMsg.UserIdentifier_NotFound(), HttpStatus.UNAUTHORIZED);
+    }
+
+    return await this.generateJWTKeyPair(loginUser, "30m");
   }
 
   async getGoogleLoginUrl(data: RedirectUriDTO): Promise<string> {
@@ -115,11 +121,15 @@ export class AuthService {
       throw new HttpException(ErrorMsg.GoogleOauthCode_Invalid(), HttpStatus.BAD_REQUEST);
     }
 
-    let loginUser: User;
-    const login = await this.loginRepository.findOne({
-      where: { identifier1: ticketPayload.sub, type: "google" },
+    let loginUser: typeof user.$inferSelect;
+    const loginRecord = await this.db.query.login.findFirst({
+      where: {
+        RAW: (t, { and, eq }) =>
+          andWhere(and, eq(t.identifier1, ticketPayload.sub), eq(t.type, "google")),
+      },
+      with: { user: true },
     });
-    if (!login) {
+    if (!loginRecord) {
       loginUser = await this.userManageService.createUser({
         loginType: "google",
         identifier1: ticketPayload.sub,
@@ -131,97 +141,115 @@ export class AuthService {
         name: `${ticketPayload?.family_name || ""}${ticketPayload?.given_name || ""}`,
       });
     } else {
-      loginUser = login.user;
-    }
+      const existingUser =
+        loginRecord.user ??
+        (await this.db.query.user.findFirst({
+          where: { RAW: (t, { eq }) => eq(t.id, loginRecord.userId) },
+        }));
 
-    if (!hasPermission(loginUser.permission, [PermissionEnum.TEACHER])) {
-      const detail = await this.userManageService.checkUserDetail(loginUser.email, {
-        gender: "male",
-      });
-
-      if (detail === null) {
-        throw new HttpException(ErrorMsg.PersonalInformation_NotRegistered(), HttpStatus.NOT_FOUND);
+      if (!existingUser) {
+        throw new HttpException(ErrorMsg.UserIdentifier_NotFound(), HttpStatus.UNAUTHORIZED);
       }
+
+      loginUser = existingUser;
     }
 
     return await this.generateJWTKeyPair(loginUser, "30m");
   }
 
-  // Actually, we need refresh "token" not refresh jwt
   async refresh(refreshToken: string) {
-    const session = await this.sessionRepository.findOne({
-      where: { refreshToken: refreshToken || "" },
+    const sessionRecord = await this.db.query.session.findFirst({
+      where: { RAW: (t, { eq }) => eq(t.refreshToken, refreshToken || "") },
+      with: { user: true },
     });
-    if (!session) {
+    if (!sessionRecord) {
       throw new HttpException(ErrorMsg.UserSession_NotFound(), HttpStatus.NOT_FOUND);
     }
 
-    const user = await this.userRepository.findOne({
-      where: { id: session.user.id },
-    });
-
-    if (!user) {
+    const sessionUserId = sessionRecord.user?.id ?? sessionRecord.userId;
+    if (!sessionUserId) {
       throw new NotFoundException("User not found");
     }
 
-    return await this.generateJWTKeyPair(user, "30m", session);
+    const userRecord = await this.db.query.user.findFirst({
+      where: { RAW: (t, { eq }) => eq(t.id, sessionUserId) },
+    });
+
+    if (!userRecord) {
+      throw new NotFoundException("User not found");
+    }
+
+    return await this.generateJWTKeyPair(userRecord, "30m", sessionRecord);
   }
 
-  async logout(user: UserJWT) {
-    const session = await this.sessionRepository.findOne({
-      where: { sessionIdentifier: user.sessionIdentifier || "" },
+  async signup(userRecord: typeof user.$inferSelect, grade: Grade, cls: Class, gender: Gender) {
+    if (userRecord.grade !== null && userRecord.class !== null && userRecord.gender !== null) {
+      throw new HttpException(ErrorMsg.ResourceAlreadyExists(), HttpStatus.CONFLICT);
+    }
+
+    const [updated] = await this.db
+      .update(user)
+      .set({ grade, class: cls, gender })
+      .where(eq(user.id, userRecord.id))
+      .returning();
+
+    if (!updated) {
+      throw new NotFoundException("User not found");
+    }
+
+    return await this.generateJWTKeyPair(updated, "30m");
+  }
+
+  async logout(userJwt: UserJWT) {
+    const sessionRecord = await this.db.query.session.findFirst({
+      where: { RAW: (t, { eq }) => eq(t.sessionIdentifier, userJwt.sessionIdentifier || "") },
     });
-    // cannot be called. if called, it's a bug. (jwt strategy should catch this)
-    if (!session) {
+    if (!sessionRecord) {
       throw new HttpException("Cannot find valid session.", 404);
     }
 
-    await this.sessionRepository.remove(session);
+    await this.db.delete(session).where(eq(session.id, sessionRecord.id));
 
-    return session;
-  }
-
-  async generatePersonalInformationVerifyToken(user: UserJWT) {
-    return this.jwtService.signAsync(
-      { email: user.email },
-      {
-        expiresIn: "1m",
-        algorithm: "HS512",
-        secret: await this.cacheService.getPersonalInformationVerifyTokenSecret(),
-      },
-    );
+    return sessionRecord;
   }
 
   async generateJWTKeyPair(
-    user: User,
+    userRecord: typeof user.$inferSelect,
     accessExpire: StringValue,
-    old?: Session,
+    old?: typeof session.$inferSelect,
   ): Promise<{ accessToken: string; refreshToken: string }> {
     const sessionIdentifier = Bun.randomUUIDv7();
 
-    // refresh expire: 1 month
     const keyPair = {
       accessToken: await this.jwtService.signAsync(
-        { sessionIdentifier, ...user },
+        { sessionIdentifier, ...userRecord },
         { expiresIn: accessExpire || "10m" },
       ),
       refreshToken: Bun.randomUUIDv7(),
     };
 
-    const session = old || new Session();
-    session.refreshToken = keyPair.refreshToken;
-    session.sessionIdentifier = sessionIdentifier;
-    session.user = user;
-    await this.sessionRepository.save(session);
+    if (old) {
+      await this.db
+        .update(session)
+        .set({
+          refreshToken: keyPair.refreshToken,
+          sessionIdentifier,
+          userId: userRecord.id,
+        })
+        .where(eq(session.id, old.id));
+    } else {
+      await this.db.insert(session).values({
+        refreshToken: keyPair.refreshToken,
+        sessionIdentifier,
+        userId: userRecord.id,
+      });
+    }
 
     return keyPair;
   }
 
   @Cron(CronExpression.EVERY_HOUR)
-  // @Cron(CronExpression.EVERY_SECOND)
   private async expiredSessionClear() {
-    await this.sessionRepository.delete({
-      updated_at: LessThan(subMonths(new Date(), 1)),
-    });
+    await this.db.delete(session).where(lt(session.updated_at, subMonths(new Date(), 1)));
   }
 }

@@ -2,7 +2,7 @@ import { Body, Controller, Get, HttpStatus, Post, Query, Req, Res } from "@nestj
 import { ConfigService } from "@nestjs/config";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
 import type { FastifyReply, FastifyRequest } from "fastify";
-import { User } from "#/schemas";
+import type { User } from "#/db/schema";
 import {
   GoogleAppLoginDTO,
   GoogleWebLoginDTO,
@@ -10,16 +10,15 @@ import {
   PasswordLoginDTO,
   RedirectUriDTO,
   RefreshTokenDTO,
+  SignupDTO,
 } from "#auth/auth.dto";
 import { AuthService } from "#auth/auth.service";
 import { CustomJwtAuthGuard } from "#auth/guards";
-import { PermissionGuard } from "#auth/guards/permission.guard";
-import { PersonalInformationVerifyTokenAuthGuard } from "#auth/guards/personalInformationVerifyToken.guard";
 import { UseGuardsWithSwagger } from "#auth/guards/useGuards";
 import { CurrentUser } from "$decorators/user.decorator";
 import { ApiResponseFormat } from "$dto/response_format.dto";
 import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE } from "$mapper/constants";
-import { PermissionEnum } from "$mapper/permissions";
+import { parsePermission } from "$utils/permission.util";
 
 @ApiTags("Auth")
 @Controller("/auth")
@@ -29,14 +28,20 @@ export class AuthController {
     private readonly authService: AuthService,
   ) {}
 
-  @ApiOperation({
-    summary: "핑",
-    description: "세션이 살아있는지 테스트합니다.",
-  })
+  @ApiOperation({ summary: "핑" })
   @Get("/ping")
   @UseGuardsWithSwagger(CustomJwtAuthGuard)
   async ping() {
     return "퐁";
+  }
+
+  @ApiOperation({ summary: "권한 확인" })
+  @ApiResponseFormat({ status: HttpStatus.OK })
+  @Get("/permission")
+  @UseGuardsWithSwagger(CustomJwtAuthGuard)
+  async getPermission(@CurrentUser() user: User) {
+    const permissions = parsePermission(user.permission).map((p) => p.toLowerCase());
+    return { permissions };
   }
 
   @ApiOperation({
@@ -131,6 +136,31 @@ export class AuthController {
   }
 
   @ApiOperation({
+    summary: "회원가입 - 개인정보 입력",
+    description: "학년, 반, 성별을 입력하여 JWT를 재발급합니다. 이미 입력된 경우 409를 반환합니다.",
+  })
+  @ApiResponseFormat({
+    status: HttpStatus.OK,
+    type: JWTResponse,
+  })
+  @Post("/signup")
+  @UseGuardsWithSwagger(CustomJwtAuthGuard)
+  async signup(
+    @CurrentUser() user: User,
+    @Res({ passthrough: true }) res: FastifyReply,
+    @Body() data: SignupDTO,
+  ) {
+    const token = await this.authService.signup(
+      user,
+      data.grade as 1 | 2 | 3,
+      data.class as 1 | 2 | 3 | 4 | 5 | 6,
+      data.gender,
+    );
+    this.generateCookie(res, token);
+    return token;
+  }
+
+  @ApiOperation({
     summary: "로그아웃",
     description: "로그아웃합니다.",
   })
@@ -170,33 +200,6 @@ export class AuthController {
       });
     }
     return { success: true };
-  }
-
-  @ApiOperation({
-    summary: "신원확인 토큰 발급",
-    description:
-      "개인정보 서버에 개인정보 제공 요청을 넣을때 신원을 확인하기 위한 토큰을 발급합니다.",
-  })
-  @ApiResponseFormat({
-    status: HttpStatus.OK,
-  })
-  @UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.STUDENT]))
-  @Get("/personalInformationVerifyToken")
-  async getPersonalInformationVerifyToken(@CurrentUser() user: User) {
-    return await this.authService.generatePersonalInformationVerifyToken(user);
-  }
-
-  @ApiOperation({
-    summary: "신원확인",
-    description: "발급된 신원확인 토큰을 검증합니다.",
-  })
-  @ApiResponseFormat({
-    status: HttpStatus.CREATED,
-  })
-  @UseGuardsWithSwagger(PersonalInformationVerifyTokenAuthGuard)
-  @Post("/personalInformationVerifyToken")
-  async runPersonalInformationVerifyToken(@CurrentUser() user: User) {
-    return user.email;
   }
 
   generateCookie(res: FastifyReply, token: { accessToken: string; refreshToken: string }) {

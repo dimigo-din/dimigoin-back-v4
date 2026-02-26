@@ -1,25 +1,23 @@
-import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
-import { WakeupSongHistory } from "#/schemas";
+import { HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { ErrorMsg } from "$mapper/error";
+import { DRIZZLE, type DrizzleDB } from "$modules/drizzle.module";
+import { andWhere } from "$utils/where.util";
 import { GetDateSongDTO } from "~wakeup/dto/wakeup.dto";
 
 @Injectable()
 export class WakeupService {
-  constructor(
-    @InjectRepository(WakeupSongHistory)
-    private readonly wakeupSongHistoryRepository: Repository<WakeupSongHistory>,
-  ) {}
+  constructor(@Inject(DRIZZLE) private readonly db: DrizzleDB) {}
 
   async getDateSong(data: GetDateSongDTO) {
-    const song = await this.wakeupSongHistoryRepository.find({
-      where: { date: data.date, gender: data.gender },
+    const songs = await this.db.query.wakeupSongHistory.findMany({
+      where: {
+        RAW: (t, { and, eq }) => andWhere(and, eq(t.date, data.date), eq(t.gender, data.gender)),
+      },
     });
-    if (!song || song.length === 0) {
+    if (!songs || songs.length === 0) {
       throw new HttpException(ErrorMsg.NoWakeupInDate(), HttpStatus.NOT_FOUND);
     }
 
-    return song[song.length - 1];
+    return songs[songs.length - 1];
   }
 }

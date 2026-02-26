@@ -1,11 +1,11 @@
 import { fcm, fcm_v1 } from "@googleapis/fcm";
-import { Injectable, Logger } from "@nestjs/common";
+import { Inject, Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { InjectRepository } from "@nestjs/typeorm";
+import { eq } from "drizzle-orm";
 import { GoogleAuth } from "google-auth-library";
-import { Repository } from "typeorm";
-import { PushSubscription, User } from "#/schemas";
-import { safeFindOne } from "$utils/safeFindOne.util";
+import { pushSubscription } from "#/db/schema";
+import { DRIZZLE, type DrizzleDB } from "$modules/drizzle.module";
+import { findOrThrow } from "$utils/findOrThrow.util";
 import {
   GetSubscriptionsByCategoryDTO,
   GetSubscriptionsByUserAndCategoryDTO,
@@ -21,10 +21,7 @@ export class PushManageService {
   private projectId: string;
 
   constructor(
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
-    @InjectRepository(PushSubscription)
-    private readonly pushRepository: Repository<PushSubscription>,
+    @Inject(DRIZZLE) private readonly db: DrizzleDB,
     private readonly configService: ConfigService,
   ) {
     this.projectId = this.configService.get<string>("FIREBASE_PROJECT_ID") ?? "";
@@ -42,30 +39,52 @@ export class PushManageService {
   }
 
   async getSubscriptionsByCategory(data: GetSubscriptionsByCategoryDTO) {
-    return await this.pushRepository.find({
-      where: {
-        subjects: { identifier: data.category },
-      },
-      relations: ["subjects"],
+    // Find subscriptions that have a subject matching the category
+    const subjects = await this.db.query.pushSubject.findMany({
+      where: { RAW: (t, { eq }) => eq(t.identifier, data.category) },
+      with: { subscription: true },
     });
+
+    const subscriptionIds = [...new Set(subjects.map((s) => s.subscriptionId))];
+    if (!subscriptionIds.length) {
+      return [];
+    }
+
+    return await Promise.all(
+      subscriptionIds.map((id) =>
+        this.db.query.pushSubscription.findFirst({
+          where: { RAW: (t, { eq }) => eq(t.id, id) },
+          with: { subjects: true },
+        }),
+      ),
+    ).then((results) => results.filter(Boolean));
   }
 
   async getSubscriptionsByUser(data: GetSubscriptionsByUserDTO) {
-    const target = await safeFindOne<User>(this.userRepository, data.id);
+    await findOrThrow(
+      this.db.query.user.findFirst({ where: { RAW: (t, { eq }) => eq(t.id, data.id) } }),
+    );
 
-    return await this.pushRepository.find({ where: { user: target }, relations: ["subjects"] });
+    return await this.db.query.pushSubscription.findMany({
+      where: { RAW: (t, { eq }) => eq(t.userId, data.id) },
+      with: { subjects: true },
+    });
   }
 
   async getSubscriptionsByUserAndCategory(data: GetSubscriptionsByUserAndCategoryDTO) {
-    const target = await safeFindOne<User>(this.userRepository, data.id);
+    await findOrThrow(
+      this.db.query.user.findFirst({ where: { RAW: (t, { eq }) => eq(t.id, data.id) } }),
+    );
 
-    return await this.pushRepository.find({
-      where: {
-        user: target,
-        subjects: { identifier: data.category },
-      },
-      relations: ["subjects"],
+    const subscriptions = await this.db.query.pushSubscription.findMany({
+      where: { RAW: (t, { eq }) => eq(t.userId, data.id) },
+      with: { subjects: true },
     });
+
+    return subscriptions.filter(
+      (sub) =>
+        sub.subjects?.some((s: { identifier: string }) => s.identifier === data.category) ?? false,
+    );
   }
 
   async sendToSpecificUsers(data: PushNotificationToSpecificDTO) {
@@ -74,15 +93,35 @@ export class PushManageService {
         async (id) => await this.getSubscriptionsByUserAndCategory({ id, category: data.category }),
       ),
     );
-    return await this.sendBatch(targets.flat(), data);
+    const flattened = targets
+      .flat()
+      .filter(
+        (subscription): subscription is NonNullable<typeof subscription> =>
+          subscription !== null && subscription !== undefined,
+      );
+    const payloads = flattened.map((s) => ({
+      id: s.id,
+      token: s.token,
+      userId: s.userId,
+    }));
+    return await this.sendBatch(payloads, data);
   }
 
   async sendToAll(data: PushNotificationPayloadDTO) {
     const targets = await this.getSubscriptionsByCategory({ category: data.category });
-    return await this.sendBatch(targets, data);
+    const payloads = targets
+      .filter(
+        (subscription): subscription is NonNullable<typeof subscription> =>
+          subscription !== null && subscription !== undefined,
+      )
+      .map((s) => ({ id: s.id, token: s.token, userId: s.userId }));
+    return await this.sendBatch(payloads, data);
   }
 
-  private async sendBatch(subscriptions: PushSubscription[], payload: PushNotificationPayloadDTO) {
+  private async sendBatch(
+    subscriptions: { id: string; token: string; userId: string }[],
+    payload: PushNotificationPayloadDTO,
+  ) {
     if (!subscriptions.length) {
       return { sent: 0, failed: 0 };
     }
@@ -126,6 +165,19 @@ export class PushManageService {
             data: {
               body: payload.body,
             },
+            android: {
+              priority: "high",
+            },
+            apns: {
+              headers: {
+                "apns-priority": "10",
+              },
+            },
+            webpush: {
+              headers: {
+                Urgency: "high",
+              },
+            },
           },
         },
       });
@@ -140,16 +192,19 @@ export class PushManageService {
     }
   }
 
-  private async doPushFailCleanup(subscription: PushSubscription, reason: unknown) {
+  private async doPushFailCleanup(
+    subscription: { id: string; token: string; userId: string },
+    reason: unknown,
+  ) {
     const code =
       (reason as { statusCode?: number })?.statusCode ||
       (reason as { body?: { statusCode?: number } })?.body?.statusCode;
     if (code === 404 || code === 410) {
-      await this.pushRepository.delete({ token: subscription.token });
+      await this.db.delete(pushSubscription).where(eq(pushSubscription.token, subscription.token));
       this.logger.warn(`Removed dead FCM token: ${subscription.token}`);
     } else {
       this.logger.warn(
-        `Push send failed: ${(subscription.user ?? subscription).id} code=${code ?? "N/A"} msg=${(reason as Error)?.message ?? reason}`,
+        `Push send failed: ${subscription.userId ?? subscription.id} code=${code ?? "N/A"} msg=${(reason as Error)?.message ?? reason}`,
       );
     }
   }

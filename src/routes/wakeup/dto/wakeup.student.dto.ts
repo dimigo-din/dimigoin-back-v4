@@ -1,7 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsBoolean, IsString } from "class-validator";
-import { WakeupSongApplication } from "#/schemas";
-
 export class SearchVideoDTO {
   @ApiProperty()
   @IsString()
@@ -30,7 +28,40 @@ export class VoteIdDTO {
   id: string;
 }
 
-export class ApplicationsResponseDTO extends WakeupSongApplication {
+export class ApplicationsResponseDTO {
+  @ApiProperty()
+  id: string;
+
+  @ApiProperty()
+  videoId: string;
+
+  @ApiProperty()
+  videoTitle: string;
+
+  @ApiProperty()
+  videoThumbnail: string;
+
+  @ApiProperty()
+  videoChannel: string;
+
+  @ApiProperty()
+  week: string;
+
+  @ApiProperty()
+  gender: string;
+
+  @ApiProperty()
+  userId: string;
+
+  @ApiProperty({ nullable: true })
+  deletedAt: Date | null;
+
+  @ApiProperty()
+  created_at: Date;
+
+  @ApiProperty()
+  updated_at: Date;
+
   @ApiProperty()
   up: number;
 

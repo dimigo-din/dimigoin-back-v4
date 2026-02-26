@@ -1,10 +1,10 @@
-import { Injectable, Logger, Module } from "@nestjs/common";
-import { InjectRepository, TypeOrmModule } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
-import { PermissionValidator, Session, User } from "#/schemas";
+import { Inject, Injectable, Logger, Module } from "@nestjs/common";
+import { eq } from "drizzle-orm";
+import { permissionValidator, user } from "#/db/schema";
 import { LaundrySchedulePriority } from "$mapper/constants";
 import { NumberedPermissionGroupsEnum, PermissionEnum, PermissionType } from "$mapper/permissions";
 import { LaundryTimelineSchedulerValues } from "$mapper/types";
+import { DRIZZLE, type DrizzleDB, DrizzleModule } from "$modules/drizzle.module";
 import { numberPermission, parsePermission } from "$utils/permission.util";
 
 @Injectable()
@@ -12,20 +12,18 @@ export class ValidationService {
   private logger = new Logger(ValidationModule.name);
 
   constructor(
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
-    @InjectRepository(PermissionValidator)
-    private readonly permissionValidatorRepository: Repository<PermissionValidator>,
+    @Inject(DRIZZLE)
+    private readonly db: DrizzleDB,
   ) {}
 
   async validatePermissionEnum() {
-    const savedPermissionMappings = await this.permissionValidatorRepository.find();
+    const savedPermissionMappings = await this.db.select().from(permissionValidator);
 
     const fixedPermissionMappings = Object.fromEntries(
       savedPermissionMappings
         .filter((v) => v.type === "permission")
         .sort()
-        .map((v) => [v.key, parseInt(v.value as unknown as string, 10)]),
+        .map((v) => [v.key, v.value]),
     ) as {
       [K in PermissionType]: number;
     };
@@ -33,7 +31,7 @@ export class ValidationService {
       savedPermissionMappings
         .filter((v) => v.type === "permission_group")
         .sort()
-        .map((v) => [v.key, parseInt(v.value as unknown as string, 10)]),
+        .map((v) => [v.key, v.value]),
     ) as {
       [key: string]: number;
     };
@@ -49,19 +47,22 @@ export class ValidationService {
     this.logger.warn("Permission validation failed - changes detected.");
     this.logger.warn("Trying auto migration...");
 
-    let users = await this.userRepository.find();
+    let users = await this.db.select().from(user);
 
     this.logger.log("Permission Group migration:");
 
     const deprecatedPermissionGroups = Object.fromEntries(
       Object.keys(NumberedPermissionGroupsEnum).map((v) => [v, fixedPermissionGroupMappings[v]]),
     );
+
+    const exceptions: (typeof users)[number][] = [];
+
     const groupUsers = users
       .filter((u) =>
         Object.values(deprecatedPermissionGroups).some((dpg) => dpg?.toString() === u.permission),
       )
       .map((u) => {
-        users.splice(users.indexOf(u), 1);
+        users = users.filter((x) => x.id !== u.id);
         const groupName = Object.entries(deprecatedPermissionGroups).find(
           (v) => v[1]?.toString() === u.permission,
         )?.[0];
@@ -69,32 +70,32 @@ export class ValidationService {
           exceptions.push(u);
           return u;
         }
-        u.permission = NumberedPermissionGroupsEnum[groupName]?.toString() ?? u.permission;
-        return u;
+        return {
+          ...u,
+          permission: NumberedPermissionGroupsEnum[groupName]?.toString() ?? u.permission,
+        };
       });
 
     this.logger.log(`OK. ${groupUsers.length} users affected`);
 
     this.logger.log("Individual Permission migration: ");
 
-    const exceptions: User[] = [];
-    users = users.map((user) => {
-      const permissions = parsePermission(parseInt(user.permission, 10), fixedPermissionMappings);
+    users = users.map((u) => {
+      const permissions = parsePermission(parseInt(u.permission, 10), fixedPermissionMappings);
 
       const newPermissions: number[] = [];
       permissions.forEach((permission) => {
-        if (exceptions.includes(user)) {
+        if (exceptions.includes(u)) {
           return;
         }
         if (!PermissionEnum[permission]) {
-          exceptions.push(user);
+          this.logger.warn(`Deprecated permission "${permission}" dropped for user ${u.id}`);
           return;
         }
         newPermissions.push(PermissionEnum[permission]);
       });
 
-      user.permission = numberPermission(...newPermissions).toString();
-      return user;
+      return { ...u, permission: numberPermission(...newPermissions).toString() };
     });
 
     if (exceptions.length !== 0) {
@@ -111,36 +112,37 @@ export class ValidationService {
     // Commit changes
     this.logger.log("Commiting changes:");
 
-    users = groupUsers.concat(users);
-    await this.userRepository.save(users);
+    const allUsers = groupUsers.concat(users);
+    for (const u of allUsers) {
+      await this.db.update(user).set({ permission: u.permission }).where(eq(user.id, u.id));
+    }
 
-    await this.permissionValidatorRepository.clear();
+    // Clear and re-insert permission validators
+    await this.db.delete(permissionValidator);
 
-    const permissions: PermissionValidator[] = [];
+    const permissionsToInsert: (typeof permissionValidator.$inferInsert)[] = [];
     Object.keys(PermissionEnum).forEach((K) => {
-      const permission = new PermissionValidator();
-      permission.type = "permission";
-      permission.key = K;
-      permission.value = PermissionEnum[K as PermissionType].toString();
-      permissions.push(permission);
+      permissionsToInsert.push({
+        type: "permission",
+        key: K,
+        value: PermissionEnum[K as PermissionType],
+      });
     });
     Object.keys(NumberedPermissionGroupsEnum).forEach((pg) => {
-      const permissionGroup = new PermissionValidator();
-      permissionGroup.type = "permission_group";
-      permissionGroup.key = pg;
-      permissionGroup.value = NumberedPermissionGroupsEnum[pg]?.toString() ?? pg;
-      permissions.push(permissionGroup);
+      permissionsToInsert.push({
+        type: "permission_group",
+        key: pg,
+        value: NumberedPermissionGroupsEnum[pg] ?? 0,
+      });
     });
 
-    await this.permissionValidatorRepository.save(permissions);
+    await this.db.insert(permissionValidator).values(permissionsToInsert);
 
     this.logger.log("OK. All changes have been commited");
   }
 
   async validateSession() {
     this.logger.log("Clearing expired sessions:");
-    // await this.sessionRepository.clear();
-    // this.logger.log("OK. Sessions cleared");
     this.logger.log("NOP");
   }
 
@@ -158,7 +160,7 @@ export class ValidationService {
 }
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Session, PermissionValidator])],
+  imports: [DrizzleModule],
   providers: [ValidationService],
   exports: [ValidationService],
 })

@@ -1,17 +1,51 @@
+import { mock } from "bun:test";
 import fastifyCookie from "@fastify/cookie";
 import fastifyMultipart from "@fastify/multipart";
-import { Module, ValidationPipe } from "@nestjs/common";
+import { CACHE_MANAGER } from "@nestjs/cache-manager";
+import { Global, Module, ValidationPipe } from "@nestjs/common";
 import { FastifyAdapter, NestFastifyApplication } from "@nestjs/platform-fastify";
 import { Test, TestingModule } from "@nestjs/testing";
-import { getRepositoryToken } from "@nestjs/typeorm";
-import * as entities from "#/schemas";
 import { AppModule } from "#app/app.module";
-import { createMockRepository } from "#test/mocks/repository";
+import { createMockDrizzleDB } from "#test/mocks/repository";
 import * as interceptors from "$/interceptors";
-import { CustomDatabaseModule } from "$modules/database.module";
+import { CacheService, CustomCacheModule } from "$modules/cache.module";
+import { DRIZZLE, DrizzleModule } from "$modules/drizzle.module";
 
-@Module({})
+@Global()
+@Module({
+  providers: [{ provide: DRIZZLE, useValue: createMockDrizzleDB() }],
+  exports: [DRIZZLE],
+})
 class MockDatabaseModule {}
+
+@Global()
+@Module({
+  providers: [
+    {
+      provide: CACHE_MANAGER,
+      useValue: {
+        get: mock(async () => null),
+        set: mock(async () => undefined),
+        del: mock(async () => undefined),
+        reset: mock(async () => undefined),
+      },
+    },
+    {
+      provide: CacheService,
+      useValue: {
+        musicSearchRateLimit: mock(async () => true),
+        cacheSearchResults: mock(async () => undefined),
+        getCachedVideo: mock(async () => null),
+        getPersonalInformationVerifyTokenSecret: mock(async () => "mock-secret"),
+        setCachedTimetable: mock(async () => undefined),
+        getCachedTimetable: mock(async () => undefined),
+        isNotificationAlreadySent: mock(async () => false),
+      },
+    },
+  ],
+  exports: [CACHE_MANAGER, CacheService],
+})
+class MockCacheModule {}
 
 export class TestApp {
   private app: NestFastifyApplication;
@@ -20,15 +54,10 @@ export class TestApp {
     const moduleFixtureBuilder = Test.createTestingModule({
       imports: [AppModule],
     })
-      .overrideModule(CustomDatabaseModule)
-      .useModule(MockDatabaseModule);
-
-    const allEntities = Object.values(entities);
-    for (const entity of allEntities) {
-      moduleFixtureBuilder
-        .overrideProvider(getRepositoryToken(entity))
-        .useValue(createMockRepository());
-    }
+      .overrideModule(DrizzleModule)
+      .useModule(MockDatabaseModule)
+      .overrideModule(CustomCacheModule)
+      .useModule(MockCacheModule);
 
     const moduleFixture: TestingModule = await moduleFixtureBuilder.compile();
 

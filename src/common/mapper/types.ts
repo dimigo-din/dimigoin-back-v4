@@ -1,4 +1,4 @@
-import type { User } from "#/schemas";
+import type { User } from "#/db/schema";
 
 export const LoginTypeValues = ["password", "google"] as const;
 export type LoginType = (typeof LoginTypeValues)[number];
@@ -45,29 +45,29 @@ export type FacilityReportType = (typeof FacilityReportTypeValues)[number];
 
 /** 대기중, 검토중, 처리중, 완료, 무시됨, 실패 */
 export const FacilityReportStatusValues = [
-  "Waiting",
-  "UnderReview",
-  "Working",
-  "Done",
-  "Ignored",
-  "Failed",
+  "waiting",
+  "under_review",
+  "working",
+  "done",
+  "ignored",
+  "failed",
 ] as const;
 export type FacilityReportStatus = (typeof FacilityReportStatusValues)[number];
 
 export const PushNotificationSubjectIdentifierValues = [
-  "SchoolInformation",
-  "Laundry",
-  "StayApplyReminder",
-  "WakeupSong",
+  "school_information",
+  "laundry",
+  "stay_apply_reminder",
+  "wakeup_song",
 ];
 export type PushNotificationSubjectIdentifier =
   (typeof PushNotificationSubjectIdentifierValues)[number];
 
 export const PushNotificationSubject: Record<PushNotificationSubjectIdentifier, string> = {
-  SchoolInformation: "학교 정보 알림",
-  Laundry: "세탁 알림",
-  StayApplyReminder: "잔류 신청 알림",
-  WakeupSong: "오늘의 기상곡 알림",
+  school_information: "학교 정보 알림",
+  laundry: "세탁 알림",
+  stay_apply_reminder: "잔류 신청 알림",
+  wakeup_song: "오늘의 기상곡 알림",
 };
 
 export type UserJWT = User & { sessionIdentifier?: string };

@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsIn, IsOptional, IsString, Matches } from "class-validator";
-import { User } from "#/schemas";
+import type { User } from "#/db/schema";
 import {
   type FacilityReportStatus,
   FacilityReportStatusValues,
@@ -86,7 +86,7 @@ export class FacilityReportListResDTO {
   @ApiProperty()
   created_at: string;
 
-  @ApiProperty({ type: () => User })
+  @ApiProperty()
   user: User;
 }
 

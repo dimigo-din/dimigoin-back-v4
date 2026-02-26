@@ -1,12 +1,10 @@
 import { Body, Controller, Delete, Get, HttpStatus, Patch, Put, Query } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
-import { PushSubject, PushSubscription, User } from "#/schemas";
+import type { User } from "#/db/schema";
 import { CustomJwtAuthGuard } from "#auth/guards";
-import { PermissionGuard } from "#auth/guards/permission.guard";
 import { UseGuardsWithSwagger } from "#auth/guards/useGuards";
 import { CurrentUser } from "$decorators/user.decorator";
 import { ApiResponseFormat } from "$dto/response_format.dto";
-import { PermissionEnum } from "$mapper/permissions";
 import {
   CreateFCMTokenDTO,
   DeleteFCMTokenDTO,
@@ -18,7 +16,7 @@ import { PushStudentService } from "~push/providers";
 
 @ApiTags("Push Student")
 @Controller("/student/push")
-@UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.STUDENT]))
+@UseGuardsWithSwagger(CustomJwtAuthGuard)
 export class PushStudentController {
   constructor(private readonly pushService: PushStudentService) {}
 
@@ -28,7 +26,6 @@ export class PushStudentController {
   })
   @ApiResponseFormat({
     status: HttpStatus.CREATED,
-    type: PushSubscription,
   })
   @Put("/subscribe")
   async createFCMToken(@CurrentUser() user: User, @Body() data: CreateFCMTokenDTO) {
@@ -41,7 +38,6 @@ export class PushStudentController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: PushSubscription,
   })
   @Delete("/subscribe")
   async removeFCMToken(@CurrentUser() user: User, @Body() data: DeleteFCMTokenDTO) {
@@ -54,7 +50,6 @@ export class PushStudentController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: [PushSubscription],
   })
   @Delete("/unsubscribe/all")
   async unsubscribeAll(@CurrentUser() user: User) {
@@ -80,7 +75,6 @@ export class PushStudentController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: [PushSubject],
   })
   @Get("/subjects/subscribed")
   async getSubscribedSubject(@CurrentUser() user: User, @Query() data: GetSubscribedSubjectDTO) {
@@ -94,7 +88,6 @@ export class PushStudentController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: [PushSubject],
   })
   @Patch("/subjects/subscribed")
   async setSubscribeSubject(@CurrentUser() user: User, @Body() data: SetSubscribeSubjectDTO) {

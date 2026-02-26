@@ -109,7 +109,7 @@ describe("Push Student E2E", () => {
 
       const setSubjects = await ctx.request.patch(
         "/student/push/subjects/subscribed",
-        { deviceId: "test-device", subjects: ["SchoolInformation"] },
+        { deviceId: "test-device", subjects: ["school_information"] },
         ctx.tokens.student.accessToken,
       );
       expect(setSubjects.statusCode).toBe(HttpStatus.OK);

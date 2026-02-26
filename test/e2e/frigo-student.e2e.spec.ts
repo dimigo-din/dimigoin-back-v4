@@ -37,7 +37,7 @@ describe("Frigo Student E2E", () => {
     test("should manage frigo application", async () => {
       const apply = await ctx.request.post(
         "/student/frigo",
-        { timing: "dinner", reason: "visit", grade: 1 },
+        { timing: "dinner", reason: "visit" },
         ctx.tokens.student.accessToken,
       );
       expect(apply.statusCode).toBe(HttpStatus.CREATED);

@@ -50,7 +50,6 @@ export class CacheService {
   private RATELIMIT_PREFIX = "ratelimit_";
   private YOUTUBESEARCH_PREFIX = "youtubeSearch_";
   private NOTIFICATION_PREFIX = "notification_";
-  private PERSONALINFORMATIONVERIFY_SECRET = "PersonalInformationVerifyTokenSecret";
   private redis: RedisClient;
   private logger = new Logger(CacheService.name);
 
@@ -86,18 +85,6 @@ export class CacheService {
   async getCachedVideo(videoId: string) {
     return await this.cacheManager.get<YoutubeVideoItem>(this.YOUTUBESEARCH_PREFIX + videoId);
   }
-
-  async getPersonalInformationVerifyTokenSecret(): Promise<string> {
-    const secret = await this.cacheManager.get<string>(this.PERSONALINFORMATIONVERIFY_SECRET);
-    if (secret) {
-      return secret;
-    }
-
-    await this.cacheManager.set(this.PERSONALINFORMATIONVERIFY_SECRET, Bun.randomUUIDv7());
-
-    return await this.getPersonalInformationVerifyTokenSecret();
-  }
-
   async setCachedTimetable(grade: number, klass: number, data: CachedTimetable[][]) {
     const cacheKey = `timetable:${grade}:${klass}`;
     const currentHour = new TZDate(Date(), "Asia/Seoul").getHours();

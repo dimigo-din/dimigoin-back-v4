@@ -1,10 +1,11 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
-import { InjectRepository } from "@nestjs/typeorm";
-import { Like, Repository } from "typeorm";
-import { Login, User } from "#/schemas";
+import { HttpException, HttpStatus, Inject, Injectable, NotFoundException } from "@nestjs/common";
+import { eq, like } from "drizzle-orm";
+import { login, user } from "#/db/schema";
+import { ErrorMsg } from "$mapper/error";
 import { PermissionType } from "$mapper/permissions";
-import type { Grade } from "$mapper/types";
+import type { Class, Gender, Grade } from "$mapper/types";
+import { ClassValues, GenderValues, GradeValues } from "$mapper/types";
+import { DRIZZLE, type DrizzleDB } from "$modules/drizzle.module";
 import { numberPermission, parsePermission } from "$utils/permission.util";
 import {
   AddPermissionDTO,
@@ -14,136 +15,152 @@ import {
   SetPermissionDTO,
 } from "~user/dto";
 
-// this chuck of code need to be refactored
+type UserDetail = {
+  grade: Grade;
+  class: Class;
+  gender: Gender;
+};
+
 @Injectable()
 export class UserManageService {
-  constructor(
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
-    @InjectRepository(Login)
-    private readonly loginRepository: Repository<Login>,
-    private readonly configService: ConfigService,
-  ) {}
-
-  // TODO: get from array like fetchUserDetail(...email)
-  // async fetchUserDetail(...emails: string[]): Promise<PersonalData[]> {
-  //   const data: PersonalData[] = [];
-  //
-  //   for (const email of emails) {
-  //     const personalInformation = await this.personalInformationRepository.findOne({
-  //       where: { email: email },
-  //     });
-  //
-  //     if (personalInformation)
-  //       data.push({
-  //         gender: personalInformation.gender,
-  //         grade: personalInformation.grade,
-  //         class: personalInformation.class,
-  //         number: personalInformation.number,
-  //         hakbun: personalInformation.hakbun,
-  //       });
-  //     else data.push(null);
-  //   }
-  //
-  //   return data;
-  // }
+  constructor(@Inject(DRIZZLE) private readonly db: DrizzleDB) {}
 
   async searchUser(data: SearchUserDTO) {
-    const users = await this.userRepository.find({
-      where: {
-        name: Like(`%${data.name}%`),
-      },
-    });
-
-    return users;
+    return await this.db
+      .select()
+      .from(user)
+      .where(like(user.name, `%${data.name}%`));
   }
 
-  async checkUserDetail(
-    email: string,
-    config: { gender?: "male" | "female"; grade?: Grade | string },
-  ): Promise<boolean | null> {
-    if (config.grade) {
-      config.grade = config.grade.toString();
-    }
-    const baseURL = this.configService.get<string>("PERSONAL_INFORMATION_SERVER");
-    const token = this.configService.get<string>("PERSONAL_INFORMATION_TOKEN");
-    const res = await Bun.fetch(`${baseURL}/personalInformation/check`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        mail: email,
-        ...config,
-      }),
-    });
-
-    if (res.status === 200) {
-      return (await res.json()) as boolean;
-    }
-
-    if (res.status >= 400 && res.status < 500) {
+  private toUserDetail(value: typeof user.$inferSelect): UserDetail | null {
+    if (
+      value.grade === null ||
+      value.class === null ||
+      value.gender === null ||
+      !GradeValues.includes(value.grade) ||
+      !ClassValues.includes(value.class) ||
+      !GenderValues.includes(value.gender)
+    ) {
       return null;
     }
 
-    throw new Error(`Request failed with status ${res.status}`);
+    return {
+      grade: value.grade,
+      class: value.class,
+      gender: value.gender,
+    };
   }
 
-  async createUser(data: CreateUserDTO): Promise<User> {
-    const user = new User();
-    user.email = data.email;
-    user.name = data.name;
-    user.picture = data.picture;
+  async getUserDetail(userId: string): Promise<UserDetail | null> {
+    const dbUser = await this.db.query.user.findFirst({
+      where: { RAW: (t, { eq }) => eq(t.id, userId) },
+    });
 
-    const login = new Login();
-    login.type = data.loginType;
-    login.identifier1 = data.identifier1;
-    login.identifier2 = data.identifier2;
-    login.user = user;
+    if (!dbUser) {
+      return null;
+    }
 
-    await this.userRepository.save(user);
-    await this.loginRepository.save(login);
-
-    return user;
+    return this.toUserDetail(dbUser);
   }
 
-  async addPasswordLogin(user: string, password: string) {
-    const hashedPassword = await Bun.password.hash(password);
+  async getRequiredUserDetail(userId: string): Promise<UserDetail> {
+    const dbUser = await this.db.query.user.findFirst({
+      where: { RAW: (t, { eq }) => eq(t.id, userId) },
+    });
 
-    const dbUser = await this.userRepository.findOne({ where: { id: user } });
     if (!dbUser) {
       throw new NotFoundException("User not found");
     }
 
-    const login = new Login();
-    login.type = "password";
-    login.identifier1 = dbUser.email;
-    login.identifier2 = hashedPassword;
-    login.user = dbUser;
+    const detail = this.toUserDetail(dbUser);
+    if (!detail) {
+      throw new HttpException(ErrorMsg.PersonalInformation_NotRegistered(), HttpStatus.NOT_FOUND);
+    }
 
-    return await this.loginRepository.save(login);
+    return detail;
   }
 
-  // this bunch of code can be shortened.
-  // but I left it like this for optimization.
-  async setPermission(data: SetPermissionDTO) {
-    const user = await this.userRepository.findOne({ where: { id: data.id } });
-    if (!user) {
+  async createUser(data: CreateUserDTO): Promise<typeof user.$inferSelect> {
+    const [newUser] = await this.db
+      .insert(user)
+      .values({
+        email: data.email,
+        name: data.name,
+        picture: data.picture,
+      })
+      .returning();
+
+    if (!newUser) {
+      throw new NotFoundException("Failed to create user");
+    }
+
+    await this.db.insert(login).values({
+      type: data.loginType,
+      identifier1: data.identifier1,
+      identifier2: data.identifier2,
+      userId: newUser.id,
+    });
+
+    return newUser;
+  }
+
+  async addPasswordLogin(userId: string, password: string) {
+    const hashedPassword = await Bun.password.hash(password);
+
+    const dbUser = await this.db.query.user.findFirst({
+      where: { RAW: (t, { eq }) => eq(t.id, userId) },
+    });
+    if (!dbUser) {
       throw new NotFoundException("User not found");
     }
-    user.permission = numberPermission(...data.permissions).toString();
 
-    return await this.userRepository.save(user);
+    const [newLogin] = await this.db
+      .insert(login)
+      .values({
+        type: "password",
+        identifier1: dbUser.email,
+        identifier2: hashedPassword,
+        userId: dbUser.id,
+      })
+      .returning();
+
+    if (!newLogin) {
+      throw new NotFoundException("Failed to create login");
+    }
+
+    return newLogin;
+  }
+
+  async setPermission(data: SetPermissionDTO) {
+    const dbUser = await this.db.query.user.findFirst({
+      where: { RAW: (t, { eq }) => eq(t.id, data.id) },
+    });
+    if (!dbUser) {
+      throw new NotFoundException("User not found");
+    }
+
+    const [updated] = await this.db
+      .update(user)
+      .set({ permission: numberPermission(...data.permissions).toString() })
+      .where(eq(user.id, data.id))
+      .returning();
+
+    if (!updated) {
+      throw new NotFoundException("Failed to update permission");
+    }
+
+    return updated;
   }
 
   async addPermission(data: AddPermissionDTO) {
-    const user = await this.userRepository.findOne({ where: { id: data.id } });
-    if (!user) {
+    const dbUser = await this.db.query.user.findFirst({
+      where: { RAW: (t, { eq }) => eq(t.id, data.id) },
+    });
+    if (!dbUser) {
       throw new NotFoundException("User not found");
     }
 
-    const permissions = parsePermission(user.permission);
+    const permissions = parsePermission(dbUser.permission);
 
     const addPermissionTarget = data.permissions.filter(
       (p: PermissionType) => !permissions.find((p2) => p2 === p),
@@ -151,23 +168,41 @@ export class UserManageService {
 
     const resultPermission = permissions.concat(addPermissionTarget);
 
-    user.permission = numberPermission(...resultPermission).toString();
+    const [updated] = await this.db
+      .update(user)
+      .set({ permission: numberPermission(...resultPermission).toString() })
+      .where(eq(user.id, data.id))
+      .returning();
 
-    return await this.userRepository.save(user);
+    if (!updated) {
+      throw new NotFoundException("Failed to update permission");
+    }
+
+    return updated;
   }
 
   async removePermission(data: RemovePermissionDTO) {
-    const user = await this.userRepository.findOne({ where: { id: data.id } });
-    if (!user) {
+    const dbUser = await this.db.query.user.findFirst({
+      where: { RAW: (t, { eq }) => eq(t.id, data.id) },
+    });
+    if (!dbUser) {
       throw new NotFoundException("User not found");
     }
 
-    const resultPermissions = parsePermission(user.permission).filter(
+    const resultPermissions = parsePermission(dbUser.permission).filter(
       (p: PermissionType) => !data.permissions.find((p2) => p2 === p),
     ) as PermissionType[];
 
-    user.permission = numberPermission(...resultPermissions).toString();
+    const [updated] = await this.db
+      .update(user)
+      .set({ permission: numberPermission(...resultPermissions).toString() })
+      .where(eq(user.id, data.id))
+      .returning();
 
-    return await this.userRepository.save(user);
+    if (!updated) {
+      throw new NotFoundException("Failed to update permission");
+    }
+
+    return updated;
   }
 }

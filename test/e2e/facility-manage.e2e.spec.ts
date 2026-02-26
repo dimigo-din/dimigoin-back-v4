@@ -89,7 +89,7 @@ describe("Facility Manage E2E", () => {
 
       const changeStatus = await ctx.request.patch(
         "/manage/facility/status",
-        { id: "facility-1", status: "Waiting" },
+        { id: "facility-1", status: "waiting" },
         ctx.tokens.teacher.accessToken,
       );
       expect(changeStatus.statusCode).toBe(HttpStatus.OK);

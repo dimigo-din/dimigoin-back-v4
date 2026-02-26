@@ -1,9 +1,11 @@
-import { Injectable } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
+import { HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { format, startOfWeek } from "date-fns";
-import { Repository } from "typeorm";
-import { FrigoApply, FrigoApplyPeriod, User } from "#/schemas";
-import { safeFindOne } from "$utils/safeFindOne.util";
+import { eq } from "drizzle-orm";
+import { frigoApply, frigoApplyPeriod } from "#/db/schema";
+import { ErrorMsg } from "$mapper/error";
+import { DRIZZLE, type DrizzleDB } from "$modules/drizzle.module";
+import { findOrThrow } from "$utils/findOrThrow.util";
+import { andWhere } from "$utils/where.util";
 import {
   AuditFrigoApply,
   FrigoApplyDTO,
@@ -14,74 +16,156 @@ import {
 
 @Injectable()
 export class FrigoManageService {
-  constructor(
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
-    @InjectRepository(FrigoApply)
-    private readonly frigoApplyRepository: Repository<FrigoApply>,
-    @InjectRepository(FrigoApplyPeriod)
-    private readonly frigoApplyPeriodRepository: Repository<FrigoApplyPeriod>,
-  ) {}
+  constructor(@Inject(DRIZZLE) private readonly db: DrizzleDB) {}
 
   async getApplyPeriod() {
-    return await this.frigoApplyPeriodRepository.find();
+    return await this.db.query.frigoApplyPeriod.findMany();
   }
 
   async setApplyPeriod(data: SetFrigoApplyPeriodDTO) {
-    const exists = await this.frigoApplyPeriodRepository.findOne({ where: { grade: data.grade } });
+    const exists = await this.db.query.frigoApplyPeriod.findFirst({
+      where: { RAW: (t, { eq }) => eq(t.grade, data.grade) },
+    });
 
-    const period = exists || new FrigoApplyPeriod();
-    period.apply_start_day = data.apply_start_day;
-    period.apply_end_day = data.apply_end_day;
-    period.apply_start_hour = data.apply_start_hour;
-    period.apply_end_hour = data.apply_end_hour;
-    period.grade = data.grade;
+    if (exists) {
+      const [updated] = await this.db
+        .update(frigoApplyPeriod)
+        .set({
+          apply_start_day: data.apply_start_day,
+          apply_end_day: data.apply_end_day,
+          apply_start_hour: data.apply_start_hour,
+          apply_end_hour: data.apply_end_hour,
+          grade: data.grade,
+        })
+        .where(eq(frigoApplyPeriod.id, exists.id))
+        .returning();
+      return updated;
+    }
 
-    return await this.frigoApplyPeriodRepository.save(period);
+    const [created] = await this.db
+      .insert(frigoApplyPeriod)
+      .values({
+        apply_start_day: data.apply_start_day,
+        apply_end_day: data.apply_end_day,
+        apply_start_hour: data.apply_start_hour,
+        apply_end_hour: data.apply_end_hour,
+        grade: data.grade,
+      })
+      .returning();
+    return created;
   }
 
   async removeApplyPeriod(data: FrigoApplyPeriodIdDTO) {
-    const period = await safeFindOne<FrigoApplyPeriod>(this.frigoApplyPeriodRepository, data.id);
+    const period = await findOrThrow(
+      this.db.query.frigoApplyPeriod.findFirst({
+        where: { RAW: (t, { eq }) => eq(t.id, data.id) },
+      }),
+    );
 
-    return await this.frigoApplyPeriodRepository.remove(period);
+    await this.db.delete(frigoApplyPeriod).where(eq(frigoApplyPeriod.id, period.id));
+
+    return period;
   }
 
   async getApplyList() {
     const week = format(startOfWeek(new Date()), "yyyy-MM-dd");
-    return await this.frigoApplyRepository.find({ where: { week: week } });
+    return await this.db.query.frigoApply.findMany({
+      where: { RAW: (t, { eq }) => eq(t.week, week) },
+      with: { user: true },
+    });
   }
 
   // considering: separate update and apply
   async apply(data: FrigoApplyDTO) {
-    const user = await safeFindOne<User>(this.userRepository, data.user);
+    const dbUser = await findOrThrow(
+      this.db.query.user.findFirst({ where: { RAW: (t, { eq }) => eq(t.id, data.user) } }),
+    );
 
     const week = format(startOfWeek(new Date()), "yyyy-MM-dd");
-    const exists = await this.frigoApplyRepository.findOne({
-      where: { week: week, user: { id: user.id } },
+    const exists = await this.db.query.frigoApply.findFirst({
+      where: { RAW: (t, { and, eq }) => andWhere(and, eq(t.week, week), eq(t.userId, dbUser.id)) },
     });
 
-    const apply = exists || new FrigoApply();
-    apply.timing = data.timing;
-    apply.reason = data.reason;
-    apply.week = week;
-    apply.user = user;
-    apply.approved = true;
+    if (exists) {
+      const [updated] = await this.db
+        .update(frigoApply)
+        .set({
+          timing: data.timing,
+          reason: data.reason,
+          approved: true,
+        })
+        .where(eq(frigoApply.id, exists.id))
+        .returning();
+      if (!updated) {
+        throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
+      }
+      return await findOrThrow(
+        this.db.query.frigoApply.findFirst({
+          where: { RAW: (t, { eq }) => eq(t.id, updated.id) },
+          with: { user: true },
+        }),
+      );
+    }
 
-    return await this.frigoApplyRepository.save(apply);
+    const [created] = await this.db
+      .insert(frigoApply)
+      .values({
+        timing: data.timing,
+        reason: data.reason,
+        week: week,
+        userId: dbUser.id,
+        approved: true,
+      })
+      .returning();
+    if (!created) {
+      throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
+    }
+    return await findOrThrow(
+      this.db.query.frigoApply.findFirst({
+        where: { RAW: (t, { eq }) => eq(t.id, created.id) },
+        with: { user: true },
+      }),
+    );
   }
 
   async removeApply(data: FrigoApplyIdDTO) {
-    const apply = await safeFindOne<FrigoApply>(this.frigoApplyRepository, data.id);
+    const apply = await findOrThrow(
+      this.db.query.frigoApply.findFirst({
+        where: { RAW: (t, { eq }) => eq(t.id, data.id) },
+        with: { user: true },
+      }),
+    );
 
-    return await this.frigoApplyRepository.remove(apply);
+    await this.db.delete(frigoApply).where(eq(frigoApply.id, apply.id));
+
+    return apply;
   }
 
   async auditApply(data: AuditFrigoApply) {
-    const apply = await safeFindOne<FrigoApply>(this.frigoApplyRepository, data.id);
+    const apply = await findOrThrow(
+      this.db.query.frigoApply.findFirst({
+        where: { RAW: (t, { eq }) => eq(t.id, data.id) },
+        with: { user: true },
+      }),
+    );
 
-    apply.audit_reason = data.audit_reason;
-    apply.approved = data.approved;
+    const [updated] = await this.db
+      .update(frigoApply)
+      .set({
+        audit_reason: data.audit_reason,
+        approved: data.approved,
+      })
+      .where(eq(frigoApply.id, apply.id))
+      .returning();
 
-    return await this.frigoApplyRepository.save(apply);
+    if (!updated) {
+      throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
+    }
+    return await findOrThrow(
+      this.db.query.frigoApply.findFirst({
+        where: { RAW: (t, { eq }) => eq(t.id, updated.id) },
+        with: { user: true },
+      }),
+    );
   }
 }

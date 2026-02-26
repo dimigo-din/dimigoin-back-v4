@@ -1,6 +1,5 @@
 import { Body, Controller, Delete, Get, HttpStatus, Patch, Post, Query } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
-import { Stay, StayApply, StayOuting, StaySchedule, StaySeatPreset } from "#/schemas";
 import { CustomJwtAuthGuard } from "#auth/guards";
 import { PermissionGuard } from "#auth/guards/permission.guard";
 import { UseGuardsWithSwagger } from "#auth/guards/useGuards";
@@ -49,7 +48,6 @@ export class StayManageController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: StaySeatPreset,
   })
   @Get("/seat/preset")
   async getStaySeatPreset(@Query() data: StaySeatPresetIdDTO) {
@@ -62,7 +60,6 @@ export class StayManageController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: StaySeatPreset,
   })
   @Post("/seat/preset")
   async createStaySeatPreset(@Body() data: CreateStaySeatPresetDTO) {
@@ -75,7 +72,6 @@ export class StayManageController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: StaySeatPreset,
   })
   @Patch("/seat/preset")
   async updateStaySeatPreset(@Body() data: UpdateStaySeatPresetDTO) {
@@ -89,7 +85,6 @@ export class StayManageController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: StaySeatPreset,
   })
   @Delete("/seat/preset")
   async deleteStaySeatPreset(@Query() data: StaySeatPresetIdDTO) {
@@ -114,7 +109,6 @@ export class StayManageController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: StaySchedule,
   })
   @Get("/schedule")
   async getStaySchedule(@Query() data: StayScheduleIdDTO) {
@@ -127,7 +121,6 @@ export class StayManageController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: StaySchedule,
   })
   @Post("/schedule")
   async createStaySchedule(@Body() data: CreateStayScheduleDTO) {
@@ -140,7 +133,6 @@ export class StayManageController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: StaySchedule,
   })
   @Patch("/schedule")
   async updateStaySchedule(@Body() data: UpdateStayScheduleDTO) {
@@ -153,7 +145,6 @@ export class StayManageController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: StaySchedule,
   })
   @Delete("/schedule")
   async deleteStaySchedule(@Query() data: StayScheduleIdDTO) {
@@ -178,7 +169,6 @@ export class StayManageController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: Stay,
   })
   @Get("")
   async getStay(@Query() data: StayIdDTO) {
@@ -191,7 +181,6 @@ export class StayManageController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: Stay,
   })
   @Post("")
   async createStay(@Body() data: CreateStayDTO) {
@@ -204,7 +193,6 @@ export class StayManageController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: Stay,
   })
   @Patch("")
   async updateStay(@Body() data: UpdateStayDTO) {
@@ -217,7 +205,6 @@ export class StayManageController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: Stay,
   })
   @Delete("")
   async deleteStay(@Query() data: StayIdDTO) {
@@ -230,7 +217,6 @@ export class StayManageController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: [StayApply],
   })
   @Get("/apply")
   async getStayApply(@Query() data: StayIdDTO) {
@@ -243,7 +229,6 @@ export class StayManageController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: StayApply,
   })
   @Post("/apply")
   async createStayApply(@Body() data: CreateStayApplyDTO) {
@@ -256,7 +241,6 @@ export class StayManageController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: StayApply,
   })
   @Patch("/apply")
   async updateStayApply(@Body() data: UpdateStayApplyDTO) {
@@ -269,7 +253,6 @@ export class StayManageController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: StayApply,
   })
   @Delete("/apply")
   async deleteStayApply(@Query() data: StayApplyIdDTO) {
@@ -282,7 +265,6 @@ export class StayManageController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: StayOuting,
   })
   @Patch("/outing/audit")
   async auditOuting(@Body() data: AuditOutingDTO) {
@@ -295,7 +277,6 @@ export class StayManageController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: StayOuting,
   })
   @Patch("/outing/meal_cancel")
   async updateOutingMealCancel(@Body() data: UpdateOutingMealCancelDTO) {
@@ -308,7 +289,6 @@ export class StayManageController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: [StayApply],
   })
   @Post("/change_seat")
   async moveToSomewhere(@Body() data: MoveToSomewhereDTO) {

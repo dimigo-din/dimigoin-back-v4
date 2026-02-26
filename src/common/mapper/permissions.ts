@@ -1,4 +1,4 @@
-export const UserPermissionValues = ["STUDENT", "TEACHER"] as const;
+export const UserPermissionValues = ["DIENEN", "TEACHER"] as const;
 
 export const ManagementPermissionValues = ["MANAGE_PERMISSION"] as const;
 
@@ -14,12 +14,12 @@ export const PermissionEnum = Object.fromEntries(
 ) as { [key in PermissionType]: number };
 
 // group of well-used permissions
-export const StudentUserPermission: number[] = [PermissionEnum.STUDENT];
+export const DienenUserPermission: number[] = [PermissionEnum.DIENEN];
 export const TeacherUserPermission: number[] = [PermissionEnum.TEACHER];
 export const AdminUserPermission: number[] = Object.values(PermissionEnum);
 
 export const PermissionGroups = {
-  StudentUserPermission,
+  DienenUserPermission,
   TeacherUserPermission,
   AdminUserPermission,
 };

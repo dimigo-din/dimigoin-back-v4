@@ -1,6 +1,5 @@
 import { Controller, Get, HttpStatus, Query } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
-import { WakeupSongHistory } from "#/schemas";
 import { ApiResponseFormat } from "$dto/response_format.dto";
 import { GetDateSongDTO } from "~wakeup/dto/wakeup.dto";
 import { WakeupService } from "~wakeup/providers/wakeup.service";
@@ -16,7 +15,6 @@ export class WakeupController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: WakeupSongHistory,
   })
   @Get("/history")
   async getDateSong(@Query() data: GetDateSongDTO) {

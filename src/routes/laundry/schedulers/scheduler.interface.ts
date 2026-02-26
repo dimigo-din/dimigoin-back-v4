@@ -1,5 +1,7 @@
-import { LaundryTimeline } from "#/schemas";
+import type { laundryTimeline } from "#/db/schema";
+
+type LaundryTimelineRow = typeof laundryTimeline.$inferSelect;
 
 export abstract class LaundryTimelineScheduler {
-  abstract evaluate(timelines: LaundryTimeline[]): Promise<boolean>;
+  abstract evaluate(timelines: LaundryTimelineRow[]): Promise<boolean>;
 }

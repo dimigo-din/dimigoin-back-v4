@@ -14,8 +14,6 @@ const outingPayload = {
 const stayApplyPayload = {
   stay: "stay-1",
   stay_seat: "seat-1",
-  grade: 1,
-  gender: "male",
   outing: [outingPayload],
 };
 
@@ -32,10 +30,7 @@ describe("Stay Student E2E", () => {
 
   describe("GET /student/stay", () => {
     test("should return stay list", async () => {
-      const response = await ctx.request.get(
-        "/student/stay?grade=1",
-        ctx.tokens.student.accessToken,
-      );
+      const response = await ctx.request.get("/student/stay", ctx.tokens.student.accessToken);
 
       expect(response.statusCode).toBe(HttpStatus.OK);
       const body = ctx.request.parseBody<{ ok: boolean; data: unknown[] }>(response);
@@ -45,7 +40,7 @@ describe("Stay Student E2E", () => {
     });
 
     test("should require authentication", async () => {
-      const response = await ctx.request.get("/student/stay?grade=1");
+      const response = await ctx.request.get("/student/stay");
 
       expect(response.statusCode).toBe(HttpStatus.UNAUTHORIZED);
       const body = ctx.request.parseBody<{ statusCode: number; message: unknown }>(response);
@@ -53,18 +48,13 @@ describe("Stay Student E2E", () => {
       expect(body.message).toBeDefined();
     });
 
-    test("should validate grade query", async () => {
+    test("should ignore deprecated grade query", async () => {
       const response = await ctx.request.get(
         "/student/stay?grade=0",
         ctx.tokens.student.accessToken,
       );
 
-      expect(response.statusCode).toBe(HttpStatus.BAD_REQUEST);
-      const body = ctx.request.parseBody(response);
-      const status = body.status ?? body.statusCode ?? response.statusCode;
-      expect(status).toBe(HttpStatus.BAD_REQUEST);
-      const message = body.message ?? body.error ?? body;
-      expect(message).toBeDefined();
+      expect(response.statusCode).toBe(HttpStatus.OK);
     });
   });
 
@@ -88,33 +78,33 @@ describe("Stay Student E2E", () => {
       expect(updatedApply.statusCode).toBe(HttpStatus.OK);
 
       const deletedApply = await ctx.request.delete(
-        "/student/stay/apply?id=stay-1&grade=1",
+        "/student/stay/apply?id=stay-1",
         ctx.tokens.student.accessToken,
       );
       expect(deletedApply.statusCode).toBe(HttpStatus.OK);
 
       const outingList = await ctx.request.get(
-        "/student/stay/outing?id=stay-1&grade=1",
+        "/student/stay/outing?id=stay-1",
         ctx.tokens.student.accessToken,
       );
       expect(outingList.statusCode).toBe(HttpStatus.OK);
 
       const addOuting = await ctx.request.post(
         "/student/stay/outing",
-        { apply_id: "stay-apply-1", outing: outingPayload, grade: 1 },
+        { apply_id: "stay-apply-1", outing: outingPayload },
         ctx.tokens.student.accessToken,
       );
       expect(addOuting.statusCode).toBe(HttpStatus.CREATED);
 
       const editOuting = await ctx.request.patch(
         "/student/stay/outing",
-        { outing_id: "outing-1", outing: outingPayload, grade: 1 },
+        { outing_id: "outing-1", outing: outingPayload },
         ctx.tokens.student.accessToken,
       );
       expect(editOuting.statusCode).toBe(HttpStatus.OK);
 
       const deleteOuting = await ctx.request.delete(
-        "/student/stay/outing?id=outing-1&grade=1",
+        "/student/stay/outing?id=outing-1",
         ctx.tokens.student.accessToken,
       );
       expect(deleteOuting.statusCode).toBe(HttpStatus.OK);

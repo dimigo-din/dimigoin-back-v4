@@ -1,18 +1,16 @@
 import { Body, Controller, Delete, Get, HttpStatus, Post } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
-import { FrigoApply, User } from "#/schemas";
+import type { User } from "#/db/schema";
 import { CustomJwtAuthGuard } from "#auth/guards";
-import { PermissionGuard } from "#auth/guards/permission.guard";
 import { UseGuardsWithSwagger } from "#auth/guards/useGuards";
 import { CurrentUser } from "$decorators/user.decorator";
 import { ApiResponseFormat } from "$dto/response_format.dto";
-import { PermissionEnum } from "$mapper/permissions";
 import { ClientFrigoApplyDTO } from "~frigo/dto/frigo.dto";
 import { FrigoStudentService } from "~frigo/providers";
 
 @ApiTags("Frigo Student")
 @Controller("/student/frigo")
-@UseGuardsWithSwagger(CustomJwtAuthGuard, PermissionGuard([PermissionEnum.STUDENT]))
+@UseGuardsWithSwagger(CustomJwtAuthGuard)
 export class FrigoStudentController {
   constructor(private readonly frigoService: FrigoStudentService) {}
 
@@ -22,7 +20,6 @@ export class FrigoStudentController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: FrigoApply,
   })
   @Get("/")
   async getApply(@CurrentUser() user: User) {
@@ -35,7 +32,6 @@ export class FrigoStudentController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: FrigoApply,
   })
   @Post("/")
   async apply(@CurrentUser() user: User, @Body() data: ClientFrigoApplyDTO) {
@@ -48,7 +44,6 @@ export class FrigoStudentController {
   })
   @ApiResponseFormat({
     status: HttpStatus.OK,
-    type: FrigoApply,
   })
   @Delete("/")
   async cancel(@CurrentUser() user: User) {

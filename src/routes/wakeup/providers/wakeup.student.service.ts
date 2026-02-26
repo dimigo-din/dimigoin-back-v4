@@ -1,14 +1,16 @@
 import { youtube } from "@googleapis/youtube";
-import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
+import { HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { InjectRepository } from "@nestjs/typeorm";
 import { format, startOfWeek } from "date-fns";
-import { Repository } from "typeorm";
-import { User, WakeupSongApplication, WakeupSongVote } from "#/schemas";
+import { and, eq, sql } from "drizzle-orm";
+import { wakeupSongApplication, wakeupSongVote } from "#/db/schema";
 import { ErrorMsg } from "$mapper/error";
 import type { UserJWT, YoutubeSearchResults, YoutubeVideoItem } from "$mapper/types";
 import { CacheService } from "$modules/cache.module";
-import { safeFindOne } from "$utils/safeFindOne.util";
+import { DRIZZLE, type DrizzleDB } from "$modules/drizzle.module";
+import { findOrThrow } from "$utils/findOrThrow.util";
+import { notDeleted } from "$utils/softDelete.util";
+import { andWhere } from "$utils/where.util";
 import { UserManageService } from "~user/providers";
 import {
   RegisterVideoDTO,
@@ -20,19 +22,14 @@ import {
 @Injectable()
 export class WakeupStudentService {
   constructor(
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
-    @InjectRepository(WakeupSongApplication)
-    private readonly wakeupSongApplicationRepository: Repository<WakeupSongApplication>,
-    @InjectRepository(WakeupSongVote)
-    private readonly wakeupSongVoteRepository: Repository<WakeupSongVote>,
+    @Inject(DRIZZLE) private readonly db: DrizzleDB,
     private readonly userManageService: UserManageService,
     private readonly configService: ConfigService,
     private readonly cacheService: CacheService,
   ) {}
 
-  async search(user: UserJWT, data: SearchVideoDTO) {
-    if (!(await this.cacheService.musicSearchRateLimit(user.id))) {
+  async search(userJwt: UserJWT, data: SearchVideoDTO) {
+    if (!(await this.cacheService.musicSearchRateLimit(userJwt.id))) {
       throw new HttpException(ErrorMsg.RateLimit_Exceeded(), HttpStatus.TOO_MANY_REQUESTS);
     }
 
@@ -51,43 +48,55 @@ export class WakeupStudentService {
     return search.data;
   }
 
-  async getApplications(user: UserJWT) {
+  async getApplications(userJwt: UserJWT) {
     const week = format(startOfWeek(new Date()), "yyyy-MM-dd");
+    const { gender } = await this.userManageService.getRequiredUserDetail(userJwt.id);
 
-    const applications = await this.wakeupSongApplicationRepository
-      .createQueryBuilder("application")
-      .leftJoin("application.wakeupSongVote", "vote")
-      .select("application")
-      .addSelect("SUM(CASE WHEN vote.upvote = true THEN 1 ELSE 0 END)", "up")
-      .addSelect("SUM(CASE WHEN vote.upvote = false THEN 1 ELSE 0 END)", "down")
-      .where("application.week = :week AND application.gender = :gender", {
-        week: week,
-        gender: (await this.userManageService.checkUserDetail(user.email, { gender: "male" }))
-          ? "male"
-          : "female",
+    const results = await this.db
+      .select({
+        id: wakeupSongApplication.id,
+        video_id: wakeupSongApplication.video_id,
+        video_title: wakeupSongApplication.video_title,
+        video_thumbnail: wakeupSongApplication.video_thumbnail,
+        video_channel: wakeupSongApplication.video_channel,
+        week: wakeupSongApplication.week,
+        gender: wakeupSongApplication.gender,
+        userId: wakeupSongApplication.userId,
+        deletedAt: wakeupSongApplication.deletedAt,
+        up: sql<number>`SUM(CASE WHEN ${wakeupSongVote.upvote} = true THEN 1 ELSE 0 END)::int`,
+        down: sql<number>`SUM(CASE WHEN ${wakeupSongVote.upvote} = false THEN 1 ELSE 0 END)::int`,
       })
-      .groupBy("application.id")
-      .getRawAndEntities();
+      .from(wakeupSongApplication)
+      .leftJoin(
+        wakeupSongVote,
+        eq(wakeupSongVote.wakeupSongApplicationId, wakeupSongApplication.id),
+      )
+      .where(
+        and(
+          eq(wakeupSongApplication.week, week),
+          eq(wakeupSongApplication.gender, gender),
+          notDeleted(wakeupSongApplication),
+        ),
+      )
+      .groupBy(wakeupSongApplication.id);
 
-    const result = applications.entities.map((app, index) => ({
-      ...app,
-      up: parseInt(applications.raw[index].up, 10) || 0,
-      down: parseInt(applications.raw[index].down, 10) || 0,
-    }));
-
-    return result;
+    return results;
   }
 
-  async registerVideo(user: UserJWT, data: RegisterVideoDTO) {
+  async registerVideo(userJwt: UserJWT, data: RegisterVideoDTO) {
     const week = format(startOfWeek(new Date()), "yyyy-MM-dd");
+    const { gender } = await this.userManageService.getRequiredUserDetail(userJwt.id);
 
-    const exists = await this.wakeupSongApplicationRepository.findOne({
+    const exists = await this.db.query.wakeupSongApplication.findFirst({
       where: {
-        video_id: data.videoId,
-        week: week,
-        gender: (await this.userManageService.checkUserDetail(user.email, { gender: "male" }))
-          ? "male"
-          : "female",
+        RAW: (t, { and, eq, isNull }) =>
+          andWhere(
+            and,
+            eq(t.video_id, data.videoId),
+            eq(t.week, week),
+            eq(t.gender, gender),
+            isNull(t.deletedAt),
+          ),
       },
     });
     if (exists) {
@@ -114,70 +123,104 @@ export class WakeupStudentService {
       throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
     }
 
-    const dbUser = await safeFindOne<User>(this.userRepository, user.id);
-    const application = new WakeupSongApplication();
-    application.video_id = videoData.id.videoId;
-    application.video_title = videoData.snippet.title;
-    application.video_thumbnail = videoData.snippet.thumbnails.default.url;
-    application.video_channel = videoData.snippet.channelTitle;
-    application.week = week;
-    application.gender = (await this.userManageService.checkUserDetail(user.email, {
-      gender: "male",
-    }))
-      ? "male"
-      : "female";
-    application.user = dbUser;
+    const dbUser = await findOrThrow(
+      this.db.query.user.findFirst({ where: { RAW: (t, { eq }) => eq(t.id, userJwt.id) } }),
+    );
 
     try {
-      return await this.wakeupSongApplicationRepository.save(application);
+      const [application] = await this.db
+        .insert(wakeupSongApplication)
+        .values({
+          video_id: videoData.id.videoId,
+          video_title: videoData.snippet.title,
+          video_thumbnail: videoData.snippet.thumbnails.default.url,
+          video_channel: videoData.snippet.channelTitle,
+          week: week,
+          gender: gender,
+          userId: dbUser.id,
+        })
+        .returning();
+
+      return application;
     } catch (_e) {}
   }
 
-  async getMyVotes(user: UserJWT) {
+  async getMyVotes(userJwt: UserJWT) {
     const week = format(startOfWeek(new Date()), "yyyy-MM-dd");
-    const dbUser = await safeFindOne<User>(this.userRepository, user.id);
-
-    return await this.wakeupSongVoteRepository.find({
-      where: { user: dbUser, wakeupSongApplication: { week: week } },
-      relations: { wakeupSongApplication: true },
-    });
-  }
-
-  async vote(user: UserJWT, data: VoteVideoDTO) {
-    const dbUser = await safeFindOne<User>(this.userRepository, user.id);
-    const application = await safeFindOne<WakeupSongApplication>(
-      this.wakeupSongApplicationRepository,
-      {
-        where: {
-          id: data.songId,
-          gender: (await this.userManageService.checkUserDetail(user.email, { gender: "male" }))
-            ? "male"
-            : "female",
-        },
-      },
+    await findOrThrow(
+      this.db.query.user.findFirst({ where: { RAW: (t, { eq }) => eq(t.id, userJwt.id) } }),
     );
 
-    const exists = await this.wakeupSongVoteRepository.findOne({
-      where: { user: dbUser, wakeupSongApplication: application },
+    return await this.db.query.wakeupSongVote
+      .findMany({
+        where: {
+          RAW: (t, { and, eq, isNull }) =>
+            andWhere(and, eq(t.userId, userJwt.id), isNull(t.deletedAt)),
+        },
+        with: {
+          wakeupSongApplication: true,
+        },
+      })
+      .then((votes) => votes.filter((v) => v.wakeupSongApplication?.week === week));
+  }
+
+  async vote(userJwt: UserJWT, data: VoteVideoDTO) {
+    const dbUser = await findOrThrow(
+      this.db.query.user.findFirst({ where: { RAW: (t, { eq }) => eq(t.id, userJwt.id) } }),
+    );
+    const { gender } = await this.userManageService.getRequiredUserDetail(userJwt.id);
+
+    const application = await findOrThrow(
+      this.db.query.wakeupSongApplication.findFirst({
+        where: {
+          RAW: (t, { and, eq, isNull }) =>
+            andWhere(and, eq(t.id, data.songId), eq(t.gender, gender), isNull(t.deletedAt)),
+        },
+      }),
+    );
+
+    const exists = await this.db.query.wakeupSongVote.findFirst({
+      where: {
+        RAW: (t, { and, eq, isNull }) =>
+          andWhere(
+            and,
+            eq(t.userId, dbUser.id),
+            eq(t.wakeupSongApplicationId, application.id),
+            isNull(t.deletedAt),
+          ),
+      },
     });
     if (exists) {
       throw new HttpException(ErrorMsg.ResourceAlreadyExists(), HttpStatus.BAD_REQUEST);
     }
 
-    const wakeupSongVote = new WakeupSongVote();
-    wakeupSongVote.upvote = data.upvote;
-    wakeupSongVote.wakeupSongApplication = application;
-    wakeupSongVote.user = dbUser;
+    const [vote] = await this.db
+      .insert(wakeupSongVote)
+      .values({
+        upvote: data.upvote,
+        wakeupSongApplicationId: application.id,
+        userId: dbUser.id,
+      })
+      .returning();
 
-    return await this.wakeupSongVoteRepository.save(wakeupSongVote);
+    return vote;
   }
 
-  async unVote(user: UserJWT, data: VoteIdDTO) {
-    const dbUser = await safeFindOne<User>(this.userRepository, user.id);
-    const vote = await safeFindOne<WakeupSongVote>(this.wakeupSongVoteRepository, {
-      where: { user: dbUser, id: data.id },
-    });
+  async unVote(userJwt: UserJWT, data: VoteIdDTO) {
+    const dbUser = await findOrThrow(
+      this.db.query.user.findFirst({ where: { RAW: (t, { eq }) => eq(t.id, userJwt.id) } }),
+    );
+    const vote = await findOrThrow(
+      this.db.query.wakeupSongVote.findFirst({
+        where: {
+          RAW: (t, { and, eq, isNull }) =>
+            andWhere(and, eq(t.userId, dbUser.id), eq(t.id, data.id), isNull(t.deletedAt)),
+        },
+      }),
+    );
 
-    return await this.wakeupSongVoteRepository.remove(vote);
+    await this.db.delete(wakeupSongVote).where(eq(wakeupSongVote.id, vote.id));
+
+    return vote;
   }
 }

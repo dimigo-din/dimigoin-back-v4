@@ -28,8 +28,13 @@ ENV NODE_ENV=prod
 WORKDIR /app
 COPY --chown=bun:bun --from=build /app/dist ./dist
 COPY --chown=bun:bun --from=build /app/src ./src
+COPY --chown=bun:bun --from=build /app/drizzle ./drizzle
 COPY --chown=bun:bun --from=prod-deps /app/node_modules ./node_modules
-COPY --chown=bun:bun entrypoint.sh package.json tsconfig.json ./
+COPY --chown=bun:bun entrypoint.sh package.json tsconfig.json drizzle.config.ts ./
 RUN chmod 700 ./entrypoint.sh
+
+HEALTHCHECK --interval=1s --timeout=3s --start-period=60s --retries=1 \
+  CMD curl -fsS http://localhost:3000/health || exit 1
+
 USER bun
 ENTRYPOINT ["./entrypoint.sh"]

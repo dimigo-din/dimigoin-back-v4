@@ -1,18 +1,18 @@
-import { HttpException, HttpStatus, Injectable, NotFoundException } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
+import { HttpException, HttpStatus, Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { isEqual } from "date-fns";
-import { LessThanOrEqual, MoreThanOrEqual, Repository } from "typeorm";
-import { Stay, StayApply, StayApplyPeriod_Stay, StayOuting, StaySeatPreset, User } from "#/schemas";
+import { eq } from "drizzle-orm";
+import { stayApply, stayOuting } from "#/db/schema";
 import { SelfDevelopment_Outing_From, SelfDevelopment_Outing_To } from "$mapper/constants";
 import { ErrorMsg } from "$mapper/error";
 import type { Gender, Grade, UserJWT } from "$mapper/types";
-import { safeFindOne } from "$utils/safeFindOne.util";
-import { isInValidRange, isInRange } from "$utils/staySeat.util";
+import { DRIZZLE, type DrizzleDB } from "$modules/drizzle.module";
+import { findOrThrow } from "$utils/findOrThrow.util";
+import { isInRange, isInValidRange } from "$utils/staySeat.util";
+import { andWhere } from "$utils/where.util";
 import {
   AddStayOutingDTO,
   CreateUserStayApplyDTO,
   EditStayOutingDTO,
-  GetStayListDTO,
   StayIdDTO,
   StayOutingIdDTO,
 } from "~stay/dto/stay.student.dto";
@@ -21,417 +21,582 @@ import { UserManageService } from "~user/providers";
 @Injectable()
 export class StayStudentService {
   constructor(
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
-    @InjectRepository(Stay)
-    private readonly stayRepository: Repository<Stay>,
-    @InjectRepository(StayApply)
-    private readonly stayApplyRepository: Repository<StayApply>,
-    @InjectRepository(StayOuting)
-    private readonly stayOutingRepository: Repository<StayOuting>,
+    @Inject(DRIZZLE) private readonly db: DrizzleDB,
     private readonly userManageService: UserManageService,
   ) {}
 
-  // just give all stay?
-  async getStayList(user: UserJWT, _data: GetStayListDTO) {
-    const _now = new Date().toISOString();
-
-    const stays = await this.stayRepository
-      .createQueryBuilder("stay")
-      .innerJoin("stay.stay_apply_period", "stay_apply_period")
-      .leftJoin("stay.stay_apply", "stay_apply")
-      .leftJoin("stay_apply.user", "user")
-      .leftJoin("stay.stay_seat_preset", "stay_seat_preset")
-      .leftJoin("stay_seat_preset.stay_seat", "stay_seat")
-      .select([
-        "stay.id",
-        "stay.name",
-        "stay.stay_from",
-        "stay.stay_to",
-        "stay.outing_day",
-        "stay_apply.id",
-        "stay_apply.stay_seat",
-        "stay_seat_preset",
-        "stay_seat",
-        "stay_apply_period",
-        "user.id",
-        "user.name",
-      ])
-      .orderBy("stay.stay_from", "ASC")
-      .getMany();
-
-    return stays.map((stay) => ({
-      id: stay.id,
-      name: stay.name,
-      stay_from: stay.stay_from,
-      stay_to: stay.stay_to,
-      outing_day: stay.outing_day,
-      stay_seat_preset: stay.stay_seat_preset,
-      stay_apply_period: stay.stay_apply_period,
-      stay_apply: stay.stay_apply.map((stay_apply) => ({
-        ...(user.id === stay_apply.user.id ? { id: stay_apply.id } : {}),
-        stay_seat: stay_apply.stay_seat,
-        user: { id: stay_apply.user.id, name: stay_apply.user.name },
-      })),
-    }));
-  }
-
-  async getStayApplies(user: UserJWT) {
-    return await this.stayApplyRepository.find({
-      where: { user: { id: user.id } },
-      relations: { stay: true },
-    });
-  }
-
-  async createStayApply(user: UserJWT, data: CreateUserStayApplyDTO) {
-    const target = await safeFindOne<User>(this.userRepository, user.id);
-
-    const stay = await safeFindOne<Stay>(
-      this.stayRepository,
-      {
-        where: {
-          id: data.stay,
-          stay_apply_period: {
-            grade: data.grade,
-            apply_start: LessThanOrEqual(new Date()),
-            apply_end: MoreThanOrEqual(new Date()),
+  async getStayList(userJwt: UserJWT) {
+    const stays = await this.db.query.stay.findMany({
+      with: {
+        stayApplyPeriodStay: true,
+        stayApply: {
+          with: {
+            user: true,
+          },
+        },
+        staySeatPreset: {
+          with: {
+            staySeatPresetRange: true,
           },
         },
       },
-      new HttpException(ErrorMsg.Stay_NotInApplyPeriod(), HttpStatus.NOT_FOUND),
+      orderBy: (stay, { asc }) => [asc(stay.stay_from)],
+    });
+
+    return stays.map((s) => ({
+      id: s.id,
+      name: s.name,
+      stay_from: s.stay_from,
+      stay_to: s.stay_to,
+      outing_day: s.outing_day,
+      stay_seat_preset: s.staySeatPreset
+        ? {
+            ...s.staySeatPreset,
+            stay_seat: s.staySeatPreset.staySeatPresetRange,
+          }
+        : null,
+      stay_apply_period: s.stayApplyPeriodStay,
+      stay_apply: s.stayApply
+        .filter(
+          (sa): sa is (typeof s.stayApply)[number] & { user: { id: string; name: string } } =>
+            !!sa.user,
+        )
+        .map((sa) => ({
+          ...(userJwt.id === sa.user.id ? { id: sa.id } : {}),
+          stay_seat: sa.stay_seat,
+          user: { id: sa.user.id, name: sa.user.name },
+        })),
+    }));
+  }
+
+  async getStayApplies(userJwt: UserJWT) {
+    return await this.db.query.stayApply.findMany({
+      where: { RAW: (t, { eq }) => eq(t.userId, userJwt.id) },
+      with: {
+        user: true,
+        outing: true,
+        stay: {
+          with: {
+            stayApplyPeriodStay: true,
+            staySeatPreset: {
+              with: {
+                staySeatPresetRange: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
+  async createStayApply(userJwt: UserJWT, data: CreateUserStayApplyDTO) {
+    const userDetail = await this.userManageService.getRequiredUserDetail(userJwt.id);
+
+    const now = new Date();
+    const stayRow = await findOrThrow(
+      this.db.query.stay.findFirst({
+        where: { RAW: (t, { eq }) => eq(t.id, data.stay) },
+        with: {
+          stayApplyPeriodStay: true,
+          staySeatPreset: {
+            with: {
+              staySeatPresetRange: true,
+            },
+          },
+        },
+      }),
     );
 
-    const exists = await this.stayApplyRepository.findOne({
-      where: { user: target, stay: { id: data.stay } },
+    // Validate apply period
+    const validPeriod = stayRow.stayApplyPeriodStay?.find(
+      (p: { grade: number; apply_start: Date; apply_end: Date }) =>
+        p.grade === Number(userDetail.grade) &&
+        new Date(p.apply_start) <= now &&
+        new Date(p.apply_end) >= now,
+    );
+    if (!validPeriod) {
+      throw new HttpException(ErrorMsg.Stay_NotInApplyPeriod(), HttpStatus.NOT_FOUND);
+    }
+
+    const exists = await this.db.query.stayApply.findFirst({
+      where: {
+        RAW: (t, { and, eq }) => andWhere(and, eq(t.userId, userJwt.id), eq(t.stayId, data.stay)),
+      },
     });
     if (exists) {
       throw new HttpException(ErrorMsg.Stay_AlreadyApplied(), HttpStatus.BAD_REQUEST);
     }
 
-    const staySeatCheck = await this.stayApplyRepository.findOne({
-      where: { stay_seat: data.stay_seat.toUpperCase(), stay: { id: data.stay } },
+    const staySeatCheck = await this.db.query.stayApply.findFirst({
+      where: {
+        RAW: (t, { and, eq }) =>
+          andWhere(and, eq(t.stay_seat, data.stay_seat.toUpperCase()), eq(t.stayId, data.stay)),
+      },
     });
     if (staySeatCheck && isInValidRange(staySeatCheck.stay_seat)) {
       throw new HttpException(ErrorMsg.StaySeat_Duplication(), HttpStatus.BAD_REQUEST);
     }
 
-    if (
-      !(await this.isAvailableSeat(
-        user,
-        stay.stay_seat_preset,
-        data.stay_seat,
-        data.grade,
-        data.gender,
-      ))
-    ) {
+    const presetForSeat = stayRow.staySeatPreset
+      ? {
+          ...stayRow.staySeatPreset,
+          stay_seat: stayRow.staySeatPreset.staySeatPresetRange,
+        }
+      : null;
+
+    if (!this.isAvailableSeat(presetForSeat, data.stay_seat, userDetail.grade, userDetail.gender)) {
       throw new HttpException(ErrorMsg.StaySeat_NotAllowed(), HttpStatus.BAD_REQUEST);
     }
 
-    const stayApply = new StayApply();
-    stayApply.stay_seat = data.stay_seat.toUpperCase();
-    stayApply.user = target;
-    stayApply.stay = stay;
+    const [savedApply] = await this.db
+      .insert(stayApply)
+      .values({
+        stay_seat: data.stay_seat.toUpperCase(),
+        userId: userJwt.id,
+        stayId: data.stay,
+      })
+      .returning();
 
-    stayApply.outing = [];
-    for (const outingData of data.outing) {
-      // TODO[high]: validate outing range
-      const outing = new StayOuting();
-      outing.reason = outingData.reason;
-      outing.breakfast_cancel = outingData.breakfast_cancel;
-      outing.lunch_cancel = outingData.lunch_cancel;
-      outing.dinner_cancel = outingData.dinner_cancel;
-      outing.from = outingData.from;
-      outing.to = outingData.to;
-      outing.stay_apply = stayApply;
-      outing.approved =
-        (outingData.reason === "자기계발외출" &&
-          !outingData.breakfast_cancel &&
-          !outingData.dinner_cancel &&
-          stay.outing_day.every((d) =>
-            isEqual(new Date(SelfDevelopment_Outing_From(d)), new Date(outingData.from)),
-          ) &&
-          stay.outing_day.every((d) =>
-            isEqual(new Date(SelfDevelopment_Outing_To(d)), new Date(outingData.to)),
-          )) ||
-        null;
-
-      stayApply.outing.push(outing);
-    }
-
-    const saved = await this.stayApplyRepository.save(stayApply);
-    return await safeFindOne<StayApply>(this.stayApplyRepository, saved.id);
-  }
-
-  async updateStayApply(user: UserJWT, data: CreateUserStayApplyDTO) {
-    const dbUser = await safeFindOne<User>(this.userRepository, user.id);
-    const stayApply = await safeFindOne<StayApply>(this.stayApplyRepository, {
-      where: { user: dbUser, stay: { id: data.stay } },
-      relations: { stay: true },
-    });
-    if (stayApply.user.id !== user.id) {
-      throw new HttpException(ErrorMsg.PermissionDenied_Resource(), HttpStatus.FORBIDDEN);
-    }
-
-    if (!(await this.validateStayPeriod(user, data.grade, stayApply.stay.stay_apply_period))) {
-      throw new HttpException(ErrorMsg.Stay_NotInApplyPeriod(), HttpStatus.FORBIDDEN);
-    }
-
-    const staySeatCheck = await this.stayApplyRepository.findOne({
-      where: { stay_seat: data.stay_seat.toUpperCase(), stay: { id: stayApply.stay.id } },
-    });
-    if (staySeatCheck && staySeatCheck.id !== stayApply.id && isInValidRange(staySeatCheck.stay_seat)) {
-      throw new HttpException(ErrorMsg.StaySeat_Duplication(), HttpStatus.BAD_REQUEST);
-    }
-
-    if (
-      !(await this.isAvailableSeat(
-        user,
-        stayApply.stay.stay_seat_preset,
-        data.stay_seat,
-        data.grade,
-        data.gender,
-      ))
-    ) {
-      throw new HttpException(ErrorMsg.StaySeat_NotAllowed(), HttpStatus.BAD_REQUEST);
-    }
-
-    stayApply.stay_seat = data.stay_seat.toUpperCase();
-    stayApply.user = dbUser;
-
-    const outings = [];
-    for (const outingData of data.outing) {
-      const outing = new StayOuting();
-      outing.reason = outingData.reason;
-      outing.breakfast_cancel = outingData.breakfast_cancel;
-      outing.lunch_cancel = outingData.lunch_cancel;
-      outing.dinner_cancel = outingData.dinner_cancel;
-      outing.from = outingData.from;
-      outing.to = outingData.to;
-      outing.audit_reason = null;
-      outing.approved = null;
-      outing.stay_apply = stayApply;
-      outing.approved =
-        (outingData.reason === "자기계발외출" &&
-          !outingData.breakfast_cancel &&
-          !outingData.dinner_cancel &&
-          stayApply.stay.outing_day.every((d) =>
-            isEqual(new Date(SelfDevelopment_Outing_From(d)), new Date(outingData.from)),
-          ) &&
-          stayApply.stay.outing_day.every((d) =>
-            isEqual(new Date(SelfDevelopment_Outing_To(d)), new Date(outingData.to)),
-          )) ||
-        null;
-
-      outings.push(outing);
-    }
-
-    await this.stayOutingRepository.remove(stayApply.outing);
-    stayApply.outing = outings;
-    const saved = await this.stayApplyRepository.save(stayApply);
-    return await safeFindOne<StayApply>(this.stayApplyRepository, saved.id);
-  }
-
-  async deleteStayApply(user: UserJWT, data: StayIdDTO) {
-    const _now = new Date();
-
-    const stayApply = await this.stayApplyRepository.findOne({
-      where: { id: data.id },
-      relations: ["stay", "stay.stay_apply_period"],
-    });
-    if (!stayApply) {
+    if (!savedApply) {
       throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
     }
 
-    if (stayApply.user.id !== user.id) {
+    const outingValues: (typeof stayOuting.$inferInsert)[] = [];
+    for (const outingData of data.outing) {
+      const approved =
+        (outingData.reason === "자기계발외출" &&
+          !outingData.breakfast_cancel &&
+          !outingData.dinner_cancel &&
+          stayRow.outing_day.every((d: string) =>
+            isEqual(new Date(SelfDevelopment_Outing_From(d)), new Date(outingData.from)),
+          ) &&
+          stayRow.outing_day.every((d: string) =>
+            isEqual(new Date(SelfDevelopment_Outing_To(d)), new Date(outingData.to)),
+          )) ||
+        null;
+
+      outingValues.push({
+        reason: outingData.reason,
+        breakfast_cancel: outingData.breakfast_cancel,
+        lunch_cancel: outingData.lunch_cancel,
+        dinner_cancel: outingData.dinner_cancel,
+        from: outingData.from,
+        to: outingData.to,
+        approved,
+        stayApplyId: savedApply.id,
+      });
+    }
+
+    if (outingValues.length > 0) {
+      await this.db.insert(stayOuting).values(outingValues);
+    }
+
+    return await findOrThrow(
+      this.db.query.stayApply.findFirst({
+        where: { RAW: (t, { eq }) => eq(t.id, savedApply.id) },
+        with: {
+          user: true,
+          outing: true,
+          stay: {
+            with: {
+              stayApplyPeriodStay: true,
+              staySeatPreset: {
+                with: {
+                  staySeatPresetRange: true,
+                },
+              },
+            },
+          },
+        },
+      }),
+    );
+  }
+
+  async updateStayApply(userJwt: UserJWT, data: CreateUserStayApplyDTO) {
+    const userDetail = await this.userManageService.getRequiredUserDetail(userJwt.id);
+
+    const existing = await findOrThrow(
+      this.db.query.stayApply.findFirst({
+        where: {
+          RAW: (t, { and, eq }) => andWhere(and, eq(t.userId, userJwt.id), eq(t.stayId, data.stay)),
+        },
+        with: {
+          user: true,
+          outing: true,
+          stay: {
+            with: {
+              stayApplyPeriodStay: true,
+              staySeatPreset: {
+                with: {
+                  staySeatPresetRange: true,
+                },
+              },
+            },
+          },
+        },
+      }),
+    );
+
+    if (!existing.stay) {
+      throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
+    }
+    const stay = existing.stay;
+
+    if (existing?.user?.id !== userJwt.id) {
       throw new HttpException(ErrorMsg.PermissionDenied_Resource(), HttpStatus.FORBIDDEN);
     }
 
-    if (!(await this.userManageService.checkUserDetail(user.email, { grade: data.grade }))) {
-      throw new HttpException(ErrorMsg.PermissionDenied_Resource(), HttpStatus.FORBIDDEN);
-    }
-
-    if (!(await this.validateStayPeriod(user, data.grade, stayApply.stay.stay_apply_period))) {
+    if (!this.validateStayPeriod(userDetail.grade, stay.stayApplyPeriodStay)) {
       throw new HttpException(ErrorMsg.Stay_NotInApplyPeriod(), HttpStatus.FORBIDDEN);
     }
 
-    return this.stayApplyRepository.remove(stayApply);
-  }
-
-  async getStayOuting(user: UserJWT, data: StayIdDTO) {
-    const target = await safeFindOne<User>(this.userRepository, user.id);
-
-    return await this.stayOutingRepository.find({
-      where: { stay_apply: { id: data.id, user: target } },
-    });
-  }
-
-  async addStayOuting(user: UserJWT, data: AddStayOutingDTO) {
-    const target = await safeFindOne<User>(this.userRepository, user.id);
-    const apply = await safeFindOne<StayApply>(this.stayApplyRepository, {
+    const staySeatCheck = await this.db.query.stayApply.findFirst({
       where: {
-        id: data.apply_id,
+        RAW: (t, { and, eq }) =>
+          andWhere(and, eq(t.stay_seat, data.stay_seat.toUpperCase()), eq(t.stayId, stay.id)),
       },
-      relations: { stay: true },
     });
+    if (
+      staySeatCheck &&
+      staySeatCheck.id !== existing.id &&
+      isInValidRange(staySeatCheck.stay_seat)
+    ) {
+      throw new HttpException(ErrorMsg.StaySeat_Duplication(), HttpStatus.BAD_REQUEST);
+    }
+
+    const presetForSeat = stay.staySeatPreset
+      ? {
+          ...stay.staySeatPreset,
+          stay_seat: stay.staySeatPreset.staySeatPresetRange,
+        }
+      : null;
+
+    if (!this.isAvailableSeat(presetForSeat, data.stay_seat, userDetail.grade, userDetail.gender)) {
+      throw new HttpException(ErrorMsg.StaySeat_NotAllowed(), HttpStatus.BAD_REQUEST);
+    }
+
+    await this.db
+      .update(stayApply)
+      .set({
+        stay_seat: data.stay_seat.toUpperCase(),
+        userId: userJwt.id,
+      })
+      .where(eq(stayApply.id, existing.id));
+
+    // Remove old outings and insert new ones
+    await this.db.delete(stayOuting).where(eq(stayOuting.stayApplyId, existing.id));
+
+    const outingValues: (typeof stayOuting.$inferInsert)[] = [];
+    for (const outingData of data.outing) {
+      const approved =
+        (outingData.reason === "자기계발외출" &&
+          !outingData.breakfast_cancel &&
+          !outingData.dinner_cancel &&
+          existing.stay.outing_day.every((d: string) =>
+            isEqual(new Date(SelfDevelopment_Outing_From(d)), new Date(outingData.from)),
+          ) &&
+          existing.stay.outing_day.every((d: string) =>
+            isEqual(new Date(SelfDevelopment_Outing_To(d)), new Date(outingData.to)),
+          )) ||
+        null;
+
+      outingValues.push({
+        reason: outingData.reason,
+        breakfast_cancel: outingData.breakfast_cancel,
+        lunch_cancel: outingData.lunch_cancel,
+        dinner_cancel: outingData.dinner_cancel,
+        from: outingData.from,
+        to: outingData.to,
+        audit_reason: null,
+        approved,
+        stayApplyId: existing.id,
+      });
+    }
+
+    if (outingValues.length > 0) {
+      await this.db.insert(stayOuting).values(outingValues);
+    }
+
+    return await findOrThrow(
+      this.db.query.stayApply.findFirst({
+        where: { RAW: (t, { eq }) => eq(t.id, existing.id) },
+        with: {
+          user: true,
+          outing: true,
+          stay: {
+            with: {
+              stayApplyPeriodStay: true,
+              staySeatPreset: {
+                with: {
+                  staySeatPresetRange: true,
+                },
+              },
+            },
+          },
+        },
+      }),
+    );
+  }
+
+  async deleteStayApply(userJwt: UserJWT, data: StayIdDTO) {
+    const userDetail = await this.userManageService.getRequiredUserDetail(userJwt.id);
+
+    const existing = await this.db.query.stayApply.findFirst({
+      where: { RAW: (t, { eq }) => eq(t.id, data.id) },
+      with: {
+        user: true,
+        outing: true,
+        stay: {
+          with: {
+            stayApplyPeriodStay: true,
+            staySeatPreset: {
+              with: {
+                staySeatPresetRange: true,
+              },
+            },
+          },
+        },
+      },
+    });
+    if (!existing) {
+      throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
+    }
+
+    if (!existing.user || !existing.stay) {
+      throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
+    }
+
+    if (existing.user.id !== userJwt.id) {
+      throw new HttpException(ErrorMsg.PermissionDenied_Resource(), HttpStatus.FORBIDDEN);
+    }
+
+    if (!this.validateStayPeriod(userDetail.grade, existing.stay.stayApplyPeriodStay)) {
+      throw new HttpException(ErrorMsg.Stay_NotInApplyPeriod(), HttpStatus.FORBIDDEN);
+    }
+
+    await this.db.delete(stayApply).where(eq(stayApply.id, data.id));
+    return existing;
+  }
+
+  async getStayOuting(userJwt: UserJWT, data: StayIdDTO) {
+    await findOrThrow(
+      this.db.query.user.findFirst({ where: { RAW: (t, { eq }) => eq(t.id, userJwt.id) } }),
+    );
+
+    return await this.db.query.stayOuting.findMany({
+      where: { RAW: (t, { eq }) => eq(t.stayApplyId, data.id) },
+    });
+  }
+
+  async addStayOuting(userJwt: UserJWT, data: AddStayOutingDTO) {
+    const userDetail = await this.userManageService.getRequiredUserDetail(userJwt.id);
+
+    const apply = await findOrThrow(
+      this.db.query.stayApply.findFirst({
+        where: { RAW: (t, { eq }) => eq(t.id, data.apply_id) },
+        with: {
+          stay: {
+            with: {
+              stayApplyPeriodStay: true,
+            },
+          },
+          user: true,
+        },
+      }),
+    );
+
+    if (!apply.stay || !apply.user) {
+      throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
+    }
 
     // verification period
-    if (!(await this.validateStayPeriod(user, data.grade, apply.stay.stay_apply_period))) {
+    if (!this.validateStayPeriod(userDetail.grade, apply.stay.stayApplyPeriodStay)) {
       throw new HttpException(ErrorMsg.Stay_NotInApplyPeriod(), HttpStatus.FORBIDDEN);
     }
-    if (apply.user.id !== target.id) {
+    if (apply.user.id !== userJwt.id) {
       throw new HttpException(ErrorMsg.PermissionDenied_Resource(), HttpStatus.FORBIDDEN);
     }
 
-    const outing = new StayOuting();
-    outing.reason = data.outing.reason;
-    outing.breakfast_cancel = data.outing.breakfast_cancel;
-    outing.lunch_cancel = data.outing.lunch_cancel;
-    outing.dinner_cancel = data.outing.dinner_cancel;
-    outing.from = data.outing.from;
-    outing.to = data.outing.to;
-    outing.audit_reason = null;
-    outing.stay_apply = apply;
-    outing.approved =
+    const approved =
       (data.outing.reason === "자기계발외출" &&
         !data.outing.breakfast_cancel &&
         !data.outing.dinner_cancel &&
-        apply.stay.outing_day.every((d) =>
+        apply.stay.outing_day.every((d: string) =>
           isEqual(new Date(SelfDevelopment_Outing_From(d)), new Date(data.outing.from)),
         ) &&
-        apply.stay.outing_day.every((d) =>
+        apply.stay.outing_day.every((d: string) =>
           isEqual(new Date(SelfDevelopment_Outing_To(d)), new Date(data.outing.to)),
         )) ||
       null;
 
-    if (outing.from >= outing.to) {
+    if (data.outing.from >= data.outing.to) {
       throw new HttpException(ErrorMsg.ProvidedTime_Invalid(), HttpStatus.BAD_REQUEST);
     }
 
-    const saved = await this.stayOutingRepository.save(outing);
-    return await safeFindOne<StayOuting>(this.stayOutingRepository, saved.id);
+    const [saved] = await this.db
+      .insert(stayOuting)
+      .values({
+        reason: data.outing.reason,
+        breakfast_cancel: data.outing.breakfast_cancel,
+        lunch_cancel: data.outing.lunch_cancel,
+        dinner_cancel: data.outing.dinner_cancel,
+        from: data.outing.from,
+        to: data.outing.to,
+        audit_reason: null,
+        approved,
+        stayApplyId: apply.id,
+      })
+      .returning();
+
+    if (!saved) {
+      throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
+    }
+
+    return await findOrThrow(
+      this.db.query.stayOuting.findFirst({ where: { RAW: (t, { eq }) => eq(t.id, saved.id) } }),
+    );
   }
 
-  async editStayOuting(user: UserJWT, data: EditStayOutingDTO) {
-    const target = await safeFindOne<User>(this.userRepository, user.id);
-    const outing = await safeFindOne<StayOuting>(this.stayOutingRepository, {
-      where: { id: data.outing_id },
-      relations: { stay_apply: { user: true, stay: { stay_apply_period: true } } },
-      loadEagerRelations: false,
-    });
-    if (!outing) {
+  async editStayOuting(userJwt: UserJWT, data: EditStayOutingDTO) {
+    const userDetail = await this.userManageService.getRequiredUserDetail(userJwt.id);
+
+    const outing = await findOrThrow(
+      this.db.query.stayOuting.findFirst({
+        where: { RAW: (t, { eq }) => eq(t.id, data.outing_id) },
+        with: {
+          stayApply: {
+            with: {
+              user: true,
+              stay: {
+                with: {
+                  stayApplyPeriodStay: true,
+                },
+              },
+            },
+          },
+        },
+      }),
+    );
+    if (!outing.stayApply || !outing.stayApply.user || !outing.stayApply.stay) {
       throw new NotFoundException("Stay outing not found");
     }
-    if (outing.stay_apply.user.id !== target.id) {
+    if (outing.stayApply.user.id !== userJwt.id) {
       throw new HttpException(ErrorMsg.PermissionDenied_Resource(), HttpStatus.FORBIDDEN);
     }
 
     // verification period
-    if (
-      !(await this.validateStayPeriod(user, data.grade, outing.stay_apply.stay.stay_apply_period))
-    ) {
+    if (!this.validateStayPeriod(userDetail.grade, outing.stayApply.stay.stayApplyPeriodStay)) {
       throw new HttpException(ErrorMsg.Stay_NotInApplyPeriod(), HttpStatus.FORBIDDEN);
     }
 
-    outing.reason = data.outing.reason;
-    outing.breakfast_cancel = data.outing.breakfast_cancel;
-    outing.lunch_cancel = data.outing.lunch_cancel;
-    outing.dinner_cancel = data.outing.dinner_cancel;
-    outing.from = data.outing.from;
-    outing.to = data.outing.to;
-    outing.audit_reason = null;
-    outing.approved =
+    const approved =
       (data.outing.reason === "자기계발외출" &&
         !data.outing.breakfast_cancel &&
         !data.outing.dinner_cancel &&
-        outing.stay_apply.stay.outing_day.every((d) =>
+        outing.stayApply.stay.outing_day.every((d: string) =>
           isEqual(new Date(SelfDevelopment_Outing_From(d)), new Date(data.outing.from)),
         ) &&
-        outing.stay_apply.stay.outing_day.every((d) =>
+        outing.stayApply.stay.outing_day.every((d: string) =>
           isEqual(new Date(SelfDevelopment_Outing_To(d)), new Date(data.outing.to)),
         )) ||
       null;
 
-    if (outing.from >= outing.to) {
+    if (data.outing.from >= data.outing.to) {
       throw new HttpException(ErrorMsg.ProvidedTime_Invalid(), HttpStatus.BAD_REQUEST);
     }
 
-    const saved = await this.stayOutingRepository.save(outing);
-    return await safeFindOne<StayOuting>(this.stayOutingRepository, saved.id);
+    const [updated] = await this.db
+      .update(stayOuting)
+      .set({
+        reason: data.outing.reason,
+        breakfast_cancel: data.outing.breakfast_cancel,
+        lunch_cancel: data.outing.lunch_cancel,
+        dinner_cancel: data.outing.dinner_cancel,
+        from: data.outing.from,
+        to: data.outing.to,
+        audit_reason: null,
+        approved,
+      })
+      .where(eq(stayOuting.id, data.outing_id))
+      .returning();
+
+    if (!updated) {
+      throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
+    }
+
+    return await findOrThrow(
+      this.db.query.stayOuting.findFirst({ where: { RAW: (t, { eq }) => eq(t.id, updated.id) } }),
+    );
   }
 
-  async removeStayOuting(user: UserJWT, data: StayOutingIdDTO) {
-    const target = await safeFindOne<User>(this.userRepository, user.id);
-    const outing = await safeFindOne<StayOuting>(this.stayOutingRepository, {
-      where: { id: data.id },
-      relations: { stay_apply: { user: true, stay: { stay_apply_period: true } } },
-      loadEagerRelations: false,
-    });
-    if (outing.stay_apply.user.id !== target.id) {
+  async removeStayOuting(userJwt: UserJWT, data: StayOutingIdDTO) {
+    const userDetail = await this.userManageService.getRequiredUserDetail(userJwt.id);
+
+    const outing = await findOrThrow(
+      this.db.query.stayOuting.findFirst({
+        where: { RAW: (t, { eq }) => eq(t.id, data.id) },
+        with: {
+          stayApply: {
+            with: {
+              user: true,
+              stay: {
+                with: {
+                  stayApplyPeriodStay: true,
+                },
+              },
+            },
+          },
+        },
+      }),
+    );
+    if (!outing.stayApply || !outing.stayApply.user || !outing.stayApply.stay) {
+      throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
+    }
+    if (outing.stayApply.user.id !== userJwt.id) {
       throw new HttpException(ErrorMsg.PermissionDenied_Resource(), HttpStatus.FORBIDDEN);
     }
 
-    if (
-      !(await this.validateStayPeriod(user, data.grade, outing.stay_apply.stay.stay_apply_period))
-    ) {
+    if (!this.validateStayPeriod(userDetail.grade, outing.stayApply.stay.stayApplyPeriodStay)) {
       throw new HttpException(ErrorMsg.Stay_NotInApplyPeriod(), HttpStatus.FORBIDDEN);
     }
-    return await this.stayOutingRepository.remove(outing);
+
+    const [deleted] = await this.db
+      .delete(stayOuting)
+      .where(eq(stayOuting.id, data.id))
+      .returning();
+    return deleted;
   }
 
   // pass if only_readingRoom false, pass if it's true and seat is in available range
-  async isAvailableSeat(
-    user: UserJWT,
-    preset: StaySeatPreset,
+  isAvailableSeat(
+    preset: {
+      only_readingRoom: boolean;
+      stay_seat: { target: string; range: string }[];
+    } | null,
     target: string,
     grade: Grade,
     gender: Gender,
   ) {
     if (!preset || !preset.stay_seat || preset.stay_seat.length === 0) {
-      return await this.userManageService.checkUserDetail(user.email, { gender, grade });
+      return true;
     }
-    return (
-      preset.stay_seat
-        .filter((stay_seat) => stay_seat.target === `${grade}_${gender}`)
-        .some(
-          (range) =>
-            (preset.only_readingRoom && isInRange(range.range.split(":"), target)) ||
-            !preset.only_readingRoom,
-        ) && (await this.userManageService.checkUserDetail(user.email, { gender, grade }))
-    );
+    return preset.stay_seat
+      .filter((seat: { target: string }) => seat.target === `${grade}_${gender}`)
+      .some(
+        (range: { range: string }) =>
+          (preset.only_readingRoom && isInRange(range.range.split(":"), target)) ||
+          !preset.only_readingRoom,
+      );
   }
 
-  private async validateStayPeriod(
-    user: UserJWT,
+  private validateStayPeriod(
     grade: Grade,
-    stay_apply_period: StayApplyPeriod_Stay[],
+    stay_apply_period: { grade: number; apply_start: Date; apply_end: Date }[],
   ) {
-    let isSame = true;
-    let last = "";
-    for (const period of stay_apply_period) {
-      if (last === "") {
-        last = period.apply_start.getTime().toString() + period.apply_end.getTime().toString();
-        continue;
-      }
-      if (
-        last !==
-        period.apply_start.getTime().toString() + period.apply_end.getTime().toString()
-      ) {
-        isSame = false;
-        break;
-      }
-      last = period.apply_start.getTime().toString() + period.apply_end.getTime().toString();
-    }
-
-    if (!isSame) {
-      const success = await this.userManageService.checkUserDetail(user.email, { grade: grade });
-      if (!success) {
-        throw new HttpException(ErrorMsg.PermissionDenied_Resource_Grade(), HttpStatus.FORBIDDEN);
-      }
-    }
-
     const now = new Date();
     const validPeriod = stay_apply_period.find(
-      (p) => p.grade === Number(grade) && p.apply_start <= now && p.apply_end >= now,
+      (p: { grade: number; apply_start: Date; apply_end: Date }) =>
+        p.grade === Number(grade) && new Date(p.apply_start) <= now && new Date(p.apply_end) >= now,
     );
 
     return !!validPeriod;

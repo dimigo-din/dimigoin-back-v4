@@ -1,56 +1,69 @@
-import { Injectable } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
+import { Inject, Injectable } from "@nestjs/common";
 import { format, startOfWeek } from "date-fns";
-import { Repository } from "typeorm";
-import { WakeupSongApplication, WakeupSongHistory } from "#/schemas";
-import { safeFindOne } from "$utils/safeFindOne.util";
+import { eq } from "drizzle-orm";
+import { wakeupSongApplication, wakeupSongHistory, wakeupSongVote } from "#/db/schema";
+import { DRIZZLE, type DrizzleDB } from "$modules/drizzle.module";
+import { findOrThrow } from "$utils/findOrThrow.util";
+import { softDelete } from "$utils/softDelete.util";
+import { andWhere } from "$utils/where.util";
 import { WakeupSongDeleteDTO, WakeupSongSelectDTO } from "~wakeup/dto/wakeup.manage.dto";
 
 @Injectable()
 export class WakeupManageService {
-  constructor(
-    @InjectRepository(WakeupSongApplication)
-    private readonly wakeupSongApplicationRepository: Repository<WakeupSongApplication>,
-    @InjectRepository(WakeupSongHistory)
-    private readonly wakeupSongHistoryRepository: Repository<WakeupSongHistory>,
-  ) {}
+  constructor(@Inject(DRIZZLE) private readonly db: DrizzleDB) {}
 
   async getList() {
     const week = format(startOfWeek(new Date()), "yyyy-MM-dd");
 
-    return await this.wakeupSongApplicationRepository.find({
+    return await this.db.query.wakeupSongApplication.findMany({
       where: {
-        week: week,
+        RAW: (t, { and, eq, isNull }) => andWhere(and, eq(t.week, week), isNull(t.deletedAt)),
       },
-      relations: { wakeupSongVote: true, user: true },
+      with: { wakeupSongVote: true, user: true },
     });
   }
 
   async selectApply(data: WakeupSongSelectDTO) {
-    const apply = await safeFindOne<WakeupSongApplication>(this.wakeupSongApplicationRepository, {
-      where: { id: data.id },
-      relations: { wakeupSongVote: true },
+    const apply = await findOrThrow(
+      this.db.query.wakeupSongApplication.findFirst({
+        where: {
+          RAW: (t, { and, eq, isNull }) => andWhere(and, eq(t.id, data.id), isNull(t.deletedAt)),
+        },
+        with: { wakeupSongVote: true },
+      }),
+    );
+
+    // Create history record from the application
+    await this.db.insert(wakeupSongHistory).values({
+      date: format(new Date(), "yyyy-MM-dd"),
+      video_id: apply.video_id,
+      video_title: apply.video_title,
+      up: apply.wakeupSongVote.filter((v: { upvote: boolean }) => v.upvote).length,
+      down: apply.wakeupSongVote.filter((v: { upvote: boolean }) => !v.upvote).length,
+      gender: apply.gender,
     });
 
-    const history = new WakeupSongHistory();
-    history.date = format(new Date(), "yyyy-MM-dd");
-    history.video_id = apply.video_id;
-    history.video_title = apply.video_title;
-    history.up = apply.wakeupSongVote.filter((v) => v.upvote).length;
-    history.down = apply.wakeupSongVote.filter((v) => !v.upvote).length;
-    history.gender = apply.gender;
+    // Soft delete the application and its votes
+    await softDelete(this.db, wakeupSongVote, eq(wakeupSongVote.wakeupSongApplicationId, apply.id));
+    await softDelete(this.db, wakeupSongApplication, eq(wakeupSongApplication.id, apply.id));
 
-    await this.wakeupSongHistoryRepository.save(history);
-
-    return await this.wakeupSongApplicationRepository.softRemove(apply);
+    return apply;
   }
 
   async deleteApply(data: WakeupSongDeleteDTO) {
-    const apply = await safeFindOne<WakeupSongApplication>(this.wakeupSongApplicationRepository, {
-      where: { id: data.id },
-      relations: { wakeupSongVote: true },
-    });
+    const apply = await findOrThrow(
+      this.db.query.wakeupSongApplication.findFirst({
+        where: {
+          RAW: (t, { and, eq, isNull }) => andWhere(and, eq(t.id, data.id), isNull(t.deletedAt)),
+        },
+        with: { wakeupSongVote: true },
+      }),
+    );
 
-    return await this.wakeupSongApplicationRepository.softRemove(apply);
+    // Soft delete the application and its votes (cascade)
+    await softDelete(this.db, wakeupSongVote, eq(wakeupSongVote.wakeupSongApplicationId, apply.id));
+    await softDelete(this.db, wakeupSongApplication, eq(wakeupSongApplication.id, apply.id));
+
+    return apply;
   }
 }

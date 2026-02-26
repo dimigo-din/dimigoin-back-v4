@@ -1,6 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsIn } from "class-validator";
-import { LaundryApply, StayApply } from "#/schemas";
+import type { LaundryApply, StayApply } from "#/db/schema";
 
 export class ApplyResponseDTO {
   @ApiProperty()
@@ -8,15 +7,6 @@ export class ApplyResponseDTO {
 
   @ApiProperty()
   laundryApply: LaundryApply;
-}
-export class GetTimelineDTO {
-  @ApiProperty()
-  @IsIn(["1", "2", "3"])
-  grade: number;
-
-  @ApiProperty()
-  @IsIn(["1", "2", "3", "4", "5", "6"])
-  class: number;
 }
 
 export interface CachedTimetable {

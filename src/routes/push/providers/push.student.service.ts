@@ -1,13 +1,14 @@
-import { Injectable } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
-import { PushSubject, PushSubscription, User } from "#/schemas";
+import { Inject, Injectable } from "@nestjs/common";
+import { eq } from "drizzle-orm";
+import { pushSubject, pushSubscription } from "#/db/schema";
 import {
   PushNotificationSubject,
   PushNotificationSubjectIdentifierValues,
   UserJWT,
 } from "$mapper/types";
-import { safeFindOne } from "$utils/safeFindOne.util";
+import { DRIZZLE, type DrizzleDB } from "$modules/drizzle.module";
+import { findOrThrow } from "$utils/findOrThrow.util";
+import { andWhere } from "$utils/where.util";
 import {
   CreateFCMTokenDTO,
   DeleteFCMTokenDTO,
@@ -17,102 +18,145 @@ import {
 
 @Injectable()
 export class PushStudentService {
-  constructor(
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
-    @InjectRepository(PushSubscription)
-    private readonly pushSubscriptionRepository: Repository<PushSubscription>,
-    @InjectRepository(PushSubject)
-    private readonly pushSubjectRepository: Repository<PushSubject>,
-  ) {}
+  constructor(@Inject(DRIZZLE) private readonly db: DrizzleDB) {}
 
-  async upsertToken(user: UserJWT, data: CreateFCMTokenDTO) {
-    const target = await safeFindOne<User>(this.userRepository, user.id);
+  async upsertToken(userJwt: UserJWT, data: CreateFCMTokenDTO) {
+    const target = await findOrThrow(
+      this.db.query.user.findFirst({ where: { RAW: (t, { eq }) => eq(t.id, userJwt.id) } }),
+    );
 
-    let subscription = await this.pushSubscriptionRepository.findOne({
-      where: { user: target, deviceId: data.deviceId },
+    const existing = await this.db.query.pushSubscription.findFirst({
+      where: {
+        RAW: (t, { and, eq }) =>
+          andWhere(and, eq(t.userId, target.id), eq(t.deviceId, data.deviceId)),
+      },
     });
+
+    if (existing) {
+      const [updated] = await this.db
+        .update(pushSubscription)
+        .set({ token: data.token })
+        .where(eq(pushSubscription.id, existing.id))
+        .returning();
+      return updated;
+    }
+
+    const [subscription] = await this.db
+      .insert(pushSubscription)
+      .values({
+        token: data.token,
+        deviceId: data.deviceId,
+        userId: target.id,
+      })
+      .returning();
 
     if (!subscription) {
-      subscription = new PushSubscription();
-      subscription.deviceId = data.deviceId;
-      subscription.subjects = PushNotificationSubjectIdentifierValues.map((i) => {
-        const s = new PushSubject();
-        s.identifier = i;
-        s.name = PushNotificationSubject[i] ?? "";
-        s.user = target;
-
-        return s;
-      });
-      subscription.user = target;
+      throw new Error("Failed to create subscription");
     }
-    subscription.token = data.token;
 
-    return this.pushSubscriptionRepository.save(subscription);
+    // Create all default subjects for new subscription
+    await this.db.insert(pushSubject).values(
+      PushNotificationSubjectIdentifierValues.map((i) => ({
+        identifier: i,
+        name: PushNotificationSubject[i] ?? "",
+        subscriptionId: subscription.id,
+        userId: target.id,
+      })),
+    );
+
+    return await this.db.query.pushSubscription.findFirst({
+      where: { RAW: (t, { eq }) => eq(t.id, subscription.id) },
+      with: { subjects: true },
+    });
   }
 
-  async removeToken(user: UserJWT, data: DeleteFCMTokenDTO) {
-    const target = await safeFindOne<User>(this.userRepository, user.id);
+  async removeToken(userJwt: UserJWT, data: DeleteFCMTokenDTO) {
+    await findOrThrow(
+      this.db.query.user.findFirst({ where: { RAW: (t, { eq }) => eq(t.id, userJwt.id) } }),
+    );
 
-    const subscription = await safeFindOne<PushSubscription>(this.pushSubscriptionRepository, {
-      where: { user: target, token: data.token },
-    });
+    const subscription = await findOrThrow(
+      this.db.query.pushSubscription.findFirst({
+        where: {
+          RAW: (t, { and, eq }) => andWhere(and, eq(t.userId, userJwt.id), eq(t.token, data.token)),
+        },
+      }),
+    );
 
-    return await this.pushSubscriptionRepository.remove(subscription);
+    await this.db.delete(pushSubscription).where(eq(pushSubscription.id, subscription.id));
+
+    return subscription;
   }
 
-  async removeAllByUser(user: UserJWT) {
-    const target = await safeFindOne<User>(this.userRepository, user.id);
+  async removeAllByUser(userJwt: UserJWT) {
+    await findOrThrow(
+      this.db.query.user.findFirst({ where: { RAW: (t, { eq }) => eq(t.id, userJwt.id) } }),
+    );
 
-    const subscriptions = await safeFindOne<PushSubscription>(this.pushSubscriptionRepository, {
-      where: { user: target },
-    });
-
-    return await this.pushSubscriptionRepository.remove(subscriptions);
+    return await this.db.delete(pushSubscription).where(eq(pushSubscription.userId, userJwt.id));
   }
 
   async getSubjects() {
     return PushNotificationSubject;
   }
 
-  async getSubscribedSubject(user: UserJWT, data: GetSubscribedSubjectDTO) {
-    const target = await safeFindOne<User>(this.userRepository, user.id);
+  async getSubscribedSubject(userJwt: UserJWT, data: GetSubscribedSubjectDTO) {
+    await findOrThrow(
+      this.db.query.user.findFirst({ where: { RAW: (t, { eq }) => eq(t.id, userJwt.id) } }),
+    );
 
-    return (
-      await safeFindOne<PushSubscription>(this.pushSubscriptionRepository, {
+    const subscription = await findOrThrow(
+      this.db.query.pushSubscription.findFirst({
         where: {
-          user: target,
-          deviceId: data.deviceId,
+          RAW: (t, { and, eq }) =>
+            andWhere(and, eq(t.userId, userJwt.id), eq(t.deviceId, data.deviceId)),
         },
-        relations: ["subjects"],
-      })
-    ).subjects;
+        with: { subjects: true },
+      }),
+    );
+
+    return subscription.subjects;
   }
 
-  async setSubscribeSubject(user: UserJWT, data: SetSubscribeSubjectDTO) {
-    const target = await safeFindOne<User>(this.userRepository, user.id);
+  async setSubscribeSubject(userJwt: UserJWT, data: SetSubscribeSubjectDTO) {
+    const target = await findOrThrow(
+      this.db.query.user.findFirst({ where: { RAW: (t, { eq }) => eq(t.id, userJwt.id) } }),
+    );
 
-    const subscription = await safeFindOne<PushSubscription>(this.pushSubscriptionRepository, {
-      where: {
-        user: target,
-        deviceId: data.deviceId,
-      },
-      relations: ["subjects"],
-    });
+    const subscription = await findOrThrow(
+      this.db.query.pushSubscription.findFirst({
+        where: {
+          RAW: (t, { and, eq }) =>
+            andWhere(and, eq(t.userId, target.id), eq(t.deviceId, data.deviceId)),
+        },
+        with: { subjects: true },
+      }),
+    );
 
-    await this.pushSubjectRepository.remove(subscription.subjects);
+    // Remove old subjects
+    if (subscription.subjects.length > 0) {
+      await this.db.delete(pushSubject).where(eq(pushSubject.subscriptionId, subscription.id));
+    }
 
-    subscription.subjects = PushNotificationSubjectIdentifierValues.filter((i) =>
+    // Insert new filtered subjects
+    const filteredIdentifiers = PushNotificationSubjectIdentifierValues.filter((i) =>
       data.subjects.includes(i),
-    ).map((i) => {
-      const s = new PushSubject();
-      s.identifier = i;
-      s.name = PushNotificationSubject[i] ?? "";
-      s.user = target;
+    );
 
-      return s;
+    if (filteredIdentifiers.length > 0) {
+      await this.db.insert(pushSubject).values(
+        filteredIdentifiers.map((i) => ({
+          identifier: i,
+          name: PushNotificationSubject[i] ?? "",
+          subscriptionId: subscription.id,
+          userId: target.id,
+        })),
+      );
+    }
+
+    return await this.db.query.pushSubscription.findFirst({
+      where: { RAW: (t, { eq }) => eq(t.id, subscription.id) },
+      with: { subjects: true },
     });
-
-    return await this.pushSubscriptionRepository.save(subscription);
   }
 }

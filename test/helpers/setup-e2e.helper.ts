@@ -1,13 +1,14 @@
 import { mock } from "bun:test";
 import { generateKeyPairSync } from "node:crypto";
+import { NotFoundException } from "@nestjs/common";
+import { JwtService } from "@nestjs/jwt";
 import { NestFastifyApplication } from "@nestjs/platform-fastify";
-import { getRepositoryToken } from "@nestjs/typeorm";
-import type { Repository } from "typeorm";
-import { Login, Session, User } from "#/schemas";
+import type { Session, User } from "#/db/schema";
 import { JWTResponse } from "#auth/auth.dto";
+import { AuthService } from "#auth/auth.service";
 import { TestApp } from "#test/helpers/app.helper";
 import { RequestHelper } from "#test/helpers/request.helper";
-import { PermissionEnum, StudentUserPermission } from "$mapper/permissions";
+import { PermissionEnum } from "$mapper/permissions";
 import { numberPermission } from "$utils/permission.util";
 import { FacilityManageService, FacilityStudentService } from "~facility/providers";
 import { FrigoManageService, FrigoStudentService } from "~frigo/providers";
@@ -16,8 +17,6 @@ import { PushManageService, PushStudentService } from "~push/providers";
 import { StayManageService, StayStudentService } from "~stay/providers";
 import { UserManageService, UserStudentService } from "~user/providers";
 import { WakeupManageService, WakeupService, WakeupStudentService } from "~wakeup/providers";
-
-type SessionMatcher = { refreshToken?: string; sessionIdentifier?: string };
 
 type AuthTokens = {
   student: JWTResponse;
@@ -51,7 +50,7 @@ const createUsers = () => {
     email: "student$test.com",
     name: "Student User",
     picture: "pic",
-    permission: numberPermission(...StudentUserPermission).toString(),
+    permission: "0",
   } as User;
 
   const teacherUser: User = {
@@ -73,90 +72,70 @@ const setupAuthMocks = async (
   request: RequestHelper,
 ): Promise<AuthSetupResult> => {
   const { studentUser, teacherUser } = createUsers();
-  const hashedPassword = await Bun.password.hash("test-password");
-
-  const loginRepository = app.get<Repository<Login>>(getRepositoryToken(Login));
-  const userRepository = app.get<Repository<User>>(getRepositoryToken(User));
-  const sessionRepository = app.get<Repository<Session>>(getRepositoryToken(Session));
-
-  const studentLogin: Login = {
-    id: "login-student",
-    user: studentUser,
-    type: "password",
-    identifier1: studentUser.email,
-    identifier2: hashedPassword,
-  } as Login;
-
-  const teacherLogin: Login = {
-    id: "login-teacher",
-    user: teacherUser,
-    type: "password",
-    identifier1: teacherUser.email,
-    identifier2: hashedPassword,
-  } as Login;
-
+  const authService = app.get(AuthService);
+  const jwtService = app.get(JwtService);
   const sessionStore: Session[] = [];
 
-  loginRepository.findOne = mock(async ({ where }: { where?: Partial<Login> } = {}) => {
-    if (where?.identifier1 === studentLogin.identifier1) {
-      return studentLogin;
+  authService.loginByIdPassword = mock(async (id: string, _password: string) => {
+    const user =
+      id === studentUser.email ? studentUser : id === teacherUser.email ? teacherUser : null;
+    if (!user) {
+      throw new Error("User not found");
     }
-    if (where?.identifier1 === teacherLogin.identifier1) {
-      return teacherLogin;
-    }
-    return null;
-  }) as unknown as typeof loginRepository.findOne;
 
-  userRepository.findOne = mock(async ({ where }: { where?: Partial<User> } = {}) => {
-    if (!where) {
-      return null;
-    }
-    if (where.id === studentUser.id || where.email === studentUser.email) {
-      return studentUser;
-    }
-    if (where.id === teacherUser.id || where.email === teacherUser.email) {
-      return teacherUser;
-    }
-    return null;
-  }) as unknown as typeof userRepository.findOne;
+    const sessionIdentifier = Bun.randomUUIDv7();
+    const keyPair = {
+      accessToken: await jwtService.signAsync({ sessionIdentifier, ...user }, { expiresIn: "30m" }),
+      refreshToken: Bun.randomUUIDv7(),
+    };
+    sessionStore.push({
+      id: Bun.randomUUIDv7(),
+      refreshToken: keyPair.refreshToken,
+      sessionIdentifier,
+      userId: user.id,
+      created_at: new Date(),
+      updated_at: new Date(),
+    } as Session);
+    return keyPair;
+  }) as typeof authService.loginByIdPassword;
 
-  userRepository.findOneBy = userRepository.findOne as unknown as typeof userRepository.findOneBy;
-
-  sessionRepository.save = mock(async (session: Session) => {
-    const saved = { ...session };
-    sessionStore.push(saved);
-    return saved;
-  }) as unknown as typeof sessionRepository.save;
-
-  const findSession = (match?: SessionMatcher) => {
-    if (!match) {
-      return sessionStore[0] ?? null;
+  authService.refresh = mock(async (refreshToken: string) => {
+    const sessionRecord = sessionStore.find((s) => s.refreshToken === refreshToken);
+    if (!sessionRecord) {
+      throw new NotFoundException("Session not found");
     }
-    if (match.refreshToken) {
-      return sessionStore.find((s) => s.refreshToken === match.refreshToken) ?? null;
-    }
-    if (match.sessionIdentifier) {
-      return sessionStore.find((s) => s.sessionIdentifier === match.sessionIdentifier) ?? null;
-    }
-    return null;
-  };
 
-  sessionRepository.findOne = mock(async ({ where }: { where?: SessionMatcher } = {}) =>
-    findSession(where),
-  ) as unknown as typeof sessionRepository.findOne;
-
-  sessionRepository.remove = mock(async (session: Session) => {
-    const idx = sessionStore.findIndex(
-      (s) =>
-        s.refreshToken === session.refreshToken ||
-        s.sessionIdentifier === session.sessionIdentifier ||
-        s === session,
-    );
-    if (idx >= 0) {
-      sessionStore.splice(idx, 1);
+    const user =
+      sessionRecord.userId === studentUser.id
+        ? studentUser
+        : sessionRecord.userId === teacherUser.id
+          ? teacherUser
+          : null;
+    if (!user) {
+      throw new NotFoundException("User not found");
     }
-    return session;
-  }) as unknown as typeof sessionRepository.remove;
+
+    const sessionIdentifier = Bun.randomUUIDv7();
+    const keyPair = {
+      accessToken: await jwtService.signAsync({ sessionIdentifier, ...user }, { expiresIn: "30m" }),
+      refreshToken: Bun.randomUUIDv7(),
+    };
+
+    sessionRecord.refreshToken = keyPair.refreshToken;
+    sessionRecord.sessionIdentifier = sessionIdentifier;
+    sessionRecord.updated_at = new Date();
+
+    return keyPair;
+  }) as typeof authService.refresh;
+
+  authService.logout = mock(async (userJwt: { sessionIdentifier: string }) => {
+    const idx = sessionStore.findIndex((s) => s.sessionIdentifier === userJwt.sessionIdentifier);
+    if (idx < 0) {
+      throw new Error("Session not found");
+    }
+    const [removed] = sessionStore.splice(idx, 1);
+    return removed;
+  }) as typeof authService.logout;
 
   const studentLoginResponse = await request.post("/auth/login/password", {
     email: studentUser.email,
@@ -181,6 +160,18 @@ const stubMethod = <T extends object, K extends keyof T>(target: T | null, key: 
     return;
   }
   (target as Record<K, T[K]>)[key] = impl;
+};
+
+const stubProtoMethod = <T extends object, K extends keyof T>(
+  target: T | null,
+  key: K,
+  impl: T[K],
+) => {
+  if (!target) {
+    return;
+  }
+  const proto = Object.getPrototypeOf(target) as Record<K, T[K]>;
+  proto[key] = impl;
 };
 
 const stubDomainServices = (app: NestFastifyApplication) => {
@@ -712,44 +703,57 @@ const stubDomainServices = (app: NestFastifyApplication) => {
     })) as unknown as (typeof wakeupManageService)["deleteApply"],
   );
 
-  stubMethod(
+  stubProtoMethod(
     userManageService,
     "searchUser",
     mock(async () => []) as unknown as (typeof userManageService)["searchUser"],
   );
-  stubMethod(
+  stubProtoMethod(
     userManageService,
     "addPasswordLogin",
     mock(async () => ({ ok: true })) as unknown as (typeof userManageService)["addPasswordLogin"],
   );
-  stubMethod(
+  stubProtoMethod(
     userManageService,
     "setPermission",
     mock(async () => ({ id: "user-1" })) as unknown as (typeof userManageService)["setPermission"],
   );
-  stubMethod(
+  stubProtoMethod(
     userManageService,
     "addPermission",
     mock(async () => ({ id: "user-1" })) as unknown as (typeof userManageService)["addPermission"],
   );
-  stubMethod(
+  stubProtoMethod(
     userManageService,
     "removePermission",
     mock(async () => ({
       id: "user-1",
     })) as unknown as (typeof userManageService)["removePermission"],
   );
-  stubMethod(
+  stubProtoMethod(
     userManageService,
-    "checkUserDetail",
-    mock(async () => null) as unknown as (typeof userManageService)["checkUserDetail"],
+    "getUserDetail",
+    mock(async () => ({
+      grade: 1,
+      class: 1,
+      gender: "male",
+    })) as unknown as (typeof userManageService)["getUserDetail"],
   );
-  stubMethod(
+  stubProtoMethod(
+    userManageService,
+    "getRequiredUserDetail",
+    mock(async () => ({
+      grade: 1,
+      class: 1,
+      gender: "male",
+    })) as unknown as (typeof userManageService)["getRequiredUserDetail"],
+  );
+  stubProtoMethod(
     userStudentService,
     "getTimeTable",
     mock(async () => []) as unknown as (typeof userStudentService)["getTimeTable"],
   );
-  stubMethod(
+  stubProtoMethod(
     userStudentService,
     "getMyApplies",
     mock(async () => ({
