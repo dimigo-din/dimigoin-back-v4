@@ -3,10 +3,7 @@ import { HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { addHours, format, isAfter, startOfDay } from "date-fns";
 import { eq } from "drizzle-orm";
 import { laundryApply } from "#/db/schema";
-import {
-  laundryApplyForStudentApplies,
-  laundryTimelineForStudentTimeline,
-} from "#/db/with";
+import { laundryApplyForStudentApplies, laundryTimelineForStudentTimeline } from "#/db/with";
 import { ErrorMsg } from "$mapper/error";
 import type { UserJWT } from "$mapper/types";
 import { DRIZZLE, type DrizzleDB } from "$modules/drizzle.module";
