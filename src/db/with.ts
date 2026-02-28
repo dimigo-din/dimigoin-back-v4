@@ -13,6 +13,32 @@ export const laundryTimelineWithAssignIds = {
   },
 } as const;
 
+export const laundryTimelineForStudentTimeline = {
+  times: {
+    with: {
+      timeline: true,
+      assigns: {
+        columns: {
+          laundryMachineId: true,
+          laundryTimeId: true,
+        },
+        with: {
+          laundryMachine: {
+            with: {
+              assigns: {
+                with: {
+                  laundryTime: true,
+                },
+              },
+            },
+          },
+          laundryTime: true,
+        },
+      },
+    },
+  },
+} as const;
+
 export const laundryApplyWithTimeAndMachine = {
   laundryTime: true,
   laundryMachine: true,

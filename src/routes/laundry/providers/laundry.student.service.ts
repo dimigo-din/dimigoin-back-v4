@@ -3,7 +3,7 @@ import { HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { addHours, format, isAfter, startOfDay } from "date-fns";
 import { eq } from "drizzle-orm";
 import { laundryApply } from "#/db/schema";
-import { laundryTimelineWithAssignIds, laundryTimeWithAssignIds } from "#/db/with";
+import { laundryTimelineForStudentTimeline, laundryTimeWithAssignIds } from "#/db/with";
 import { ErrorMsg } from "$mapper/error";
 import type { UserJWT } from "$mapper/types";
 import { DRIZZLE, type DrizzleDB } from "$modules/drizzle.module";
@@ -20,12 +20,33 @@ export class LaundryStudentService {
   ) {}
 
   async getTimeline() {
-    return await findOrThrow(
+    const timeline = await findOrThrow(
       this.db.query.laundryTimeline.findFirst({
         where: { RAW: (t, { eq }) => eq(t.enabled, true) },
-        with: laundryTimelineWithAssignIds,
+        with: laundryTimelineForStudentTimeline,
       }),
     );
+
+    return {
+      ...timeline,
+      triggeredOn: timeline.scheduler,
+      times: timeline.times.map((time) => ({
+        ...time,
+        assigns: time.assigns
+          .map((assign) => assign.laundryMachine)
+          .filter((machine) => machine !== null)
+          .map((machine) => {
+            const laundryTime = (machine.assigns ?? [])
+              .map((machineAssign) => machineAssign.laundryTime)
+              .filter((t) => t !== null);
+            const { assigns: _assigns, ...machineInfo } = machine;
+            return {
+              ...machineInfo,
+              laundryTime,
+            };
+          }),
+      })),
+    };
   }
 
   async getApplies() {
