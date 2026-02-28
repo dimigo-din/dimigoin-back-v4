@@ -1,8 +1,8 @@
 export const laundryTimeWithAssignIds = {
   assigns: {
-    columns: {
-      laundryMachineId: true,
-      laundryTimeId: true,
+    with: {
+      laundryMachine: true,
+      landryTime: true,
     },
   },
 } as const;
