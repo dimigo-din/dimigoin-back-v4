@@ -2,6 +2,13 @@ import { HttpException, HttpStatus, Inject, Injectable, NotFoundException } from
 import { isEqual } from "date-fns";
 import { eq } from "drizzle-orm";
 import { stayApply, stayOuting } from "#/db/schema";
+import {
+  stayApplyWithUserAndStayWithApplyPeriod,
+  stayApplyWithUserOutingAndStayWithPresetAndApplyPeriod,
+  stayOutingWithStayApplyUserAndStayWithApplyPeriod,
+  stayWithApplyPeriodAndApplyUserAndPresetRange,
+  stayWithPresetAndApplyPeriod,
+} from "#/db/with";
 import { SelfDevelopment_Outing_From, SelfDevelopment_Outing_To } from "$mapper/constants";
 import { ErrorMsg } from "$mapper/error";
 import type { Gender, Grade, UserJWT } from "$mapper/types";
@@ -27,19 +34,7 @@ export class StayStudentService {
 
   async getStayList(userJwt: UserJWT) {
     const stays = await this.db.query.stay.findMany({
-      with: {
-        stayApplyPeriodStay: true,
-        stayApply: {
-          with: {
-            user: true,
-          },
-        },
-        staySeatPreset: {
-          with: {
-            staySeatPresetRange: true,
-          },
-        },
-      },
+      with: stayWithApplyPeriodAndApplyUserAndPresetRange,
       orderBy: (stay, { asc }) => [asc(stay.stay_from)],
     });
 
@@ -72,20 +67,7 @@ export class StayStudentService {
   async getStayApplies(userJwt: UserJWT) {
     return await this.db.query.stayApply.findMany({
       where: { RAW: (t, { eq }) => eq(t.userId, userJwt.id) },
-      with: {
-        user: true,
-        outing: true,
-        stay: {
-          with: {
-            stayApplyPeriodStay: true,
-            staySeatPreset: {
-              with: {
-                staySeatPresetRange: true,
-              },
-            },
-          },
-        },
-      },
+      with: stayApplyWithUserOutingAndStayWithPresetAndApplyPeriod,
     });
   }
 
@@ -96,14 +78,7 @@ export class StayStudentService {
     const stayRow = await findOrThrow(
       this.db.query.stay.findFirst({
         where: { RAW: (t, { eq }) => eq(t.id, data.stay) },
-        with: {
-          stayApplyPeriodStay: true,
-          staySeatPreset: {
-            with: {
-              staySeatPresetRange: true,
-            },
-          },
-        },
+        with: stayWithPresetAndApplyPeriod,
       }),
     );
 
@@ -194,20 +169,7 @@ export class StayStudentService {
     return await findOrThrow(
       this.db.query.stayApply.findFirst({
         where: { RAW: (t, { eq }) => eq(t.id, savedApply.id) },
-        with: {
-          user: true,
-          outing: true,
-          stay: {
-            with: {
-              stayApplyPeriodStay: true,
-              staySeatPreset: {
-                with: {
-                  staySeatPresetRange: true,
-                },
-              },
-            },
-          },
-        },
+        with: stayApplyWithUserOutingAndStayWithPresetAndApplyPeriod,
       }),
     );
   }
@@ -220,20 +182,7 @@ export class StayStudentService {
         where: {
           RAW: (t, { and, eq }) => andWhere(and, eq(t.userId, userJwt.id), eq(t.stayId, data.stay)),
         },
-        with: {
-          user: true,
-          outing: true,
-          stay: {
-            with: {
-              stayApplyPeriodStay: true,
-              staySeatPreset: {
-                with: {
-                  staySeatPresetRange: true,
-                },
-              },
-            },
-          },
-        },
+        with: stayApplyWithUserOutingAndStayWithPresetAndApplyPeriod,
       }),
     );
 
@@ -320,20 +269,7 @@ export class StayStudentService {
     return await findOrThrow(
       this.db.query.stayApply.findFirst({
         where: { RAW: (t, { eq }) => eq(t.id, existing.id) },
-        with: {
-          user: true,
-          outing: true,
-          stay: {
-            with: {
-              stayApplyPeriodStay: true,
-              staySeatPreset: {
-                with: {
-                  staySeatPresetRange: true,
-                },
-              },
-            },
-          },
-        },
+        with: stayApplyWithUserOutingAndStayWithPresetAndApplyPeriod,
       }),
     );
   }
@@ -343,20 +279,7 @@ export class StayStudentService {
 
     const existing = await this.db.query.stayApply.findFirst({
       where: { RAW: (t, { eq }) => eq(t.id, data.id) },
-      with: {
-        user: true,
-        outing: true,
-        stay: {
-          with: {
-            stayApplyPeriodStay: true,
-            staySeatPreset: {
-              with: {
-                staySeatPresetRange: true,
-              },
-            },
-          },
-        },
-      },
+      with: stayApplyWithUserOutingAndStayWithPresetAndApplyPeriod,
     });
     if (!existing) {
       throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
@@ -394,14 +317,7 @@ export class StayStudentService {
     const apply = await findOrThrow(
       this.db.query.stayApply.findFirst({
         where: { RAW: (t, { eq }) => eq(t.id, data.apply_id) },
-        with: {
-          stay: {
-            with: {
-              stayApplyPeriodStay: true,
-            },
-          },
-          user: true,
-        },
+        with: stayApplyWithUserAndStayWithApplyPeriod,
       }),
     );
 
@@ -463,18 +379,7 @@ export class StayStudentService {
     const outing = await findOrThrow(
       this.db.query.stayOuting.findFirst({
         where: { RAW: (t, { eq }) => eq(t.id, data.outing_id) },
-        with: {
-          stayApply: {
-            with: {
-              user: true,
-              stay: {
-                with: {
-                  stayApplyPeriodStay: true,
-                },
-              },
-            },
-          },
-        },
+        with: stayOutingWithStayApplyUserAndStayWithApplyPeriod,
       }),
     );
     if (!outing.stayApply || !outing.stayApply.user || !outing.stayApply.stay) {
@@ -535,18 +440,7 @@ export class StayStudentService {
     const outing = await findOrThrow(
       this.db.query.stayOuting.findFirst({
         where: { RAW: (t, { eq }) => eq(t.id, data.id) },
-        with: {
-          stayApply: {
-            with: {
-              user: true,
-              stay: {
-                with: {
-                  stayApplyPeriodStay: true,
-                },
-              },
-            },
-          },
-        },
+        with: stayOutingWithStayApplyUserAndStayWithApplyPeriod,
       }),
     );
     if (!outing.stayApply || !outing.stayApply.user || !outing.stayApply.stay) {

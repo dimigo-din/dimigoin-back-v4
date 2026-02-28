@@ -2,6 +2,11 @@ import path from "node:path";
 import { HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { eq } from "drizzle-orm";
 import { facilityImg, facilityReport, facilityReportComment } from "#/db/schema";
+import {
+  facilityReportWithCommentFileUser,
+  facilityReportWithFileUser,
+  facilityReportWithUser,
+} from "#/db/with";
 import { ErrorMsg } from "$mapper/error";
 import { UserJWT } from "$mapper/types";
 import { DRIZZLE, type DrizzleDB } from "$modules/drizzle.module";
@@ -47,7 +52,7 @@ export class FacilityManageService {
     const offset = (data.page ? data.page - 1 : 0) * 10;
 
     return await this.db.query.facilityReport.findMany({
-      with: { user: true },
+      with: facilityReportWithUser,
       limit: 10,
       offset: offset,
       orderBy: (facilityReport, { desc }) => desc(facilityReport.created_at),
@@ -57,11 +62,7 @@ export class FacilityManageService {
   async getReport(data: FacilityReportIdDTO) {
     const report = await this.db.query.facilityReport.findFirst({
       where: { RAW: (t, { eq }) => eq(t.id, data.id) },
-      with: {
-        comment: true,
-        file: true,
-        user: true,
-      },
+      with: facilityReportWithCommentFileUser,
     });
 
     return report ?? null;
@@ -98,7 +99,7 @@ export class FacilityManageService {
 
     return await this.db.query.facilityReport.findFirst({
       where: { RAW: (t, { eq }) => eq(t.id, report.id) },
-      with: { file: true, user: true },
+      with: facilityReportWithFileUser,
     });
   }
 

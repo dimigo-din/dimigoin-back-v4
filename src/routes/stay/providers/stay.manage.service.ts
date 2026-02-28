@@ -27,6 +27,15 @@ import {
   staySeatPreset,
   staySeatPresetRange,
 } from "#/db/schema";
+import {
+  stayApplyWithUserAndOuting,
+  stayScheduleWithPresetAndApplyPeriod,
+  stayScheduleWithSeatPresetAndPeriod,
+  staySeatPresetWithRange,
+  stayWithApplyAndOuting,
+  stayWithParentAndApplyPeriod,
+  stayWithPresetAndApplyPeriod,
+} from "#/db/with";
 import { ErrorMsg } from "$mapper/error";
 import { DRIZZLE, type DrizzleDB } from "$modules/drizzle.module";
 import { findOrThrow } from "$utils/findOrThrow.util";
@@ -68,7 +77,7 @@ export class StayManageService {
     return await findOrThrow(
       this.db.query.staySeatPreset.findFirst({
         where: { RAW: (t, { eq }) => eq(t.id, data.id) },
-        with: { staySeatPresetRange: true },
+        with: staySeatPresetWithRange,
       }),
     );
   }
@@ -104,7 +113,7 @@ export class StayManageService {
     return await findOrThrow(
       this.db.query.staySeatPreset.findFirst({
         where: { RAW: (t, { eq }) => eq(t.id, saved.id) },
-        with: { staySeatPresetRange: true },
+        with: staySeatPresetWithRange,
       }),
     );
   }
@@ -144,7 +153,7 @@ export class StayManageService {
     return await findOrThrow(
       this.db.query.staySeatPreset.findFirst({
         where: { RAW: (t, { eq }) => eq(t.id, data.id) },
-        with: { staySeatPresetRange: true },
+        with: staySeatPresetWithRange,
       }),
     );
   }
@@ -153,7 +162,7 @@ export class StayManageService {
     const target = await findOrThrow(
       this.db.query.staySeatPreset.findFirst({
         where: { RAW: (t, { eq }) => eq(t.id, data.id) },
-        with: { staySeatPresetRange: true },
+        with: staySeatPresetWithRange,
       }),
     );
     await this.db.delete(staySeatPreset).where(eq(staySeatPreset.id, data.id));
@@ -170,10 +179,7 @@ export class StayManageService {
   async getStaySchedule(data: StayScheduleIdDTO) {
     return await this.db.query.staySchedule.findFirst({
       where: { RAW: (t, { eq }) => eq(t.id, data.id) },
-      with: {
-        staySeatPreset: { with: { staySeatPresetRange: true } },
-        stayApplyPeriodStaySchedule: true,
-      },
+      with: stayScheduleWithPresetAndApplyPeriod,
     });
   }
 
@@ -219,10 +225,7 @@ export class StayManageService {
     return await findOrThrow(
       this.db.query.staySchedule.findFirst({
         where: { RAW: (t, { eq }) => eq(t.id, saved.id) },
-        with: {
-          staySeatPreset: { with: { staySeatPresetRange: true } },
-          stayApplyPeriodStaySchedule: true,
-        },
+        with: stayScheduleWithPresetAndApplyPeriod,
       }),
     );
   }
@@ -276,10 +279,7 @@ export class StayManageService {
     return await findOrThrow(
       this.db.query.staySchedule.findFirst({
         where: { RAW: (t, { eq }) => eq(t.id, data.id) },
-        with: {
-          staySeatPreset: { with: { staySeatPresetRange: true } },
-          stayApplyPeriodStaySchedule: true,
-        },
+        with: stayScheduleWithPresetAndApplyPeriod,
       }),
     );
   }
@@ -288,10 +288,7 @@ export class StayManageService {
     const target = await findOrThrow(
       this.db.query.staySchedule.findFirst({
         where: { RAW: (t, { eq }) => eq(t.id, data.id) },
-        with: {
-          staySeatPreset: { with: { staySeatPresetRange: true } },
-          stayApplyPeriodStaySchedule: true,
-        },
+        with: stayScheduleWithPresetAndApplyPeriod,
       }),
     );
     await this.db.delete(staySchedule).where(eq(staySchedule.id, data.id));
@@ -308,7 +305,7 @@ export class StayManageService {
   async getStay(data: StayIdDTO) {
     return await this.db.query.stay.findFirst({
       where: { RAW: (t, { eq }) => eq(t.id, data.id) },
-      with: { staySeatPreset: { with: { staySeatPresetRange: true } }, stayApplyPeriodStay: true },
+      with: stayWithPresetAndApplyPeriod,
     });
   }
 
@@ -352,10 +349,7 @@ export class StayManageService {
     return await findOrThrow(
       this.db.query.stay.findFirst({
         where: { RAW: (t, { eq }) => eq(t.id, saved.id) },
-        with: {
-          staySeatPreset: { with: { staySeatPresetRange: true } },
-          stayApplyPeriodStay: true,
-        },
+        with: stayWithPresetAndApplyPeriod,
       }),
     );
   }
@@ -402,10 +396,7 @@ export class StayManageService {
     return await findOrThrow(
       this.db.query.stay.findFirst({
         where: { RAW: (t, { eq }) => eq(t.id, data.id) },
-        with: {
-          staySeatPreset: { with: { staySeatPresetRange: true } },
-          stayApplyPeriodStay: true,
-        },
+        with: stayWithPresetAndApplyPeriod,
       }),
     );
   }
@@ -414,10 +405,7 @@ export class StayManageService {
     const target = await findOrThrow(
       this.db.query.stay.findFirst({
         where: { RAW: (t, { eq }) => eq(t.id, data.id) },
-        with: {
-          staySeatPreset: { with: { staySeatPresetRange: true } },
-          stayApplyPeriodStay: true,
-        },
+        with: stayWithPresetAndApplyPeriod,
       }),
     );
     await this.db.delete(stay).where(eq(stay.id, data.id));
@@ -432,7 +420,7 @@ export class StayManageService {
 
     return await this.db.query.stayApply.findMany({
       where: { RAW: (t, { eq }) => eq(t.stayId, data.id) },
-      with: { user: true, outing: true },
+      with: stayApplyWithUserAndOuting,
     });
   }
 
@@ -498,7 +486,7 @@ export class StayManageService {
     return await findOrThrow(
       this.db.query.stayApply.findFirst({
         where: { RAW: (t, { eq }) => eq(t.id, savedApply.id) },
-        with: { user: true, outing: true },
+        with: stayApplyWithUserAndOuting,
       }),
     );
   }
@@ -562,7 +550,7 @@ export class StayManageService {
     return await findOrThrow(
       this.db.query.stayApply.findFirst({
         where: { RAW: (t, { eq }) => eq(t.id, data.id) },
-        with: { user: true, outing: true },
+        with: stayApplyWithUserAndOuting,
       }),
     );
   }
@@ -571,7 +559,7 @@ export class StayManageService {
     const target = await findOrThrow(
       this.db.query.stayApply.findFirst({
         where: { RAW: (t, { eq }) => eq(t.id, data.id) },
-        with: { user: true, outing: true },
+        with: stayApplyWithUserAndOuting,
       }),
     );
     await this.db.delete(stayApply).where(eq(stayApply.id, data.id));
@@ -644,10 +632,7 @@ export class StayManageService {
   async syncStay() {
     // register stay
     const schedules = await this.db.query.staySchedule.findMany({
-      with: {
-        staySeatPreset: true,
-        stayApplyPeriodStaySchedule: true,
-      },
+      with: stayScheduleWithSeatPresetAndPeriod,
     });
 
     // Filter schedules that have at least one period with apply_end_day > current day of week
@@ -661,10 +646,7 @@ export class StayManageService {
     // Find existing stays that have a parent (generated from schedule) and are still active
     const existingStays = await this.db.query.stay.findMany({
       where: { RAW: (t, { isNotNull }) => isNotNull(t.parentId) },
-      with: {
-        parent: true,
-        stayApplyPeriodStay: true,
-      },
+      with: stayWithParentAndApplyPeriod,
     });
 
     const activeExistingParentIds = existingStays
@@ -773,13 +755,7 @@ export class StayManageService {
         RAW: (t, { and, lt, isNull }) =>
           andWhere(and, lt(t.stay_to, format(new Date(), "yyyy-MM-dd")), isNull(t.deletedAt)),
       },
-      with: {
-        stayApply: {
-          with: {
-            outing: true,
-          },
-        },
-      },
+      with: stayWithApplyAndOuting,
     });
 
     for (const expired of expiredStays) {

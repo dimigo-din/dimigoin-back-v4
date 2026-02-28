@@ -2,6 +2,7 @@ import { HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { format, startOfWeek } from "date-fns";
 import { eq } from "drizzle-orm";
 import { frigoApply, frigoApplyPeriod } from "#/db/schema";
+import { frigoApplyWithUser } from "#/db/with";
 import { ErrorMsg } from "$mapper/error";
 import { DRIZZLE, type DrizzleDB } from "$modules/drizzle.module";
 import { findOrThrow } from "$utils/findOrThrow.util";
@@ -71,7 +72,7 @@ export class FrigoManageService {
     const week = format(startOfWeek(new Date()), "yyyy-MM-dd");
     return await this.db.query.frigoApply.findMany({
       where: { RAW: (t, { eq }) => eq(t.week, week) },
-      with: { user: true },
+      with: frigoApplyWithUser,
     });
   }
 
@@ -102,7 +103,7 @@ export class FrigoManageService {
       return await findOrThrow(
         this.db.query.frigoApply.findFirst({
           where: { RAW: (t, { eq }) => eq(t.id, updated.id) },
-          with: { user: true },
+          with: frigoApplyWithUser,
         }),
       );
     }
@@ -123,7 +124,7 @@ export class FrigoManageService {
     return await findOrThrow(
       this.db.query.frigoApply.findFirst({
         where: { RAW: (t, { eq }) => eq(t.id, created.id) },
-        with: { user: true },
+        with: frigoApplyWithUser,
       }),
     );
   }
@@ -132,7 +133,7 @@ export class FrigoManageService {
     const apply = await findOrThrow(
       this.db.query.frigoApply.findFirst({
         where: { RAW: (t, { eq }) => eq(t.id, data.id) },
-        with: { user: true },
+        with: frigoApplyWithUser,
       }),
     );
 
@@ -145,7 +146,7 @@ export class FrigoManageService {
     const apply = await findOrThrow(
       this.db.query.frigoApply.findFirst({
         where: { RAW: (t, { eq }) => eq(t.id, data.id) },
-        with: { user: true },
+        with: frigoApplyWithUser,
       }),
     );
 
@@ -164,7 +165,7 @@ export class FrigoManageService {
     return await findOrThrow(
       this.db.query.frigoApply.findFirst({
         where: { RAW: (t, { eq }) => eq(t.id, updated.id) },
-        with: { user: true },
+        with: frigoApplyWithUser,
       }),
     );
   }

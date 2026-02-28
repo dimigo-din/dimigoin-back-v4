@@ -11,6 +11,7 @@ import {
   laundryTimeline,
   laundryTimeToMachine,
 } from "#/db/schema";
+import { laundryTimelineWithAssignIds } from "#/db/with";
 import { LaundrySchedulePriority } from "$mapper/constants";
 import { ErrorMsg } from "$mapper/error";
 import { CacheService } from "$modules/cache.module";
@@ -51,7 +52,7 @@ export class LaundryManageService {
     return await findOrThrow(
       this.db.query.laundryTimeline.findFirst({
         where: { RAW: (t, { eq }) => eq(t.id, data.id) },
-        with: { times: { with: { assigns: true } } },
+        with: laundryTimelineWithAssignIds,
       }),
     );
   }
@@ -96,7 +97,7 @@ export class LaundryManageService {
     return await findOrThrow(
       this.db.query.laundryTimeline.findFirst({
         where: { RAW: (t, { eq }) => eq(t.id, savedTimeline.id) },
-        with: { times: { with: { assigns: true } } },
+        with: laundryTimelineWithAssignIds,
       }),
     );
   }
@@ -105,7 +106,7 @@ export class LaundryManageService {
     await findOrThrow(
       this.db.query.laundryTimeline.findFirst({
         where: { RAW: (t, { eq }) => eq(t.id, data.id) },
-        with: { times: { with: { assigns: true } } },
+        with: laundryTimelineWithAssignIds,
       }),
     );
 
@@ -144,7 +145,7 @@ export class LaundryManageService {
     return await findOrThrow(
       this.db.query.laundryTimeline.findFirst({
         where: { RAW: (t, { eq }) => eq(t.id, data.id) },
-        with: { times: { with: { assigns: true } } },
+        with: laundryTimelineWithAssignIds,
       }),
     );
   }

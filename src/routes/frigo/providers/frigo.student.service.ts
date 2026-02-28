@@ -10,6 +10,7 @@ import {
 } from "date-fns";
 import { eq } from "drizzle-orm";
 import { frigoApply } from "#/db/schema";
+import { frigoApplyWithUser } from "#/db/with";
 import { ErrorMsg } from "$mapper/error";
 import { UserJWT } from "$mapper/types";
 import { DRIZZLE, type DrizzleDB } from "$modules/drizzle.module";
@@ -34,7 +35,7 @@ export class FrigoStudentService {
         where: {
           RAW: (t, { and, eq }) => andWhere(and, eq(t.userId, userJwt.id), eq(t.week, week)),
         },
-        with: { user: true },
+        with: frigoApplyWithUser,
       })) ?? null
     );
   }
@@ -98,7 +99,7 @@ export class FrigoStudentService {
     return await findOrThrow(
       this.db.query.frigoApply.findFirst({
         where: { RAW: (t, { eq }) => eq(t.id, created.id) },
-        with: { user: true },
+        with: frigoApplyWithUser,
       }),
     );
   }
@@ -110,7 +111,7 @@ export class FrigoStudentService {
         where: {
           RAW: (t, { and, eq }) => andWhere(and, eq(t.userId, userJwt.id), eq(t.week, week)),
         },
-        with: { user: true },
+        with: frigoApplyWithUser,
       }),
     );
 

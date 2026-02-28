@@ -1,6 +1,7 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { eq } from "drizzle-orm";
 import { pushSubject, pushSubscription } from "#/db/schema";
+import { pushSubscriptionWithSubjects } from "#/db/with";
 import {
   PushNotificationSubject,
   PushNotificationSubjectIdentifierValues,
@@ -66,7 +67,7 @@ export class PushStudentService {
 
     return await this.db.query.pushSubscription.findFirst({
       where: { RAW: (t, { eq }) => eq(t.id, subscription.id) },
-      with: { subjects: true },
+      with: pushSubscriptionWithSubjects,
     });
   }
 
@@ -111,7 +112,7 @@ export class PushStudentService {
           RAW: (t, { and, eq }) =>
             andWhere(and, eq(t.userId, userJwt.id), eq(t.deviceId, data.deviceId)),
         },
-        with: { subjects: true },
+        with: pushSubscriptionWithSubjects,
       }),
     );
 
@@ -129,7 +130,7 @@ export class PushStudentService {
           RAW: (t, { and, eq }) =>
             andWhere(and, eq(t.userId, target.id), eq(t.deviceId, data.deviceId)),
         },
-        with: { subjects: true },
+        with: pushSubscriptionWithSubjects,
       }),
     );
 
@@ -156,7 +157,7 @@ export class PushStudentService {
 
     return await this.db.query.pushSubscription.findFirst({
       where: { RAW: (t, { eq }) => eq(t.id, subscription.id) },
-      with: { subjects: true },
+      with: pushSubscriptionWithSubjects,
     });
   }
 }
