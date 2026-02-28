@@ -2,7 +2,7 @@ export const laundryTimeWithAssignIds = {
   assigns: {
     with: {
       laundryMachine: true,
-      landryTime: true,
+      laundryTime: true,
     },
   },
 } as const;
