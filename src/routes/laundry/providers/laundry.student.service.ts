@@ -3,7 +3,10 @@ import { HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { addHours, format, isAfter, startOfDay } from "date-fns";
 import { eq } from "drizzle-orm";
 import { laundryApply } from "#/db/schema";
-import { laundryTimelineWithAssignIds, laundryTimeWithAssignIds } from "#/db/with";
+import {
+  laundryApplyForStudentApplies,
+  laundryTimelineForStudentTimeline,
+} from "#/db/with";
 import { ErrorMsg } from "$mapper/error";
 import type { UserJWT } from "$mapper/types";
 import { DRIZZLE, type DrizzleDB } from "$modules/drizzle.module";
@@ -20,12 +23,33 @@ export class LaundryStudentService {
   ) {}
 
   async getTimeline() {
-    return await findOrThrow(
+    const timeline = await findOrThrow(
       this.db.query.laundryTimeline.findFirst({
         where: { RAW: (t, { eq }) => eq(t.enabled, true) },
-        with: laundryTimelineWithAssignIds,
+        with: laundryTimelineForStudentTimeline,
       }),
     );
+
+    return {
+      ...timeline,
+      triggeredOn: timeline.scheduler,
+      times: timeline.times.map((time) => ({
+        ...time,
+        assigns: time.assigns
+          .map((assign) => assign.laundryMachine)
+          .filter((machine) => machine !== null)
+          .map((machine) => {
+            const laundryTime = (machine.assigns ?? [])
+              .map((machineAssign) => machineAssign.laundryTime)
+              .filter((t) => t !== null);
+            const { assigns: _assigns, ...machineInfo } = machine;
+            return {
+              ...machineInfo,
+              laundryTime,
+            };
+          }),
+      })),
+    };
   }
 
   async getApplies() {
@@ -33,23 +57,87 @@ export class LaundryStudentService {
 
     const applies = await this.db.query.laundryApply.findMany({
       where: { RAW: (t, { eq }) => eq(t.date, todayDate) },
-      with: {
-        laundryTime: {
-          with: laundryTimeWithAssignIds,
-        },
-        laundryMachine: true,
-        laundryTimeline: true,
-        user: {
-          columns: {
-            id: true,
-            name: true,
-          },
-        },
-      },
+      with: laundryApplyForStudentApplies,
     });
 
     // Filter only applies from enabled timelines
-    return applies.filter((a) => a.laundryTimeline?.enabled === true);
+    return applies
+      .filter((a) => a.laundryTimeline?.enabled === true)
+      .map((apply) => ({
+        ...apply,
+        laundryTimeline: apply.laundryTimeline
+          ? {
+              ...apply.laundryTimeline,
+              triggeredOn: apply.laundryTimeline.scheduler ?? null,
+              times: (apply.laundryTimeline.times ?? []).map((time) => ({
+                ...time,
+                assigns: (time.assigns ?? [])
+                  .map((assign) => assign.laundryMachine)
+                  .filter((machine) => machine !== null)
+                  .map((machine) => {
+                    const laundryTime = (machine.assigns ?? [])
+                      .map((machineAssign) => machineAssign.laundryTime)
+                      .filter((t) => t !== null);
+                    const { assigns: _assigns, ...machineInfo } = machine;
+                    return {
+                      ...machineInfo,
+                      laundryTime,
+                    };
+                  }),
+                timeline: time.timeline ?? {},
+              })),
+            }
+          : null,
+        laundryTime: apply.laundryTime
+          ? {
+              ...apply.laundryTime,
+              assigns: (apply.laundryTime.assigns ?? [])
+                .map((assign) => assign.laundryMachine)
+                .filter((machine) => machine !== null)
+                .map((machine) => {
+                  const laundryTime = (machine.assigns ?? [])
+                    .map((machineAssign) => machineAssign.laundryTime)
+                    .filter((t) => t !== null);
+                  const { assigns: _assigns, ...machineInfo } = machine;
+                  return {
+                    ...machineInfo,
+                    laundryTime,
+                  };
+                }),
+              timeline: apply.laundryTime.timeline
+                ? {
+                    ...apply.laundryTime.timeline,
+                    triggeredOn: apply.laundryTime.timeline.scheduler ?? null,
+                    times: (apply.laundryTime.timeline.times ?? []).map((time) => ({
+                      ...time,
+                      assigns: (time.assigns ?? [])
+                        .map((assign) => assign.laundryMachine)
+                        .filter((machine) => machine !== null)
+                        .map((machine) => {
+                          const laundryTime = (machine.assigns ?? [])
+                            .map((machineAssign) => machineAssign.laundryTime)
+                            .filter((t) => t !== null);
+                          const { assigns: _assigns, ...machineInfo } = machine;
+                          return {
+                            ...machineInfo,
+                            laundryTime,
+                          };
+                        }),
+                      timeline: time.timeline ?? {},
+                    })),
+                  }
+                : null,
+            }
+          : null,
+        laundryMachine: apply.laundryMachine
+          ? {
+              ...apply.laundryMachine,
+              laundryTime: (apply.laundryMachine.assigns ?? [])
+                .map((assign) => assign.laundryTime)
+                .filter((time) => time !== null && time !== undefined),
+            }
+          : null,
+      }));
   }
 
   async createApply(userJwt: UserJWT, data: LaundryApplyDTO) {

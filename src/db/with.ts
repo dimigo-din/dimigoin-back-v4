@@ -13,6 +13,75 @@ export const laundryTimelineWithAssignIds = {
   },
 } as const;
 
+export const laundryTimelineForStudentTimeline = {
+  times: {
+    with: {
+      timeline: true,
+      assigns: {
+        columns: {
+          laundryMachineId: true,
+          laundryTimeId: true,
+        },
+        with: {
+          laundryMachine: {
+            with: {
+              assigns: {
+                with: {
+                  laundryTime: true,
+                },
+              },
+            },
+          },
+          laundryTime: true,
+        },
+      },
+    },
+  },
+} as const;
+
+export const laundryMachineWithLaundryTime = {
+  assigns: {
+    with: {
+      laundryTime: {
+        with: {
+          timeline: true,
+        },
+      },
+    },
+  },
+} as const;
+
+export const laundryTimeForStudentApply = {
+  timeline: {
+    with: laundryTimelineForStudentTimeline,
+  },
+  assigns: {
+    with: {
+      laundryMachine: {
+        with: laundryMachineWithLaundryTime,
+      },
+      laundryTime: {
+        with: {
+          timeline: true,
+        },
+      },
+    },
+  },
+} as const;
+
+export const laundryApplyForStudentApplies = {
+  laundryTimeline: {
+    with: laundryTimelineForStudentTimeline,
+  },
+  laundryTime: {
+    with: laundryTimeForStudentApply,
+  },
+  laundryMachine: {
+    with: laundryMachineWithLaundryTime,
+  },
+  user: true,
+} as const;
+
 export const laundryApplyWithTimeAndMachine = {
   laundryTime: true,
   laundryMachine: true,
