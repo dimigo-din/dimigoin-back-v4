@@ -39,6 +39,49 @@ export const laundryTimelineForStudentTimeline = {
   },
 } as const;
 
+export const laundryMachineWithLaundryTime = {
+  assigns: {
+    with: {
+      laundryTime: {
+        with: {
+          timeline: true,
+        },
+      },
+    },
+  },
+} as const;
+
+export const laundryTimeForStudentApply = {
+  timeline: {
+    with: laundryTimelineForStudentTimeline,
+  },
+  assigns: {
+    with: {
+      laundryMachine: {
+        with: laundryMachineWithLaundryTime,
+      },
+      laundryTime: {
+        with: {
+          timeline: true,
+        },
+      },
+    },
+  },
+} as const;
+
+export const laundryApplyForStudentApplies = {
+  laundryTimeline: {
+    with: laundryTimelineForStudentTimeline,
+  },
+  laundryTime: {
+    with: laundryTimeForStudentApply,
+  },
+  laundryMachine: {
+    with: laundryMachineWithLaundryTime,
+  },
+  user: true,
+} as const;
+
 export const laundryApplyWithTimeAndMachine = {
   laundryTime: true,
   laundryMachine: true,
