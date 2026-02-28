@@ -2,6 +2,7 @@ import { Inject, Injectable } from "@nestjs/common";
 import { format, startOfWeek } from "date-fns";
 import { eq } from "drizzle-orm";
 import { wakeupSongApplication, wakeupSongHistory, wakeupSongVote } from "#/db/schema";
+import { wakeupSongApplicationWithVotes, wakeupSongApplicationWithVotesAndUser } from "#/db/with";
 import { DRIZZLE, type DrizzleDB } from "$modules/drizzle.module";
 import { findOrThrow } from "$utils/findOrThrow.util";
 import { softDelete } from "$utils/softDelete.util";
@@ -19,7 +20,7 @@ export class WakeupManageService {
       where: {
         RAW: (t, { and, eq, isNull }) => andWhere(and, eq(t.week, week), isNull(t.deletedAt)),
       },
-      with: { wakeupSongVote: true, user: true },
+      with: wakeupSongApplicationWithVotesAndUser,
     });
   }
 
@@ -29,7 +30,7 @@ export class WakeupManageService {
         where: {
           RAW: (t, { and, eq, isNull }) => andWhere(and, eq(t.id, data.id), isNull(t.deletedAt)),
         },
-        with: { wakeupSongVote: true },
+        with: wakeupSongApplicationWithVotes,
       }),
     );
 
@@ -56,7 +57,7 @@ export class WakeupManageService {
         where: {
           RAW: (t, { and, eq, isNull }) => andWhere(and, eq(t.id, data.id), isNull(t.deletedAt)),
         },
-        with: { wakeupSongVote: true },
+        with: wakeupSongApplicationWithVotes,
       }),
     );
 

@@ -4,6 +4,7 @@ import { ConfigService } from "@nestjs/config";
 import { format, startOfWeek } from "date-fns";
 import { and, eq, sql } from "drizzle-orm";
 import { wakeupSongApplication, wakeupSongVote } from "#/db/schema";
+import { wakeupSongVoteWithApplication } from "#/db/with";
 import { ErrorMsg } from "$mapper/error";
 import type { UserJWT, YoutubeSearchResults, YoutubeVideoItem } from "$mapper/types";
 import { CacheService } from "$modules/cache.module";
@@ -157,9 +158,7 @@ export class WakeupStudentService {
           RAW: (t, { and, eq, isNull }) =>
             andWhere(and, eq(t.userId, userJwt.id), isNull(t.deletedAt)),
         },
-        with: {
-          wakeupSongApplication: true,
-        },
+        with: wakeupSongVoteWithApplication,
       })
       .then((votes) => votes.filter((v) => v.wakeupSongApplication?.week === week));
   }

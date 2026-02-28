@@ -3,6 +3,7 @@ import { HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { addHours, format, isAfter, startOfDay } from "date-fns";
 import { eq } from "drizzle-orm";
 import { laundryApply } from "#/db/schema";
+import { laundryTimelineWithAssignIds, laundryTimeWithAssignIds } from "#/db/with";
 import { ErrorMsg } from "$mapper/error";
 import type { UserJWT } from "$mapper/types";
 import { DRIZZLE, type DrizzleDB } from "$modules/drizzle.module";
@@ -22,13 +23,7 @@ export class LaundryStudentService {
     return await findOrThrow(
       this.db.query.laundryTimeline.findFirst({
         where: { RAW: (t, { eq }) => eq(t.enabled, true) },
-        with: {
-          times: {
-            with: {
-              assigns: true,
-            },
-          },
-        },
+        with: laundryTimelineWithAssignIds,
       }),
     );
   }
@@ -40,9 +35,7 @@ export class LaundryStudentService {
       where: { RAW: (t, { eq }) => eq(t.date, todayDate) },
       with: {
         laundryTime: {
-          with: {
-            assigns: true,
-          },
+          with: laundryTimeWithAssignIds,
         },
         laundryMachine: true,
         laundryTimeline: true,

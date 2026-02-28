@@ -4,6 +4,7 @@ import { ConfigService } from "@nestjs/config";
 import { eq } from "drizzle-orm";
 import { GoogleAuth } from "google-auth-library";
 import { pushSubscription } from "#/db/schema";
+import { pushSubjectWithSubscription, pushSubscriptionWithSubjects } from "#/db/with";
 import { DRIZZLE, type DrizzleDB } from "$modules/drizzle.module";
 import { findOrThrow } from "$utils/findOrThrow.util";
 import {
@@ -42,7 +43,7 @@ export class PushManageService {
     // Find subscriptions that have a subject matching the category
     const subjects = await this.db.query.pushSubject.findMany({
       where: { RAW: (t, { eq }) => eq(t.identifier, data.category) },
-      with: { subscription: true },
+      with: pushSubjectWithSubscription,
     });
 
     const subscriptionIds = [...new Set(subjects.map((s) => s.subscriptionId))];
@@ -54,7 +55,7 @@ export class PushManageService {
       subscriptionIds.map((id) =>
         this.db.query.pushSubscription.findFirst({
           where: { RAW: (t, { eq }) => eq(t.id, id) },
-          with: { subjects: true },
+          with: pushSubscriptionWithSubjects,
         }),
       ),
     ).then((results) => results.filter(Boolean));
@@ -67,7 +68,7 @@ export class PushManageService {
 
     return await this.db.query.pushSubscription.findMany({
       where: { RAW: (t, { eq }) => eq(t.userId, data.id) },
-      with: { subjects: true },
+      with: pushSubscriptionWithSubjects,
     });
   }
 
@@ -78,7 +79,7 @@ export class PushManageService {
 
     const subscriptions = await this.db.query.pushSubscription.findMany({
       where: { RAW: (t, { eq }) => eq(t.userId, data.id) },
-      with: { subjects: true },
+      with: pushSubscriptionWithSubjects,
     });
 
     return subscriptions.filter(

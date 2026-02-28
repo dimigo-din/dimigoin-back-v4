@@ -1,6 +1,7 @@
 import { TZDate } from "@date-fns/tz";
 import { Inject, Injectable } from "@nestjs/common";
 import { format } from "date-fns";
+import { laundryApplyWithTimeAndMachine } from "#/db/with";
 import type { UserJWT } from "$mapper/types";
 import { CacheService } from "$modules/cache.module";
 import { DRIZZLE, type DrizzleDB } from "$modules/drizzle.module";
@@ -34,7 +35,7 @@ export class UserStudentService {
               eq(t.date, format(new TZDate(new Date(), "Asia/Seoul"), "yyyy-MM-dd")),
             ),
         },
-        with: { laundryTime: true, laundryMachine: true },
+        with: laundryApplyWithTimeAndMachine,
       }),
     ]);
     return {
