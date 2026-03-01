@@ -123,7 +123,7 @@ export class MealDienenService {
           to: userIds,
           title: "급식 시간 변경",
           body: `${data.source} → ${data.dest}: ${data.description}`,
-          category: "SchoolInformation",
+          category: "school_information",
           url: "",
           data: {},
           actions: [],

@@ -151,6 +151,16 @@ export class AuthService {
         throw new HttpException(ErrorMsg.UserIdentifier_NotFound(), HttpStatus.UNAUTHORIZED);
       }
 
+      this.db
+        .update(user)
+        .set({
+          picture:
+            ticketPayload?.picture ||
+            "https://i.pinimg.com/236x/80/f6/ce/80f6ce7b8828349aa277cf3bcb19c477.jpg",
+          name: `${ticketPayload?.family_name || ""}${ticketPayload?.given_name || ""}`,
+        })
+        .where(eq(user.id, existingUser.id));
+
       loginUser = existingUser;
     }
 

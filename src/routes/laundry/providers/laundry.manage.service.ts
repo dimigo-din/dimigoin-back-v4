@@ -423,7 +423,7 @@ export class LaundryManageService {
         to: [applyUser.id],
         title: title,
         body: body,
-        category: "Laundry",
+        category: "laundry",
         url: "/laundry",
         data: undefined,
         actions: [],
