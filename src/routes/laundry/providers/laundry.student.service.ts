@@ -60,81 +60,7 @@ export class LaundryStudentService {
     // Filter only applies from enabled timelines
     return applies
       .filter((a) => a.laundryTimeline?.enabled === true)
-      .map((apply) => ({
-        ...apply,
-        laundryTimeline: apply.laundryTimeline
-          ? {
-              ...apply.laundryTimeline,
-              triggeredOn: apply.laundryTimeline.scheduler ?? null,
-              times: (apply.laundryTimeline.times ?? []).map((time) => ({
-                ...time,
-                assigns: (time.assigns ?? [])
-                  .map((assign) => assign.laundryMachine)
-                  .filter((machine) => machine !== null)
-                  .map((machine) => {
-                    const laundryTime = (machine.assigns ?? [])
-                      .map((machineAssign) => machineAssign.laundryTime)
-                      .filter((t) => t !== null);
-                    const { assigns: _assigns, ...machineInfo } = machine;
-                    return {
-                      ...machineInfo,
-                      laundryTime,
-                    };
-                  }),
-                timeline: time.timeline ?? {},
-              })),
-            }
-          : null,
-        laundryTime: apply.laundryTime
-          ? {
-              ...apply.laundryTime,
-              assigns: (apply.laundryTime.assigns ?? [])
-                .map((assign) => assign.laundryMachine)
-                .filter((machine) => machine !== null)
-                .map((machine) => {
-                  const laundryTime = (machine.assigns ?? [])
-                    .map((machineAssign) => machineAssign.laundryTime)
-                    .filter((t) => t !== null);
-                  const { assigns: _assigns, ...machineInfo } = machine;
-                  return {
-                    ...machineInfo,
-                    laundryTime,
-                  };
-                }),
-              timeline: apply.laundryTime.timeline
-                ? {
-                    ...apply.laundryTime.timeline,
-                    triggeredOn: apply.laundryTime.timeline.scheduler ?? null,
-                    times: (apply.laundryTime.timeline.times ?? []).map((time) => ({
-                      ...time,
-                      assigns: (time.assigns ?? [])
-                        .map((assign) => assign.laundryMachine)
-                        .filter((machine) => machine !== null)
-                        .map((machine) => {
-                          const laundryTime = (machine.assigns ?? [])
-                            .map((machineAssign) => machineAssign.laundryTime)
-                            .filter((t) => t !== null);
-                          const { assigns: _assigns, ...machineInfo } = machine;
-                          return {
-                            ...machineInfo,
-                            laundryTime,
-                          };
-                        }),
-                      timeline: time.timeline ?? {},
-                    })),
-                  }
-                : null,
-            }
-          : null,
-        laundryMachine: apply.laundryMachine
-          ? {
-              ...apply.laundryMachine,
-              laundryTime: (apply.laundryMachine.assigns ?? [])
-                .map((assign) => assign.laundryTime)
-                .filter((time) => time !== null && time !== undefined),
-            }
-          : null,
-      }));
+      .map((apply) => this.mapApply(apply));
   }
 
   async createApply(userJwt: UserJWT, data: LaundryApplyDTO) {
@@ -217,33 +143,127 @@ export class LaundryStudentService {
       throw new HttpException(ErrorMsg.LaundryMachine_AlreadyTaken(), HttpStatus.BAD_REQUEST);
     }
 
-    const [saved] = await this.db
-      .insert(laundryApply)
-      .values({
-        laundryTimelineId: timeline.id,
-        laundryTimeId: data.time,
-        laundryMachineId: data.machine,
-        userId: userJwt.id,
-        date: todayDate,
-      })
-      .returning();
+    return await this.db.transaction(async (tx) => {
+      const [saved] = await tx.insert(laundryApply)
+        .values({
+          laundryTimelineId: timeline.id,
+          laundryTimeId: data.time,
+          laundryMachineId: data.machine,
+          userId: userJwt.id,
+          date: todayDate,
+        })
+        .returning();
+      
+      if (!saved) {
+        throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
+      }
+      
+      const result = await tx.query.laundryApply.findFirst({
+        where: { RAW: (t, { eq }) => eq(t.id, saved.id) },
+        with: laundryApplyForStudentApplies,
+      });
 
-    return saved;
+      if (!result) {
+        throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
+      }
+
+      return this.mapApply(result);
+    });
   }
 
   async deleteApply(userJwt: UserJWT, data: LaundryApplyIdDTO) {
-    await findOrThrow(
-      this.db.query.laundryApply.findFirst({
-        where: {
-          RAW: (t, { and, eq }) => andWhere(and, eq(t.userId, userJwt.id), eq(t.id, data.id)),
-        },
-      }),
-    );
+    return await this.db.transaction(async (tx) => {
+      const apply = await findOrThrow(
+        tx.query.laundryApply.findFirst({
+          where: {
+            RAW: (t, { and, eq }) =>
+              andWhere(and, eq(t.userId, userJwt.id), eq(t.id, data.id)),
+          },
+          with: laundryApplyForStudentApplies,
+        }),
+      );
 
-    const [deleted] = await this.db
-      .delete(laundryApply)
-      .where(eq(laundryApply.id, data.id))
-      .returning();
-    return deleted;
+      await tx.delete(laundryApply).where(eq(laundryApply.id, data.id));
+
+      return this.mapApply(apply);
+    });
+  }
+
+  private mapApply(apply: any) {
+    return {
+      ...apply,
+      laundryTimeline: apply.laundryTimeline
+        ? {
+            ...apply.laundryTimeline,
+            triggeredOn: apply.laundryTimeline.scheduler ?? null,
+            times: (apply.laundryTimeline.times ?? []).map((time: any) => ({
+              ...time,
+              assigns: (time.assigns ?? [])
+                .map((assign: any) => assign.laundryMachine)
+                .filter((machine: any) => machine !== null)
+                .map((machine: any) => {
+                  const laundryTime = (machine.assigns ?? [])
+                    .map((machineAssign: any) => machineAssign.laundryTime)
+                    .filter((t: any) => t !== null);
+                  const { assigns: _assigns, ...machineInfo } = machine;
+                  return {
+                    ...machineInfo,
+                    laundryTime,
+                  };
+                }),
+              timeline: time.timeline ?? {},
+            })),
+          }
+        : null,
+      laundryTime: apply.laundryTime
+        ? {
+            ...apply.laundryTime,
+            assigns: (apply.laundryTime.assigns ?? [])
+              .map((assign: any) => assign.laundryMachine)
+              .filter((machine: any) => machine !== null)
+              .map((machine: any) => {
+                const laundryTime = (machine.assigns ?? [])
+                  .map((machineAssign: any) => machineAssign.laundryTime)
+                  .filter((t: any) => t !== null);
+                const { assigns: _assigns, ...machineInfo } = machine;
+                return {
+                  ...machineInfo,
+                  laundryTime,
+                };
+              }),
+            timeline: apply.laundryTime.timeline
+              ? {
+                  ...apply.laundryTime.timeline,
+                  triggeredOn: apply.laundryTime.timeline.scheduler ?? null,
+                  times: (apply.laundryTime.timeline.times ?? []).map((time: any) => ({
+                    ...time,
+                    assigns: (time.assigns ?? [])
+                      .map((assign: any) => assign.laundryMachine)
+                      .filter((machine: any) => machine !== null)
+                      .map((machine: any) => {
+                        const laundryTime = (machine.assigns ?? [])
+                          .map((machineAssign: any) => machineAssign.laundryTime)
+                          .filter((t: any) => t !== null);
+                        const { assigns: _assigns, ...machineInfo } = machine;
+                        return {
+                          ...machineInfo,
+                          laundryTime,
+                        };
+                      }),
+                    timeline: time.timeline ?? {},
+                  })),
+                }
+              : null,
+          }
+        : null,
+      laundryMachine: apply.laundryMachine
+        ? {
+            ...apply.laundryMachine,
+            laundryTime: (apply.laundryMachine.assigns ?? [])
+              .map((assign: any) => assign.laundryTime)
+              .filter((time: any) => time !== null && time !== undefined),
+          }
+        : null,
+    };
   }
 }
