@@ -1,8 +1,8 @@
 import { TZDate } from "@date-fns/tz";
 import { HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { addHours, format, isAfter, startOfDay } from "date-fns";
-import { eq } from "drizzle-orm";
-import { laundryApply } from "#/db/schema";
+import { and, eq } from "drizzle-orm";
+import { laundryApply, laundryMachine } from "#/db/schema";
 import { laundryApplyForStudentApplies, laundryTimelineForStudentTimeline } from "#/db/with";
 import { ErrorMsg } from "$mapper/error";
 import type { UserJWT } from "$mapper/types";
@@ -154,23 +154,24 @@ export class LaundryStudentService {
     );
     const todayDate = format(new TZDate(now, "Asia/Seoul"), "yyyy-MM-dd");
 
-    const applyExists = await this.db.query.laundryApply.findFirst({
-      where: {
-        RAW: (t, { and, eq }) =>
-          andWhere(
-            and,
-            eq(t.userId, userJwt.id),
-            eq(t.date, todayDate),
-            eq(t.laundryMachineId, data.machine),
-          ),
-      },
-      with: {
-        laundryMachine: true,
-      },
-    });
+    const applyExists = await this.db
+      .select()
+      .from(laundryApply)
+      .innerJoin(
+        laundryMachine,
+        eq(laundryApply.laundryMachineId, laundryMachine.id),
+      )
+      .where(
+        and(
+          eq(laundryApply.userId, userJwt.id),
+          eq(laundryApply.date, todayDate),
+          eq(laundryMachine.type, machineRow.type),
+        ),
+      )
+      .limit(1);
 
     // Check if user already has an apply for same machine type
-    if (applyExists && applyExists.laundryMachine?.type === machineRow.type) {
+    if (applyExists.length > 0) {
       throw new HttpException(
         ErrorMsg.LaundryApply_AlreadyExists(machineRow.type === "washer" ? "세탁" : "건조"),
         HttpStatus.BAD_REQUEST,
