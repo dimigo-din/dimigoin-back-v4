@@ -416,8 +416,9 @@ export class LaundryManageService {
 
       const applyUser = apply.user;
       const machineType = apply.laundryMachine.type === "washer" ? "세탁" : "건조";
+      const machineTypeParticle = apply.laundryMachine.type === "washer" ? "이" : "가";
       const title = `${machineType} 알림`;
-      const body = `15분뒤 ${apply.laundryTime.time}에 ${machineType}이 예약되어 있습니다. (${apply.laundryMachine.name})`;
+      const body = `15분뒤 ${apply.laundryTime.time}에 ${machineType}${machineTypeParticle} 예약되어 있습니다. (${apply.laundryMachine.name})`;
 
       const dto: PushNotificationToSpecificDTO = {
         to: [applyUser.id],
