@@ -83,10 +83,7 @@ export class LaundryStudentService {
     const applyExists = await this.db
       .select()
       .from(laundryApply)
-      .innerJoin(
-        laundryMachine,
-        eq(laundryApply.laundryMachineId, laundryMachine.id),
-      )
+      .innerJoin(laundryMachine, eq(laundryApply.laundryMachineId, laundryMachine.id))
       .where(
         and(
           eq(laundryApply.userId, userJwt.id),
@@ -144,7 +141,8 @@ export class LaundryStudentService {
     }
 
     return await this.db.transaction(async (tx) => {
-      const [saved] = await tx.insert(laundryApply)
+      const [saved] = await tx
+        .insert(laundryApply)
         .values({
           laundryTimelineId: timeline.id,
           laundryTimeId: data.time,
@@ -153,11 +151,11 @@ export class LaundryStudentService {
           date: todayDate,
         })
         .returning();
-      
+
       if (!saved) {
         throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
       }
-      
+
       const result = await tx.query.laundryApply.findFirst({
         where: { RAW: (t, { eq }) => eq(t.id, saved.id) },
         with: laundryApplyForStudentApplies,
@@ -176,8 +174,7 @@ export class LaundryStudentService {
       const apply = await findOrThrow(
         tx.query.laundryApply.findFirst({
           where: {
-            RAW: (t, { and, eq }) =>
-              andWhere(and, eq(t.userId, userJwt.id), eq(t.id, data.id)),
+            RAW: (t, { and, eq }) => andWhere(and, eq(t.userId, userJwt.id), eq(t.id, data.id)),
           },
           with: laundryApplyForStudentApplies,
         }),
