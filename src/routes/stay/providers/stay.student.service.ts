@@ -35,6 +35,11 @@ export class StayStudentService {
   async getStayList(userJwt: UserJWT) {
     const stays = await this.db.query.stay.findMany({
       with: stayWithApplyPeriodAndApplyUserAndPresetRange,
+      where: {
+        deletedAt: {
+          isNull: true,
+        },
+      },
       orderBy: (stay, { asc }) => [asc(stay.stay_from)],
     });
 

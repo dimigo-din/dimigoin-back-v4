@@ -49,6 +49,8 @@ class MockCacheModule {}
 
 export class TestApp {
   private app: NestFastifyApplication;
+  private readonly registerPlugin = (...args: Parameters<NestFastifyApplication["register"]>) =>
+    this.app.register(...args);
 
   async initialize(): Promise<NestFastifyApplication> {
     const moduleFixtureBuilder = Test.createTestingModule({
@@ -67,8 +69,12 @@ export class TestApp {
       }),
     );
 
-    await this.app.register(fastifyCookie);
-    await this.app.register(fastifyMultipart);
+    await this.registerPlugin(
+      fastifyCookie as unknown as Parameters<NestFastifyApplication["register"]>[0],
+    );
+    await this.registerPlugin(
+      fastifyMultipart as unknown as Parameters<NestFastifyApplication["register"]>[0],
+    );
 
     this.app.useGlobalPipes(
       new ValidationPipe({
