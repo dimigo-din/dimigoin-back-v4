@@ -97,26 +97,46 @@ export class RequestHelper {
     files: { buffer: Buffer; name: string; type: string }[],
     token?: string,
   ) {
-    const FormData = (await import("form-data")).default;
-    const form = new FormData();
+    const boundary = `----dimigoin-${Date.now().toString(16)}-${Math.random().toString(16).slice(2)}`;
+    const chunks: Buffer[] = [];
+    const crlf = "\r\n";
 
     for (const [key, value] of Object.entries(fields)) {
-      form.append(key, value);
+      const serializedValue =
+        value === null || value === undefined
+          ? ""
+          : typeof value === "string"
+            ? value
+            : typeof value === "object"
+              ? JSON.stringify(value)
+              : String(value);
+      chunks.push(
+        Buffer.from(
+          `--${boundary}${crlf}Content-Disposition: form-data; name="${key}"${crlf}${crlf}${serializedValue}${crlf}`,
+        ),
+      );
     }
 
     for (const file of files) {
-      form.append("file", file.buffer, {
-        filename: file.name,
-        contentType: file.type,
-      });
+      chunks.push(
+        Buffer.from(
+          `--${boundary}${crlf}Content-Disposition: form-data; name="file"; filename="${file.name}"${crlf}Content-Type: ${file.type}${crlf}${crlf}`,
+        ),
+      );
+      chunks.push(file.buffer);
+      chunks.push(Buffer.from(crlf));
     }
+
+    chunks.push(Buffer.from(`--${boundary}--${crlf}`));
+    const payload = Buffer.concat(chunks);
 
     const options: InjectOptions = {
       method: "POST",
       url,
-      payload: form as InjectPayload,
+      payload,
       headers: {
-        ...form.getHeaders(),
+        "content-type": `multipart/form-data; boundary=${boundary}`,
+        "content-length": payload.length.toString(),
         ...(token ? { authorization: `Bearer ${token}` } : {}),
       },
     };

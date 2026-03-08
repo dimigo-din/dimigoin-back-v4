@@ -23,6 +23,7 @@ export async function bootstrap(isInit: boolean = true) {
   );
 
   const configService = app.get(ConfigService);
+  type NestFastifyPlugin = Parameters<NestFastifyApplication["register"]>[0];
 
   app.enableCors({
     origin:
@@ -39,11 +40,11 @@ export async function bootstrap(isInit: boolean = true) {
     methods: ["GET", "HEAD", "POST", "PUT", "DELETE", "PATCH"],
   });
 
-  await app.register(fastifyCompress, {
+  await app.register(fastifyCompress as unknown as NestFastifyPlugin, {
     encodings: ["gzip", "deflate"],
   });
-  await app.register(fastifyCookie);
-  await app.register(fastifyMultipart, {
+  await app.register(fastifyCookie as unknown as NestFastifyPlugin);
+  await app.register(fastifyMultipart as unknown as NestFastifyPlugin, {
     limits: {
       fileSize: 20 * 1024 * 1024,
       files: 5,

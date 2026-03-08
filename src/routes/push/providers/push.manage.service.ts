@@ -2,7 +2,7 @@ import { fcm, fcm_v1 } from "@googleapis/fcm";
 import { Inject, Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { eq } from "drizzle-orm";
-import { GoogleAuth } from "google-auth-library";
+import { GoogleAuth } from "googleapis-common";
 import { pushSubscription } from "#/db/schema";
 import { pushSubjectWithSubscription, pushSubscriptionWithSubjects } from "#/db/with";
 import { DRIZZLE, type DrizzleDB } from "$modules/drizzle.module";
