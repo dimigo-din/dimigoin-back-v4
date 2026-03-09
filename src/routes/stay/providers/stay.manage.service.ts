@@ -296,7 +296,15 @@ export class StayManageService {
   }
 
   async getStayList() {
-    const stays = await this.db.query.stay.findMany();
+    const stays = await this.db.query.stay.findMany(
+      {
+        where: {
+          deletedAt: {
+            isNull: true,
+          },
+        },
+      }
+    );
     return stays.map((e) => {
       return { id: e.id, name: e.name, stay_from: e.stay_from, stay_to: e.stay_to };
     });
