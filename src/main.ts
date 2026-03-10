@@ -41,7 +41,7 @@ export async function bootstrap(isInit: boolean = true) {
   });
 
   await app.register(fastifyCompress as unknown as NestFastifyPlugin, {
-    encodings: ["gzip", "deflate"],
+    encodings: ["zstd"],
   });
   await app.register(fastifyCookie as unknown as NestFastifyPlugin);
   await app.register(fastifyMultipart as unknown as NestFastifyPlugin, {
