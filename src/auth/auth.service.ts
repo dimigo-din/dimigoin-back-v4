@@ -151,7 +151,7 @@ export class AuthService {
         throw new HttpException(ErrorMsg.UserIdentifier_NotFound(), HttpStatus.UNAUTHORIZED);
       }
 
-      this.db
+      const [updated] = await this.db
         .update(user)
         .set({
           picture:
@@ -159,9 +159,10 @@ export class AuthService {
             "https://i.pinimg.com/236x/80/f6/ce/80f6ce7b8828349aa277cf3bcb19c477.jpg",
           name: `${ticketPayload?.family_name || ""}${ticketPayload?.given_name || ""}`,
         })
-        .where(eq(user.id, existingUser.id));
+        .where(eq(user.id, existingUser.id))
+        .returning();
 
-      loginUser = existingUser;
+      loginUser = updated ?? existingUser;
     }
 
     return await this.generateJWTKeyPair(loginUser, "30m");
