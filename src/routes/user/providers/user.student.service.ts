@@ -8,6 +8,7 @@ import { DRIZZLE, type DrizzleDB } from "$modules/drizzle.module";
 import { andWhere } from "$utils/where.util";
 import { ComciData } from "~user/dto";
 import { UserManageService } from "./user.manage.service";
+import {isNull} from "drizzle-orm";
 
 @Injectable()
 export class UserStudentService {
@@ -20,7 +21,7 @@ export class UserStudentService {
   async getMyApplies(user: UserJWT) {
     const [stayApplyResult, laundryApplyResult] = await Promise.all([
       this.db.query.stayApply.findFirst({
-        where: { RAW: (t, { eq }) => eq(t.userId, user.id) },
+        where: { RAW: (t, { and, eq }) => andWhere(and, eq(t.userId, user.id), isNull(t.deletedAt)) },
         with: {
           user: true,
           outing: true,
