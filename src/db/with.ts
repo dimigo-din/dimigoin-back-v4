@@ -60,6 +60,9 @@ export const laundryTimeForStudentApply = {
 } as const;
 
 export const laundryApplyForStudentApplies = {
+  laundryTimeline: {
+    with: laundryTimelineForStudentTimeline,
+  },
   laundryTime: {
     with: laundryTimeForStudentApply,
   },
