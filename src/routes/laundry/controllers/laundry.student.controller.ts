@@ -1,8 +1,8 @@
-import { Body, Controller, Delete, Get, HttpStatus, Post, Query } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpStatus, Post, Query, UseGuards } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
 import type { User } from "#/db/schema";
 import { AppCheckGuard, CustomJwtAuthGuard } from "#auth/guards";
-import { UseGuardsWithSwagger, UseGuards } from "#auth/guards/useGuards";
+import { UseGuardsWithSwagger } from "#auth/guards/useGuards";
 import { CurrentUser } from "$decorators/user.decorator";
 import { ApiResponseFormat } from "$dto/response_format.dto";
 import { LaundryApplyIdDTO } from "~laundry/dto/laundry.manage.dto";
