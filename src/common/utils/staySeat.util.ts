@@ -2,7 +2,7 @@ import { VALID_STAY_SEAT_RANGES } from "$mapper/constants";
 
 const parseCell = (cell: string) => {
   const match = cell.match(/^([A-Z])(\d+)$/i);
-  if (!match || !match[1] || !match[2]) {
+  if (!match?.[1] || !match[2]) {
     throw new Error(`Invalid cell format: ${cell}`);
   }
   return { col: match[1].toUpperCase().charCodeAt(0), row: parseInt(match[2], 10) };

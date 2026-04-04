@@ -126,7 +126,7 @@ export class AuthController {
     @Body() data: RefreshTokenDTO,
   ) {
     let token: { accessToken: string; refreshToken: string };
-    if (!data || !data.refreshToken) {
+    if (!data?.refreshToken) {
       token = await this.authService.refresh(req.cookies[REFRESH_TOKEN_COOKIE] ?? "");
       this.generateCookie(res, token);
     } else {
