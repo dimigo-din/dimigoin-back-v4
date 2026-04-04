@@ -36,11 +36,11 @@
     "@googleapis/fcm": "^9.0.1",
     "@googleapis/youtube": "^31.0.0",
     "@nestjs/cache-manager": "^3.1.0",
-    "@nestjs/common": "^11.1.17",
+    "@nestjs/common": "^11.1.18",
     "@nestjs/config": "^4.0.3",
-    "@nestjs/core": "^11.1.17",
+    "@nestjs/core": "^11.1.18",
     "@nestjs/jwt": "^11.0.2",
-    "@nestjs/platform-fastify": "^11.1.17",
+    "@nestjs/platform-fastify": "^11.1.18",
     "@nestjs/schedule": "^6.1.1",
     "@nestjs/swagger": "^11.2.6",
     "cache-manager": "^7.2.8",
@@ -57,17 +57,19 @@
     "swagger-themes": "^1.4.3"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.4.9",
-    "@nestjs/cli": "^11.0.16",
-    "@nestjs/schematics": "^11.0.9",
-    "@nestjs/testing": "^11.1.17",
-    "@swc/cli": "^0.8.0",
+    "@biomejs/biome": "^2.4.10",
+    "@nestjs/cli": "^11.0.17",
+    "@nestjs/schematics": "^11.0.10",
+    "@nestjs/testing": "^11.1.18",
+    "@swc/cli": "^0.8.1",
     "@swc/core": "^1.15.21",
     "@types/bun": "^1.3.11",
     "typescript": "^6.0.2"
   },
   "trustedDependencies": [
     "@nestjs/core",
-    "@swc/core"
+    "@scarf/scarf",
+    "@swc/core",
+    "esbuild"
   ]
 }
