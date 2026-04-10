@@ -387,7 +387,7 @@ export class StayStudentService {
         with: stayOutingWithStayApplyUserAndStayWithApplyPeriod,
       }),
     );
-    if (!outing.stayApply || !outing.stayApply.user || !outing.stayApply.stay) {
+    if (!outing.stayApply?.user || !outing.stayApply.stay) {
       throw new NotFoundException("Stay outing not found");
     }
     if (outing.stayApply.user.id !== userJwt.id) {
@@ -448,7 +448,7 @@ export class StayStudentService {
         with: stayOutingWithStayApplyUserAndStayWithApplyPeriod,
       }),
     );
-    if (!outing.stayApply || !outing.stayApply.user || !outing.stayApply.stay) {
+    if (!outing.stayApply?.user || !outing.stayApply.stay) {
       throw new HttpException(ErrorMsg.Resource_NotFound(), HttpStatus.NOT_FOUND);
     }
     if (outing.stayApply.user.id !== userJwt.id) {
@@ -476,7 +476,7 @@ export class StayStudentService {
     grade: Grade,
     gender: Gender,
   ) {
-    if (!preset || !preset.stay_seat || preset.stay_seat.length === 0) {
+    if (!preset?.stay_seat || preset.stay_seat.length === 0) {
       return true;
     }
     return preset.stay_seat

@@ -1,6 +1,7 @@
 import { TZDate } from "@date-fns/tz";
 import { Inject, Injectable } from "@nestjs/common";
 import { format } from "date-fns";
+import { isNull } from "drizzle-orm";
 import { laundryApplyWithTimeAndMachine } from "#/db/with";
 import type { UserJWT } from "$mapper/types";
 import { CacheService } from "$modules/cache.module";
@@ -8,7 +9,6 @@ import { DRIZZLE, type DrizzleDB } from "$modules/drizzle.module";
 import { andWhere } from "$utils/where.util";
 import { ComciData } from "~user/dto";
 import { UserManageService } from "./user.manage.service";
-import {isNull} from "drizzle-orm";
 
 @Injectable()
 export class UserStudentService {
@@ -21,7 +21,9 @@ export class UserStudentService {
   async getMyApplies(user: UserJWT) {
     const [stayApplyResult, laundryApplyResult] = await Promise.all([
       this.db.query.stayApply.findFirst({
-        where: { RAW: (t, { and, eq }) => andWhere(and, eq(t.userId, user.id), isNull(t.deletedAt)) },
+        where: {
+          RAW: (t, { and, eq }) => andWhere(and, eq(t.userId, user.id), isNull(t.deletedAt)),
+        },
         with: {
           user: true,
           outing: true,

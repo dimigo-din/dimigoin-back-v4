@@ -1,3 +1,4 @@
+import { TZDate } from "@date-fns/tz";
 import { Inject, Injectable } from "@nestjs/common";
 import { format, startOfWeek } from "date-fns";
 import { eq } from "drizzle-orm";
@@ -14,7 +15,7 @@ export class WakeupManageService {
   constructor(@Inject(DRIZZLE) private readonly db: DrizzleDB) {}
 
   async getList() {
-    const week = format(startOfWeek(new Date()), "yyyy-MM-dd");
+    const week = format(startOfWeek(new TZDate(Date(), "Asia/Seoul")), "yyyy-MM-dd");
 
     return await this.db.query.wakeupSongApplication.findMany({
       where: {
@@ -36,7 +37,7 @@ export class WakeupManageService {
 
     // Create history record from the application
     await this.db.insert(wakeupSongHistory).values({
-      date: format(new Date(), "yyyy-MM-dd"),
+      date: format(new TZDate(Date(), "Asia/Seoul"), "yyyy-MM-dd"),
       video_id: apply.video_id,
       video_title: apply.video_title,
       up: apply.wakeupSongVote.filter((v: { upvote: boolean }) => v.upvote).length,

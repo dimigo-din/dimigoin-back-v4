@@ -49,7 +49,7 @@ export class AppCheckGuard implements CanActivate {
 
   private async verifyToken(token: string): Promise<void> {
     const decoded = jwt.decode(token, { complete: true });
-    if (!decoded || !decoded.header.kid) {
+    if (!decoded?.header.kid) {
       throw new Error("Invalid token format");
     }
 
