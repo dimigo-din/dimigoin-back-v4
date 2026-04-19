@@ -9,9 +9,13 @@ const parseCell = (cell: string) => {
 };
 
 export const isInValidRange = (target: string): boolean => {
-  return VALID_STAY_SEAT_RANGES.some(([start, end]) => {
-    return isInRange([start, end], target);
-  });
+  try {
+    return VALID_STAY_SEAT_RANGES.some(([start, end]) => {
+      return isInRange([start, end], target);
+    });
+  } catch {
+    return false;
+  }
 };
 
 export const isInRange = (range: string[], target: string): boolean => {
