@@ -1,6 +1,7 @@
 import { CallHandler, ExecutionContext, Injectable, Logger, NestInterceptor } from "@nestjs/common";
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { Observable } from "rxjs";
+import { tap } from "rxjs/operators";
 
 @Injectable()
 export class CustomLoggerInterceptor implements NestInterceptor {
@@ -72,7 +73,19 @@ export class CustomLoggerInterceptor implements NestInterceptor {
       );
     });
 
-    return next.handle();
+    return next.handle().pipe(
+      tap({
+        error: (err: unknown) => {
+          const endTimestamp = Date.now() - startTimestamp;
+          const message = err instanceof Error ? err.message : String(err);
+          this.logger.error(
+            `From ${
+              forwardedFor ? `${forwardedFor} through ${ipAddress}` : ipAddress
+            } (${userAgent}) - Requested "${reqMethod} ${originURL} ${httpVersion}" | Error by uid{${authorization}} +${endTimestamp}ms | ${message}`,
+          );
+        },
+      }),
+    );
   }
 
   private parseCookies(cookieHeader: string): Record<string, string> {
