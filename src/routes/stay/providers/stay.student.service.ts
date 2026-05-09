@@ -9,7 +9,12 @@ import {
   stayWithApplyPeriodAndApplyUserAndPresetRange,
   stayWithPresetAndApplyPeriod,
 } from "#/db/with";
-import { SelfDevelopment_Outing_From, SelfDevelopment_Outing_To } from "$mapper/constants";
+import {
+  SEAT_RIGHT_SECTION_START,
+  SelfDevelopment_Outing_From,
+  SelfDevelopment_Outing_To,
+  VALID_STAY_SEAT_RANGES,
+} from "$mapper/constants";
 import { ErrorMsg } from "$mapper/error";
 import type { Gender, Grade, UserJWT } from "$mapper/types";
 import { DRIZZLE, type DrizzleDB } from "$modules/drizzle.module";
@@ -499,5 +504,40 @@ export class StayStudentService {
     );
 
     return !!validPeriod;
+  }
+
+  getSeatLayout(): {
+    leftColumns: { name: string; maxRow: number }[];
+    rightColumns: { name: string; maxRow: number }[];
+  } {
+    const columnMap = new Map<string, number>();
+
+    for (const [start, end] of VALID_STAY_SEAT_RANGES) {
+      const startCol = start.charCodeAt(0);
+      const endCol = end.charCodeAt(0);
+      const endRow = parseInt(end.slice(1), 10);
+
+      for (let c = startCol; c <= endCol; c++) {
+        const colName = String.fromCharCode(c);
+        const current = columnMap.get(colName) ?? 0;
+        columnMap.set(colName, Math.max(current, endRow));
+      }
+    }
+
+    const rightStart = SEAT_RIGHT_SECTION_START.charCodeAt(0);
+    const leftColumns: { name: string; maxRow: number }[] = [];
+    const rightColumns: { name: string; maxRow: number }[] = [];
+
+    for (const [name, maxRow] of [...columnMap.entries()].sort(([a], [b]) =>
+      a.charCodeAt(0) - b.charCodeAt(0),
+    )) {
+      if (name.charCodeAt(0) < rightStart) {
+        leftColumns.push({ name, maxRow });
+      } else {
+        rightColumns.push({ name, maxRow });
+      }
+    }
+
+    return { leftColumns, rightColumns };
   }
 }
