@@ -21,6 +21,18 @@ export class StayStudentController {
   constructor(private readonly stayService: StayStudentService) {}
 
   @ApiOperation({
+    summary: "좌석 레이아웃",
+    description: "좌석 그리드 구성(열 이름, 최대 행)을 좌측/우측 섹션으로 나누어 반환합니다.",
+  })
+  @ApiResponseFormat({
+    status: HttpStatus.OK,
+  })
+  @Get("/seat-layout")
+  getSeatLayout() {
+    return this.stayService.getSeatLayout();
+  }
+
+  @ApiOperation({
     summary: "잔류 목록",
     description: "활성화된 잔류 목록을 가져옵니다.",
   })

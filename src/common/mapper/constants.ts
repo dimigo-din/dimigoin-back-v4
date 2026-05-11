@@ -12,7 +12,11 @@ import { LaundryTimelineScheduler } from "~laundry/schedulers/scheduler.interfac
 export const VALID_STAY_SEAT_RANGES = [
   ["A1", "L18"],
   ["M1", "N18"],
+  ["O1", "T9"],
+  ["U1", "U5"],
 ] as const satisfies readonly [string, string][];
+
+export const SEAT_RIGHT_SECTION_START = "O";
 
 export const StaySeats = generateValidRange();
 
