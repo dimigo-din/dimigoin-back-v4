@@ -16,7 +16,7 @@ import {
   startOfDay,
   subSeconds,
 } from "date-fns";
-import { eq, inArray } from "drizzle-orm";
+import { eq, inArray, sql } from "drizzle-orm";
 import {
   stay,
   stayApply,
@@ -729,7 +729,7 @@ export class StayManageService {
           name: target.name,
           stay_from: format(from, "yyyy-MM-dd"),
           stay_to: format(to, "yyyy-MM-dd"),
-          outing_day: outingDays,
+          outing_day: sql`ARRAY[${sql.join(outingDays.map((d) => sql`${d}`), sql`, `)}]::text[]`,
           staySeatPresetId: target.staySeatPresetId,
           parentId: target.id,
         })
