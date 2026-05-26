@@ -52,7 +52,6 @@ export async function bootstrap(isInit: boolean = true) {
   });
 
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
-  app.useGlobalInterceptors(...Object.values(interceptors).map((i) => new i()));
 
   await CustomSwaggerSetup(app);
 

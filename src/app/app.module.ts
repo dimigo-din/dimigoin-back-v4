@@ -4,7 +4,7 @@ import { AuthModule } from "#/auth";
 import * as routes from "#/routes";
 import { AppService } from "#app/app.service";
 import { HealthController } from "#app/health.controller";
-import { CustomLoggerInterceptor } from "$/interceptors";
+import { CustomLoggerInterceptor, ResponseWrapperInterceptor } from "$/interceptors";
 import { CustomEssentialModules } from "$/modules";
 
 @Module({
@@ -15,6 +15,10 @@ import { CustomEssentialModules } from "$/modules";
     {
       provide: APP_INTERCEPTOR,
       useClass: CustomLoggerInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ResponseWrapperInterceptor,
     },
   ],
 })
