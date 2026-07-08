@@ -7,7 +7,7 @@ import type { UserJWT } from "$mapper/types";
 import { CacheService } from "$modules/cache.module";
 import { DRIZZLE, type DrizzleDB } from "$modules/drizzle.module";
 import { andWhere } from "$utils/where.util";
-import { ComciData } from "~user/dto";
+import type { ComciData } from "~user/dto";
 import { UserManageService } from "./user.manage.service";
 
 @Injectable()
@@ -104,6 +104,13 @@ export class UserStudentService {
       }
     };
 
+    const rmBrackets = (value: unknown) => {
+      if (typeof value === "string" && value.startsWith(">")) {
+        return Number(value.slice(1));
+      }
+      return Number(value || 0);
+    };
+
     const getGroupCode = (
       dataObj: ComciData,
       gradeNum: number,
@@ -142,8 +149,8 @@ export class UserStudentService {
             const grade2 = Math.floor(classroom / 100);
             const class2 = classroom - grade2 * 100;
 
-            const rawValue = dataObj.자료147?.[grade2]?.[class2]?.[dayOfWeek]?.[period];
-            if (rawValue === undefined) {
+            const rawValue = rmBrackets(dataObj.자료147?.[grade2]?.[class2]?.[dayOfWeek]?.[period]);
+            if (!Number.isFinite(rawValue)) {
               check = 0;
               break;
             }
@@ -194,7 +201,7 @@ export class UserStudentService {
     for (let day = 1; day <= MAX_D; day++) {
       for (let per = 1; per <= MAX_P; per++) {
         const originalData = safeData(data.자료481?.[grade]?.[klass]?.[day]?.[per]);
-        const dailyData = safeData(data.자료147?.[grade]?.[klass]?.[day]?.[per]) as number;
+        const dailyData = rmBrackets(data.자료147?.[grade]?.[klass]?.[day]?.[per]);
 
         let classroom = "";
         if (data.강의실 === 1) {
