@@ -48,6 +48,7 @@ const cacheModule = CacheModule.registerAsync({
 
 export class CacheService {
   private RATELIMIT_PREFIX = "ratelimit_";
+  private FACILITY_REPORT_RATELIMIT_PREFIX = "facilityReportRatelimit_";
   private YOUTUBESEARCH_PREFIX = "youtubeSearch_";
   private NOTIFICATION_PREFIX = "notification_";
   private redis: RedisClient;
@@ -65,6 +66,19 @@ export class CacheService {
 
     if (lastRequest === undefined || Date.now() - lastRequest > 2000) {
       await this.cacheManager.set(this.RATELIMIT_PREFIX + userid, Date.now());
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  async facilityReportRateLimit(userid: string) {
+    const lastRequest = await this.cacheManager.get<number>(
+      this.FACILITY_REPORT_RATELIMIT_PREFIX + userid,
+    );
+
+    if (lastRequest === undefined || Date.now() - lastRequest > 60_000) {
+      await this.cacheManager.set(this.FACILITY_REPORT_RATELIMIT_PREFIX + userid, Date.now());
       return true;
     } else {
       return false;

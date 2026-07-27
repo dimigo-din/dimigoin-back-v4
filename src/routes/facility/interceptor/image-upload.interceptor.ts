@@ -15,11 +15,10 @@ import { FileDTO } from "~facility/dto/facility.dto";
 
 @Injectable()
 export class ImageUploadInterceptor implements NestInterceptor {
-  private readonly uploadDir = path.join(process.cwd(), "uploads/facility");
-
   async intercept(context: ExecutionContext, next: CallHandler): Promise<Observable<unknown>> {
     const ctx = context.switchToHttp();
     const req = ctx.getRequest<FastifyRequest & { body: Record<string, unknown> }>();
+    req.body = req.body ?? {};
 
     const files: FileDTO[] = [];
 
@@ -61,9 +60,7 @@ export class ImageUploadInterceptor implements NestInterceptor {
     }
 
     for (const file of files) {
-      const filename = Bun.randomUUIDv7();
-      file.filename = filename;
-      await Bun.write(path.join(this.uploadDir, filename), file.buffer, { createPath: true });
+      file.filename = Bun.randomUUIDv7();
     }
 
     req.body.file = files;

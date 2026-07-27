@@ -1,15 +1,14 @@
-import path from "node:path";
 import {
   Body,
   Controller,
   Delete,
   Get,
+  HttpException,
   HttpStatus,
   Patch,
   Post,
   Query,
   Res,
-  StreamableFile,
   UseInterceptors,
 } from "@nestjs/common";
 import { ApiBody, ApiConsumes, ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
@@ -43,18 +42,22 @@ export class FacilityManageController {
 
   @ApiOperation({
     summary: "사진 불러오기",
-    description: "시설제보에 업로드된 사진을 가져옵니다.",
+    description: "시설제보에 업로드된 사진으로 리다이렉트합니다.",
   })
   @ApiResponse({
-    status: HttpStatus.OK,
-    type: StreamableFile,
+    status: HttpStatus.FOUND,
   })
   @Get("/img")
   async getImg(@Res() res: FastifyReply, @Query() data: FacilityImgIdDTO) {
-    const result = await this.facilityManageService.getImg(data);
-
-    res.header("Content-Disposition", `attachment; filename="#{result.filename}"`);
-    return res.send(result.stream);
+    try {
+      const result = await this.facilityManageService.getImg(data);
+      return res.redirect(result.url, HttpStatus.FOUND);
+    } catch (err) {
+      const status =
+        err instanceof HttpException ? err.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
+      const error = err instanceof HttpException ? err.getResponse() : "Internal Server Error";
+      return res.status(status).send({ ok: false, status, error });
+    }
   }
 
   @ApiOperation({
@@ -106,20 +109,7 @@ export class FacilityManageController {
   @Post("/")
   @UseInterceptors(ImageUploadInterceptor)
   async report(@CurrentUser() user: User, @Body() data: ReportFacilityDTO) {
-    const files = data.file || [];
-    try {
-      return await this.facilityManageService.createReport(user, data, files);
-    } catch (_e) {
-      for (const fileInfo of files) {
-        const targetFile = Bun.file(
-          path.join(process.cwd(), "uploads/facility", fileInfo.filename ?? ""),
-        );
-        if (await targetFile.exists()) {
-          await targetFile.delete();
-        }
-      }
-      throw _e;
-    }
+    return await this.facilityManageService.createReport(user, data, data.file || []);
   }
 
   @ApiOperation({

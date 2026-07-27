@@ -3,6 +3,7 @@ import {
   ExecutionContext,
   HttpException,
   Injectable,
+  Logger,
   NestInterceptor,
 } from "@nestjs/common";
 import { Observable, of } from "rxjs";
@@ -10,10 +11,11 @@ import { catchError, map } from "rxjs/operators";
 
 @Injectable()
 export class ResponseWrapperInterceptor implements NestInterceptor {
+  private readonly logger = new Logger(ResponseWrapperInterceptor.name);
+
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     const res = context.switchToHttp().getResponse();
     const request = context.switchToHttp().getRequest();
-    const logger = request?.logger;
     const shouldTransformToSnakeCase = !this.isAuthRoute(request?.url);
 
     return next.handle().pipe(
@@ -39,7 +41,7 @@ export class ResponseWrapperInterceptor implements NestInterceptor {
             error = (error as Error).message || error;
           }
         } else {
-          logger?.error?.(err);
+          this.logger.error(err instanceof Error ? err.stack : err);
           status = 500;
           error = "Internal Server Error";
         }

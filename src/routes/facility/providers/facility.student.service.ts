@@ -1,5 +1,6 @@
-import path from "node:path";
+import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { HttpException, HttpStatus, Inject, Injectable, NotFoundException } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { facilityImg, facilityReport, facilityReportComment } from "#/db/schema";
 import {
   facilityReportWithCommentFileUser,
@@ -8,7 +9,9 @@ import {
 } from "#/db/with";
 import { ErrorMsg } from "$mapper/error";
 import { UserJWT } from "$mapper/types";
+import { CacheService } from "$modules/cache.module";
 import { DRIZZLE, type DrizzleDB } from "$modules/drizzle.module";
+import { R2 } from "$modules/r2.module";
 import { findOrThrow } from "$utils/findOrThrow.util";
 import { FileDTO } from "~facility/dto/facility.dto";
 import {
@@ -21,7 +24,16 @@ import {
 
 @Injectable()
 export class FacilityStudentService {
-  constructor(@Inject(DRIZZLE) private readonly db: DrizzleDB) {}
+  constructor(
+    @Inject(DRIZZLE) private readonly db: DrizzleDB,
+    @Inject(R2) private readonly r2: S3Client,
+    private readonly config: ConfigService,
+    private readonly cacheService: CacheService,
+  ) {}
+
+  private get bucket() {
+    return this.config.get<string>("R2_BUCKET_NAME") ?? "";
+  }
 
   async getImg(data: FacilityImgIdDTO) {
     const img = await findOrThrow(
@@ -29,7 +41,7 @@ export class FacilityStudentService {
     );
 
     return {
-      stream: Bun.file(path.join(process.cwd(), "uploads/facility", img.location)).stream(),
+      url: `${this.config.get<string>("R2_PUBLIC_URL")}/${img.location}`,
       filename: img.name,
     };
   }
@@ -63,6 +75,10 @@ export class FacilityStudentService {
   }
 
   async createReport(userJwt: UserJWT, data: ReportFacilityDTO, files: Array<FileDTO>) {
+    if (!(await this.cacheService.facilityReportRateLimit(userJwt.id))) {
+      throw new HttpException(ErrorMsg.RateLimit_Exceeded(), HttpStatus.TOO_MANY_REQUESTS);
+    }
+
     const dbUser = await findOrThrow(
       this.db.query.user.findFirst({ where: { RAW: (t, { eq }) => eq(t.id, userJwt.id) } }),
     );
@@ -82,6 +98,17 @@ export class FacilityStudentService {
     }
 
     if (files.length > 0) {
+      for (const file of files) {
+        await this.r2.send(
+          new PutObjectCommand({
+            Bucket: this.bucket,
+            Key: file.filename,
+            Body: file.buffer,
+            ContentType: file.mimetype,
+          }),
+        );
+      }
+
       await this.db.insert(facilityImg).values(
         files.map((file) => ({
           name: file.originalname,

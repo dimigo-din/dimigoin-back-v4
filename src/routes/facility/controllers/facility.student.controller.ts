@@ -1,13 +1,12 @@
-import * as path from "node:path";
 import {
   Body,
   Controller,
   Get,
+  HttpException,
   HttpStatus,
   Post,
   Query,
   Res,
-  StreamableFile,
   UseInterceptors,
 } from "@nestjs/common";
 import { ApiBody, ApiConsumes, ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
@@ -36,18 +35,22 @@ export class FacilityStudentController {
 
   @ApiOperation({
     summary: "이미지 불러오기",
-    description: "업로드된 이미지를 불러옵니다.",
+    description: "업로드된 이미지로 리다이렉트합니다.",
   })
   @ApiResponse({
-    status: HttpStatus.OK,
-    type: StreamableFile,
+    status: HttpStatus.FOUND,
   })
   @Get("/img")
   async getImg(@Res() res: FastifyReply, @Query() data: FacilityImgIdDTO) {
-    const result = await this.facilityService.getImg(data);
-
-    res.header("Content-Disposition", `attachment; filename="#{result.filename}"`);
-    return res.send(result.stream);
+    try {
+      const result = await this.facilityService.getImg(data);
+      return res.redirect(result.url, HttpStatus.FOUND);
+    } catch (err) {
+      const status =
+        err instanceof HttpException ? err.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
+      const error = err instanceof HttpException ? err.getResponse() : "Internal Server Error";
+      return res.status(status).send({ ok: false, status, error });
+    }
   }
 
   @ApiOperation({
@@ -87,20 +90,7 @@ export class FacilityStudentController {
   @Post("/")
   @UseInterceptors(ImageUploadInterceptor)
   async report(@CurrentUser() user: User, @Body() data: ReportFacilityDTO) {
-    const files = data.file || [];
-    try {
-      return await this.facilityService.createReport(user, data, files);
-    } catch (_e) {
-      for (const fileInfo of files) {
-        const targetFile = Bun.file(
-          path.join(process.cwd(), "uploads/facility", fileInfo.filename ?? ""),
-        );
-        if (await targetFile.exists()) {
-          await targetFile.delete();
-        }
-      }
-      throw _e;
-    }
+    return await this.facilityService.createReport(user, data, data.file || []);
   }
 
   @ApiOperation({

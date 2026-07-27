@@ -9,7 +9,7 @@
     "biome": "biome check --write",
     "build": "nest build -b swc",
     "format": "biome format --write",
-    "predev": "doppler run -- bun db:migrate",
+    "predev": "doppler run -- bun --bun run db:migrate",
     "prestart:prod": "bun db:migrate",
     "dev": "doppler run -- bun --watch src/main.ts",
     "start:prod": "bun dist/src/main.js",
@@ -27,6 +27,7 @@
     "test:verbose": "bun test --verbose"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1095.0",
     "@date-fns/tz": "^1.4.1",
     "@fastify/compress": "^8.3.1",
     "@fastify/cookie": "^11.0.2",
